@@ -1,0 +1,128 @@
+--- Config Push Log for B-ASBR-1 ---
+Timestamp: 2025-08-06 04:05:22.965138
+
+configure terminal
+
+Wed Aug  6 08:05:16.114 UTC
+RP/0/RP0/CPU0:B-ASBR-1(config)#route-policy PASS
+
+Wed Aug  6 08:05:16.512 UTC
+% WARNING: Policy object route-policy PASS exists! Reconfiguring it via CLI will replace current definition. Use abort to cancel.
+RP/0/RP0/CPU0:B-ASBR-1(config-rpl)#pass
+
+RP/0/RP0/CPU0:B-ASBR-1(config-rpl)#end-policy
+
+RP/0/RP0/CPU0:B-ASBR-1(config)#!
+
+RP/0/RP0/CPU0:B-ASBR-1(config)#interface GigabitEthernet0/0/0/0
+
+RP/0/RP0/CPU0:B-ASBR-1(config-if)# description to A-ASBR-1
+
+RP/0/RP0/CPU0:B-ASBR-1(config-if)# ipv4 address 100.64.121.2 255.255.255.0
+
+RP/0/RP0/CPU0:B-ASBR-1(config-if)# ipv6 address 2620:fc7:64:121::2/64
+
+RP/0/RP0/CPU0:B-ASBR-1(config-if)#!
+
+RP/0/RP0/CPU0:B-ASBR-1(config-if)#router static
+
+RP/0/RP0/CPU0:B-ASBR-1(config-static)# address-family ipv4 unicast
+
+RP/0/RP0/CPU0:B-ASBR-1(config-static-afi)#  100.64.121.1/32 GigabitEthernet0/0/0/0
+
+RP/0/RP0/CPU0:B-ASBR-1(config-static-afi)# !
+
+RP/0/RP0/CPU0:B-ASBR-1(config-static-afi)#
+
+RP/0/RP0/CPU0:B-ASBR-1(config-static-afi)#router bgp 200
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp)# !
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp)# address-family vpnv4 unicast
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-af)#  retain route-target all
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-af)# !
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-af)# address-family vpnv6 unicast
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-af)#  retain route-target all
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-af)# !
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-af)# neighbor-group IBGP-VPN
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp)#  remote-as 200
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp)#  update-source Loopback0
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp)#  address-family vpnv4 unicast
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp-af)#   next-hop-self
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp-af)#   route-policy PASS in
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp-af)#   route-policy PASS out
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp-af)#  !
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp-af)#  address-family vpnv6 unicast
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp-af)#   next-hop-self
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp-af)#   route-policy PASS in
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp-af)#   route-policy PASS out
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp-af)#  !
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp-af)# !
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp-af)# neighbor-group TO_A_ASBR
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp)#  remote-as 100
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp)#  update-source GigabitEthernet0/0/0/0
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp)#  address-family vpnv4 unicast
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp-af)#   route-policy PASS in
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp-af)#   route-policy PASS out
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp-af)#  !
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp-af)#  address-family vpnv6 unicast
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp-af)#   route-policy PASS in
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp-af)#   route-policy PASS out
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp-af)#  !
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp-af)# !
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp-af)# neighbor 2.0.101.10
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbr)#  use neighbor-group IBGP-VPN
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbr)# !
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbr)# neighbor 100.64.121.1
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbr)#  use neighbor-group TO_A_ASBR
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbr)#
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbr)#!
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbr)#
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbr)#router ospf 1
+
+RP/0/RP0/CPU0:B-ASBR-1(config-ospf)# redistribute bgp 200 route-policy PASS
+
+RP/0/RP0/CPU0:B-ASBR-1(config-ospf)#commit
+
+Wed Aug  6 08:05:19.494 UTC
+RP/0/RP0/CPU0:B-ASBR-1(config-ospf)#

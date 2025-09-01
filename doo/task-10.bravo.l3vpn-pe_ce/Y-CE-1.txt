@@ -1,0 +1,12 @@
+ipv6 router ospf 200
+!
+router ospf 100
+ router-id 10.2.1.1
+ network 10.20.4.2 0.0.0.0 area 0
+ network 10.2.1.1 0.0.0.0 area 0
+!
+interface loopback 0
+ ipv6 ospf 200 area 0
+!
+interface gig 2
+ ipv6 ospf 200 area 0

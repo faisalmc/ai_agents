@@ -1,0 +1,25 @@
+{
+  "hostname": "A-P-1",
+  "platform": "ios-xr",
+  "signals_seen": ["intf", "isis", "mpls"],
+  "status": "healthy",
+  "findings": [
+    {
+      "signal": "isis",
+      "severity": "info",
+      "detail": "ISIS interfaces are up and forming adjacencies. No issues detected."
+    },
+    {
+      "signal": "mpls",
+      "severity": "info",
+      "detail": "MPLS routes for IPv4 and IPv6 are present in the routing table."
+    }
+  ],
+  "recommended_show_cmds": [
+    "show isis interface brief",
+    "show isis neighbors",
+    "show ip route isis",
+    "show route ipv6 isis"
+  ],
+  "optional_active_cmds": []
+}

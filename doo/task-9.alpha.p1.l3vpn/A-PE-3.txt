@@ -1,0 +1,69 @@
+route-policy PASS
+pass
+end-policy
+
+vrf BLUE
+ address-family ipv4 unicast
+  import route-target
+  100:2
+  
+  export route-target
+  100:2
+
+ address-family ipv6 unicast
+  import route-target
+  100:2
+  
+  export route-target
+  100:2
+
+interface GigabitEthernet0/0/0/1
+no ipv4 address
+no ipv6 address
+vrf BLUE
+ipv4 address 10.10.4.1 255.255.255.0
+ipv6 address 2620:FC7:10:104::1/64
+
+router bgp 100
+address-family vpnv4 unicast
+!
+address-family ipv6 unicast
+!
+address-family vpnv6 unicast
+!
+
+neighbor-group TO_P
+address-family vpnv4 unicast
+next-hop-self
+!
+address-family vpnv6 unicast
+next-hop-self
+!
+
+!
+vrf BLUE
+rd 100:2
+address-family ipv4 unicast
+
+redistribute connected
+redistribute ospf 1 match external internal
+!
+address-family ipv6 unicast
+
+redistribute connected
+redistribute ospfv3 1 match external internal
+!
+router ospfv3 1 
+ router-id 10.10.4.1
+ vrf BLUE
+ redistribute bgp 100
+ area 0
+ interface GigabitEthernet0/0/0/1
+!
+router ospf 1 
+ router-id 10.10.4.1
+ vrf BLUE
+ redistribute bgp 100
+ area 0
+ interface GigabitEthernet0/0/0/1
+!

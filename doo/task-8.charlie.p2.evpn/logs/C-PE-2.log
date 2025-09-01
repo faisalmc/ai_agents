@@ -1,0 +1,100 @@
+--- Config Push Log for C-PE-2 ---
+Timestamp: 2025-08-06 02:47:59.144177
+
+configure terminal
+
+Wed Aug  6 06:47:51.438 UTC
+RP/0/RP0/CPU0:C-PE-2(config)#
+
+RP/0/RP0/CPU0:C-PE-2(config)# interface Bundle-Ether23
+
+RP/0/RP0/CPU0:C-PE-2(config-if)#
+
+RP/0/RP0/CPU0:C-PE-2(config-if)# interface Bundle-Ether23.20 l2transport
+
+RP/0/RP0/CPU0:C-PE-2(config-subif)#encapsulation dot1q 20
+
+RP/0/RP0/CPU0:C-PE-2(config-subif)#
+
+RP/0/RP0/CPU0:C-PE-2(config-subif)#interface GigabitEthernet0/0/0/4
+
+RP/0/RP0/CPU0:C-PE-2(config-if)# no ipv4 address
+
+RP/0/RP0/CPU0:C-PE-2(config-if)# no ipv6 address
+
+RP/0/RP0/CPU0:C-PE-2(config-if)# description to R-CE-2 GigabitEthernet2
+
+RP/0/RP0/CPU0:C-PE-2(config-if)# bundle id 23 mode active
+
+RP/0/RP0/CPU0:C-PE-2(config-if)#!
+
+RP/0/RP0/CPU0:C-PE-2(config-if)#
+
+RP/0/RP0/CPU0:C-PE-2(config-if)#router bgp 300
+
+RP/0/RP0/CPU0:C-PE-2(config-bgp)# segment-routing srv6
+
+RP/0/RP0/CPU0:C-PE-2(config-bgp-gbl-srv6)#  locator CCIE_ALGO_0
+
+RP/0/RP0/CPU0:C-PE-2(config-bgp-gbl-srv6)#!
+
+RP/0/RP0/CPU0:C-PE-2(config-bgp-gbl-srv6)# address-family l2vpn evpn
+
+RP/0/RP0/CPU0:C-PE-2(config-bgp-af)# !
+
+RP/0/RP0/CPU0:C-PE-2(config-bgp-af)# neighbor-group IBGP
+
+RP/0/RP0/CPU0:C-PE-2(config-bgp-nbrgrp)#  address-family l2vpn evpn
+
+RP/0/RP0/CPU0:C-PE-2(config-bgp-nbrgrp-af)#  !
+
+RP/0/RP0/CPU0:C-PE-2(config-bgp-nbrgrp-af)# !
+
+RP/0/RP0/CPU0:C-PE-2(config-bgp-nbrgrp-af)# neighbor 2620:fc7:3:101::1
+
+RP/0/RP0/CPU0:C-PE-2(config-bgp-nbr)#  address-family l2vpn evpn
+
+RP/0/RP0/CPU0:C-PE-2(config-bgp-nbr-af)# !
+
+RP/0/RP0/CPU0:C-PE-2(config-bgp-nbr-af)# neighbor 2620:fc7:3:101::3
+
+RP/0/RP0/CPU0:C-PE-2(config-bgp-nbr)#  address-family l2vpn evpn
+
+RP/0/RP0/CPU0:C-PE-2(config-bgp-nbr-af)#  !
+
+RP/0/RP0/CPU0:C-PE-2(config-bgp-nbr-af)#evpn
+
+RP/0/RP0/CPU0:C-PE-2(config-evpn)# interface Bundle-Ether23
+
+RP/0/RP0/CPU0:C-PE-2(config-evpn-ac)#  ethernet-segment
+
+RP/0/RP0/CPU0:C-PE-2(config-evpn-ac-es)#   identifier type 0 00.11.22.33.44.55.66.77.88
+
+RP/0/RP0/CPU0:C-PE-2(config-evpn-ac-es)#   load-balancing-mode single-active
+
+RP/0/RP0/CPU0:C-PE-2(config-evpn-ac-es)#  !
+
+RP/0/RP0/CPU0:C-PE-2(config-evpn-ac-es)# !
+
+RP/0/RP0/CPU0:C-PE-2(config-evpn-ac-es)# segment-routing srv6
+
+RP/0/RP0/CPU0:C-PE-2(config-evpn-srv6)#  locator CCIE_ALGO_0
+
+RP/0/RP0/CPU0:C-PE-2(config-evpn-srv6-locator)#
+
+RP/0/RP0/CPU0:C-PE-2(config-evpn-srv6-locator)#
+
+RP/0/RP0/CPU0:C-PE-2(config-evpn-srv6-locator)#l2vpn
+
+RP/0/RP0/CPU0:C-PE-2(config-l2vpn)# xconnect group evpn-vpws
+
+RP/0/RP0/CPU0:C-PE-2(config-l2vpn-xc)#  p2p RED20
+
+RP/0/RP0/CPU0:C-PE-2(config-l2vpn-xc-p2p)#   interface Bundle-Ether23.20
+
+RP/0/RP0/CPU0:C-PE-2(config-l2vpn-xc-p2p)#   neighbor evpn evi 30020 service 30020 segment-routing srv6
+
+RP/0/RP0/CPU0:C-PE-2(config-l2vpn-xc-p2p-pw)#commit
+
+Wed Aug  6 06:47:54.418 UTC
+RP/0/RP0/CPU0:C-PE-2(config-l2vpn-xc-p2p-pw)#

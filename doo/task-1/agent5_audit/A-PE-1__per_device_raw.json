@@ -1,0 +1,32 @@
+```json
+{
+  "hostname": "A-PE-1",
+  "platform": "ios-xr",
+  "signals_seen": ["isis", "intf", "ip"],
+  "status": "healthy",
+  "findings": [
+    {
+      "signal": "isis",
+      "severity": "info",
+      "detail": "ISIS is configured with specific settings as per intent"
+    },
+    {
+      "signal": "intf",
+      "severity": "info",
+      "detail": "Interfaces are up and running"
+    },
+    {
+      "signal": "ip",
+      "severity": "info",
+      "detail": "IP routes for ISIS are present"
+    }
+  ],
+  "recommended_show_cmds": [
+    "show isis interface brief",
+    "show isis neighbors",
+    "show ip route isis",
+    "show route ipv6 isis"
+  ],
+  "optional_active_cmds": []
+}
+```

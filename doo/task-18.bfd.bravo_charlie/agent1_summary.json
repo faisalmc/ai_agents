@@ -1,0 +1,666 @@
+[
+{
+    "hostname": "B-ASBR-1",
+    "provider": "Beta",
+    "customer": null,
+    "role": "ASBR",
+    "platform_hint": "cisco-ios-xr",
+    "vendor": "cisco",
+    "config_intents": [
+        "Establish BGP AS 200 with IPv4 and IPv6 unicast address families",
+        "Configure BFD with minimum-interval 500, multiplier 5, and fast-detect for neighbor-group TO_C_ASBR"
+    ],
+    "expected_state": [
+        {
+            "signal": "bgp",
+            "observation_goals": [
+                "BGP process is running",
+                "Neighbor with AS 300 is configured",
+                "BFD parameters set for the neighbor"
+            ],
+            "suggested_show": [
+                { "cmd": "show bgp summary", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" },
+                { "cmd": "show bgp neighbor 100.64.231.2", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr" }
+            ],
+            "candidate_show": [
+                { "cmd": "show run | section ^router bgp", "provenance": "llm", "confidence": "low", "platform": "cisco-ios-xr", "note": "Partial output" }
+            ]
+        },
+        {
+            "signal": "bfd",
+            "observation_goals": [
+                "BFD configured with minimum-interval 500, multiplier 5, and fast-detect for neighbor-group TO_C_ASBR"
+            ],
+            "suggested_show": [
+                { "cmd": "show bfd neighbors", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+            ],
+            "candidate_show": []
+        }
+    ]
+},
+{
+    "hostname": "C-ASBR-1",
+    "provider": "Charlie",
+    "customer": null,
+    "role": "ASBR",
+    "platform_hint": "cisco-ios-xr",
+    "vendor": "cisco",
+    "config_intents": [
+        "Establish BGP AS 300 with IPv4 and IPv6 unicast address families",
+        "Configure BFD with minimum-interval 500, multiplier 5, and fast-detect for neighbor-group TO_B_ASBR"
+    ],
+    "expected_state": [
+        {
+            "signal": "bgp",
+            "observation_goals": [
+                "BGP process running with AS 300",
+                "IPv4 and IPv6 unicast address families configured"
+            ],
+            "suggested_show": [
+                { "cmd": "show bgp summary", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+            ],
+            "candidate_show": []
+        },
+        {
+            "signal": "bfd",
+            "observation_goals": [
+                "BFD configured with minimum-interval 500, multiplier 5, and fast-detect for neighbor-group TO_B_ASBR"
+            ],
+            "suggested_show": [
+                { "cmd": "show bfd neighbors", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+            ],
+            "candidate_show": []
+        }
+    ]
+},
+{
+  "hostname": "Operational-Checks: show_cmds.ini",
+  "role": "validation-commands",
+  "checks": [
+    {"intent": "Show BGP configuration", "command": "show running-config router bgp", "protocol": "BGP"},
+    {"intent": "BGP neighbors summary", "command": "show ip bgp neighbor brief", "protocol": "BGP"},
+    {"intent": "BFD sessions summary", "command": "show bfd session", "protocol": "BFD"},
+    {"intent": "Detailed BFD sessions", "command": "show bfd session detail", "protocol": "BFD"},
+    {"intent": "Show version information", "command": "show ver", "protocol": "General"}
+  ]
+},
+{
+  "hostname": "Operational-Checks: show_cmds.ini",
+  "role": "validation-commands",
+  "checks": [
+    {"intent": "Show BGP configuration", "command": "show running-config router bgp", "protocol": "BGP"},
+    {"intent": "BGP neighbors summary", "command": "show ip bgp neighbor brief", "protocol": "BGP"},
+    {"intent": "BFD sessions summary", "command": "show bfd session", "protocol": "BFD"},
+    {"intent": "Detailed BFD sessions", "command": "show bfd session detail", "protocol": "BFD"},
+    {"intent": "Show version information", "command": "show ver", "protocol": "N/A"}
+  ]
+},
+{
+  "hostname": "B-ASBR-1",
+  "provider": null,
+  "customer": null,
+  "role": "validation-commands",
+  "platform_hint": null,
+  "vendor": "cisco",
+  "config_intents": [
+    "Ensure BGP process is running with IPv4 and IPv6 unicast address families",
+    "Configure BFD with minimum-interval 500, multiplier 5, and fast-detect for neighbor-group TO_C_ASBR"
+  ],
+  "expected_state": [
+    {
+      "signal": "bgp",
+      "observation_goals": [
+        "BGP process is running",
+        "IPv4 and IPv6 unicast address families configured"
+      ],
+      "suggested_show": [
+        { "cmd": "show bgp summary", "provenance": "llm", "confidence": "high", "platform": "ios-xr" }
+      ]
+    },
+    {
+      "signal": "bfd",
+      "observation_goals": [
+        "BFD configured with minimum-interval 500",
+        "BFD configured with multiplier 5",
+        "BFD configured with fast-detect for neighbor-group TO_C_ASBR"
+      ],
+      "suggested_show": [
+        { "cmd": "show bfd neighbors", "provenance": "llm", "confidence": "high", "platform": "ios-xr" },
+        { "cmd": "show bfd session detail", "provenance": "llm", "confidence": "high", "platform": "ios-xr" }
+      ]
+    }
+  ]
+},
+{
+  "hostname": "B-ASBR-1",
+  "provider": null,
+  "customer": null,
+  "role": "validation-commands",
+  "platform_hint": "cisco-ios-xr",
+  "vendor": "cisco",
+  "config_intents": [
+    "Verify BFD, BGP, EVPN, IS-IS, MPLS, OSPF, SR, SRv6 configurations"
+  ],
+  "expected_state": [
+    {
+      "signal": "bfd",
+      "observation_goals": [
+        "Check BFD sessions status",
+        "Inspect detailed BFD session information"
+      ],
+      "suggested_show": [
+        { "cmd": "show bfd session", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" },
+        { "cmd": "show bfd session detail", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": []
+    },
+    {
+      "signal": "bgp",
+      "observation_goals": [
+        "View BGP neighbor summary",
+        "Review BGP configuration"
+      ],
+      "suggested_show": [
+        { "cmd": "show ip bgp neighbor brief", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" },
+        { "cmd": "show running-config router bgp", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": [
+        { "cmd": "show bgp summary", "provenance": "llm", "confidence": "low", "platform": "cisco-ios-xr", "note": "Not as detailed as 'show ip bgp neighbor brief'" }
+      ]
+    },
+    {
+      "signal": "evpn",
+      "observation_goals": [
+        "Validate EVPN configuration"
+      ],
+      "suggested_show": [],
+      "candidate_show": []
+    },
+    {
+      "signal": "isis",
+      "observation_goals": [
+        "Check IS-IS configuration"
+      ],
+      "suggested_show": [],
+      "candidate_show": []
+    },
+    {
+      "signal": "mpls",
+      "observation_goals": [
+        "Review MPLS setup"
+      ],
+      "suggested_show": [],
+      "candidate_show": []
+    },
+    {
+      "signal": "ospf",
+      "observation_goals": [
+        "Inspect OSPF configuration"
+      ],
+      "suggested_show": [],
+      "candidate_show": []
+    },
+    {
+      "signal": "sr",
+      "observation_goals": [
+        "Verify Segment Routing configuration"
+      ],
+      "suggested_show": [],
+      "candidate_show": []
+    },
+    {
+      "signal": "srv6",
+      "observation_goals": [
+        "Check SRv6 configuration"
+      ],
+      "suggested_show": [],
+      "candidate_show": []
+    }
+  ]
+},
+{
+  "hostname": "C-ASBR-1",
+  "provider": null,
+  "customer": null,
+  "role": "validation-commands",
+  "platform_hint": "ios",
+  "vendor": "cisco",
+  "config_intents": [
+    "Investigate BGP neighbors in Idle state",
+    "Check interface GigabitEthernet0/0/0/1 status"
+  ],
+  "expected_state": [
+    {
+      "signal": "bgp",
+      "observation_goals": [
+        "BGP neighbors should be in Established state"
+      ],
+      "suggested_show": [
+        { "cmd": "show ip bgp neighbor brief", "provenance": "llm", "confidence": "high", "platform": "cisco-ios" }
+      ],
+      "candidate_show": []
+    },
+    {
+      "signal": "intf",
+      "observation_goals": [
+        "Interface GigabitEthernet0/0/0/1 should be UP"
+      ],
+      "suggested_show": [],
+      "candidate_show": []
+    }
+  ]
+},
+{
+  "hostname": "C-ASBR-1",
+  "provider": null,
+  "customer": null,
+  "role": "validation-commands",
+  "platform_hint": "cisco-ios-xr",
+  "vendor": "cisco",
+  "config_intents": [
+    "Ensure BFD, BGP, EVPN, ISIS, MPLS, and SR configurations are correctly applied"
+  ],
+  "expected_state": [
+    {
+      "signal": "bfd",
+      "observation_goals": [
+        "BFD sessions are established and operational"
+      ],
+      "suggested_show": [
+        { "cmd": "show bfd session", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" },
+        { "cmd": "show bfd session detail", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": []
+    },
+    {
+      "signal": "bgp",
+      "observation_goals": [
+        "BGP neighbors are up and operational",
+        "BGP summary information is correct"
+      ],
+      "suggested_show": [
+        { "cmd": "show ip bgp neighbor brief", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" },
+        { "cmd": "show running-config router bgp", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": [
+        { "cmd": "show bgp summary", "provenance": "llm", "confidence": "low", "platform": "cisco-ios-xr", "note": "Not in trusted commands" }
+      ]
+    },
+    {
+      "signal": "evpn",
+      "observation_goals": [
+        "EVPN configuration is correct"
+      ],
+      "suggested_show": [],
+      "candidate_show": []
+    },
+    {
+      "signal": "isis",
+      "observation_goals": [
+        "ISIS configuration is correct"
+      ],
+      "suggested_show": [],
+      "candidate_show": []
+    },
+    {
+      "signal": "mpls",
+      "observation_goals": [
+        "MPLS configuration is correct"
+      ],
+      "suggested_show": [],
+      "candidate_show": []
+    },
+    {
+      "signal": "sr",
+      "observation_goals": [
+        "SR configuration is correct"
+      ],
+      "suggested_show": [],
+      "candidate_show": []
+    }
+  ]
+},
+{
+  "hostname": "Operational-Checks: show_cmds.ini",
+  "role": "validation-commands",
+  "checks": [
+    {"intent": "Show BFD session summary", "command": "show bfd session", "protocol": "BFD"},
+    {"intent": "Show detailed BFD session information", "command": "show bfd session detail", "protocol": "BFD"},
+    {"intent": "Show BGP neighbors summary", "command": "show ip bgp neighbor brief", "protocol": "BGP"},
+    {"intent": "Show BGP configuration", "command": "show running-config router bgp", "protocol": "BGP"},
+    {"intent": "Show version information", "command": "show ver", "protocol": "General"}
+  ]
+},
+{
+  "hostname": "B-ASBR-1",
+  "provider": null,
+  "customer": null,
+  "role": "validation-commands",
+  "platform_hint": "cisco-ios-xr",
+  "vendor": "cisco",
+  "config_intents": [
+    "Verify BFD sessions",
+    "Check BGP neighbors",
+    "Inspect EVPN configurations",
+    "Review interface configurations",
+    "Examine IP routing information",
+    "Validate ISIS settings",
+    "Investigate L2VPN configurations",
+    "Review MPLS configurations",
+    "Check OSPF configurations",
+    "Verify Segment Routing configurations",
+    "Review SRv6 configurations"
+  ],
+  "expected_state": [
+    {
+      "signal": "bfd",
+      "observation_goals": [
+        "BFD sessions are up and operational"
+      ],
+      "suggested_show": [
+        { "cmd": "show bfd session", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" },
+        { "cmd": "show bfd session detail", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": [
+        { "cmd": "show bfd neighbors", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr", "note": "Not as trusted as 'show bfd session'" }
+      ]
+    },
+    {
+      "signal": "bgp",
+      "observation_goals": [
+        "BGP neighbors are established"
+      ],
+      "suggested_show": [
+        { "cmd": "show ip bgp neighbor brief", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" },
+        { "cmd": "show running-config router bgp", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": [
+        { "cmd": "show bgp summary", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr", "note": "Suggested by agent1" }
+      ]
+    },
+    {
+      "signal": "evpn",
+      "observation_goals": [
+        "EVPN cross-connects are configured"
+      ],
+      "suggested_show": [
+        { "cmd": "show run | section evpn", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": []
+    },
+    {
+      "signal": "intf",
+      "observation_goals": [
+        "Interface configurations are correct"
+      ],
+      "suggested_show": [
+        { "cmd": "show run interface", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": []
+    },
+    {
+      "signal": "ip",
+      "observation_goals": [
+        "IP routing information is accurate"
+      ],
+      "suggested_show": [
+        { "cmd": "show ip route", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": []
+    },
+    {
+      "signal": "isis",
+      "observation_goals": [
+        "ISIS configurations are correct"
+      ],
+      "suggested_show": [
+        { "cmd": "show run | section router isis", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": []
+    },
+    {
+      "signal": "l2vpn",
+      "observation_goals": [
+        "L2VPN configurations are in place"
+      ],
+      "suggested_show": [
+        { "cmd": "show run | section l2vpn", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": []
+    },
+    {
+      "signal": "mpls",
+      "observation_goals": [
+        "MPLS configurations are correct"
+      ],
+      "suggested_show": [
+        { "cmd": "show run | section mpls", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": []
+    },
+    {
+      "signal": "ospf",
+      "observation_goals": [
+        "OSPF configurations are accurate"
+      ],
+      "suggested_show": [
+        { "cmd": "show run | section router ospf", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": []
+    },
+    {
+      "signal": "sr",
+      "observation_goals": [
+        "Segment Routing configurations are valid"
+      ],
+      "suggested_show": [
+        { "cmd": "show run | section segment-routing", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": []
+    },
+    {
+      "signal": "srv6",
+      "observation_goals": [
+        "SRv6 configurations are correct"
+      ],
+      "suggested_show": [
+        { "cmd": "show run | section srv6", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": []
+    }
+  ]
+},
+{
+  "hostname": "C-ASBR-1",
+  "provider": null,
+  "customer": null,
+  "role": "validation-commands",
+  "platform_hint": "cisco-ios-xr",
+  "vendor": "cisco",
+  "config_intents": [
+    "Verify BFD sessions",
+    "Check BGP neighbors",
+    "Inspect EVPN configuration",
+    "Review interface configurations",
+    "Examine IP routing",
+    "Validate ISIS settings",
+    "Investigate L2VPN setup",
+    "Ensure MPLS configuration",
+    "Check OSPF status",
+    "Review Segment Routing configuration",
+    "Inspect SRv6 configuration"
+  ],
+  "expected_state": [
+    {
+      "signal": "bfd",
+      "observation_goals": [
+        "BFD sessions are up and operational"
+      ],
+      "suggested_show": [
+        { "cmd": "show bfd session", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" },
+        { "cmd": "show bfd session detail", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": [
+        { "cmd": "show bfd neighbors", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr", "note": "Not as trusted, may provide additional insights" }
+      ]
+    },
+    {
+      "signal": "bgp",
+      "observation_goals": [
+        "BGP neighbors are established",
+        "Check BGP summary"
+      ],
+      "suggested_show": [
+        { "cmd": "show ip bgp neighbor brief", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" },
+        { "cmd": "show running-config router bgp", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": [
+        { "cmd": "show bgp summary", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr", "note": "Suggested by agent1" }
+      ]
+    },
+    {
+      "signal": "evpn",
+      "observation_goals": [
+        "EVPN cross-connects are configured"
+      ],
+      "suggested_show": [
+        { "cmd": "show run | section evpn", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": []
+    },
+    {
+      "signal": "intf",
+      "observation_goals": [
+        "Interface configurations are correct"
+      ],
+      "suggested_show": [
+        { "cmd": "show run interface", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": []
+    },
+    {
+      "signal": "ip",
+      "observation_goals": [
+        "IP routing is functioning as expected"
+      ],
+      "suggested_show": [
+        { "cmd": "show ip route", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": []
+    },
+    {
+      "signal": "isis",
+      "observation_goals": [
+        "ISIS configuration is correct"
+      ],
+      "suggested_show": [
+        { "cmd": "show run | section router isis", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": []
+    },
+    {
+      "signal": "l2vpn",
+      "observation_goals": [
+        "L2VPN setup is operational"
+      ],
+      "suggested_show": [
+        { "cmd": "show l2vpn", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": []
+    },
+    {
+      "signal": "mpls",
+      "observation_goals": [
+        "MPLS configuration is correct"
+      ],
+      "suggested_show": [
+        { "cmd": "show mpls ldp neighbor", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": []
+    },
+    {
+      "signal": "ospf",
+      "observation_goals": [
+        "OSPF status is as expected"
+      ],
+      "suggested_show": [
+        { "cmd": "show ip ospf neighbor", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": []
+    },
+    {
+      "signal": "sr",
+      "observation_goals": [
+        "Segment Routing configuration is accurate"
+      ],
+      "suggested_show": [
+        { "cmd": "show run | section segment-routing", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": []
+    },
+    {
+      "signal": "srv6",
+      "observation_goals": [
+        "SRv6 configuration is correct"
+      ],
+      "suggested_show": [
+        { "cmd": "show run | section srv6", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": []
+    }
+  ]
+},
+{
+  "hostname": "Operational-Checks: show_cmds.ini",
+  "role": "validation-commands",
+  "checks": [
+    {"intent": "Show BFD session", "command": "show bfd session"},
+    {"intent": "Show detailed BFD session information", "command": "show bfd session detail"},
+    {"intent": "Show BGP neighbors summary", "command": "show ip bgp neighbor brief", "protocol": "BGP"},
+    {"intent": "Show BGP configuration", "command": "show running-config router bgp", "protocol": "BGP"},
+    {"intent": "Show version information", "command": "show ver"}
+  ]
+},
+{
+  "hostname": "Operational-Checks: show_cmds.ini",
+  "role": "validation-commands",
+  "checks": [
+    {
+      "intent": "Show BFD sessions",
+      "command": "show bfd session",
+      "protocol": "BFD"
+    },
+    {
+      "intent": "Show detailed BFD sessions",
+      "command": "show bfd session detail",
+      "protocol": "BFD"
+    },
+    {
+      "intent": "Show BGP neighbors summary",
+      "command": "show ip bgp neighbor brief",
+      "protocol": "BGP"
+    },
+    {
+      "intent": "Show BGP configuration",
+      "command": "show running-config router bgp",
+      "protocol": "BGP"
+    },
+    {
+      "intent": "Show version information",
+      "command": "show ver",
+      "protocol": "General"
+    }
+  ]
+},
+{
+  "hostname": "Operational-Checks: show_cmds.ini",
+  "role": "validation-commands",
+  "checks": [
+    {"intent": "Show BFD sessions", "command": "show bfd session", "protocol": "BFD"},
+    {"intent": "Show detailed BFD sessions", "command": "show bfd session detail", "protocol": "BFD"},
+    {"intent": "Show BGP neighbors summary", "command": "show ip bgp neighbor brief", "protocol": "BGP"},
+    {"intent": "Show BGP configuration", "command": "show running-config router bgp", "protocol": "BGP"},
+    {"intent": "Show version information", "command": "show ver", "protocol": "General"}
+  ]
+}
+]

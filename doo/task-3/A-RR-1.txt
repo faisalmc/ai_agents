@@ -1,0 +1,19 @@
+router bgp 100
+ bgp router-id 1.0.101.11
+ no bgp default ipv4-unicast
+!
+neighbor RR_CLIENT peer-group
+neighbor RR_CLIENT remote-as 100
+neighbor RR_CLIENT update-source Loopback0
+neighbor 1.0.101.5 peer-group RR_CLIENT
+neighbor 1.0.101.6 peer-group RR_CLIENT
+neighbor 1.0.101.7 peer-group RR_CLIENT
+neighbor 1.0.101.8 peer-group RR_CLIENT
+!
+address-family ipv4 unicast
+neighbor RR_CLIENT route-reflector-client
+neighbor RR_CLIENT send-label
+neighbor 1.0.101.5 activate
+neighbor 1.0.101.6 activate
+neighbor 1.0.101.7 activate
+neighbor 1.0.101.8 activate

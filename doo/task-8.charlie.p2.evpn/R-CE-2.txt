@@ -1,0 +1,21 @@
+router ospf 1
+ redistribute connected
+!
+interface Port-channel1
+ no ip address
+
+interface Port-channel1.20
+ encapsulation dot1Q 20
+ ip address 10.1.123.2 255.255.255.0
+ ip ospf 1 area 0
+!  
+interface GigabitEthernet2
+ no ip address
+ no ipv6 address
+ channel-group 1 mode active
+
+interface GigabitEthernet3
+ no ip address
+ no ipv6 address
+ channel-group 1 mode active
+

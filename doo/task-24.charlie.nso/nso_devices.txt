@@ -1,0 +1,55 @@
+$ nso_cli -Cu admin
+
+config
+devices device C-PE-4 address 3.0.101.4
+port 22
+device-type cli ned-id cisco-iosxr-cli-7.69
+state admin-state unlocked
+authgroup sp-charlie
+commit
+end
+!
+config
+devices device C-PE-3 address 3.0.101.3
+port 22
+device-type cli ned-id cisco-iosxr-cli-7.69
+state admin-state unlocked
+authgroup sp-charlie
+commit
+end
+!
+config
+devices device M-CE-2 address 192.168.100.142
+port 22
+devices device M-CE-2 device-type cli ned-id cisco-ios-cli-6.109
+state admin-state unlocked
+authgroup sp-charlie
+commit
+end
+!
+config
+devices device M-CE-1 address 192.168.100.141
+port 22
+devices device M-CE-1 device-type cli ned-id cisco-ios-cli-6.109
+state admin-state unlocked
+authgroup sp-charlie
+commit
+end
+!
+devices device C-PE-3 ssh fetch-host-keys
+devices device C-PE-4 ssh fetch-host-keys
+devices device M-CE-1 ssh fetch-host-keys
+devices device M-CE-2 ssh fetch-host-keys
+! 
+devices device M-CE-1 sync-from
+devices device M-CE-1 check-sync
+! 
+devices device M-CE-2 sync-from
+devices device M-CE-2 check-sync
+! 
+devices device C-PE-3 sync-from
+devices device C-PE-3 check-sync
+! 
+devices device C-PE-4 sync-from
+devices device C-PE-4 check-sync
+!

@@ -1,0 +1,171 @@
+--- SYSTEM ---
+You are a senior Cisco SP NOC engineer.
+You will receive:
+  • Optional JSON from Agent‑1 summarizing intended configuration for this host
+  • CLI show-output captured in a Markdown (.md) file for this host (IOS or IOS‑XR)
+Your tasks:
+  1) Determine platform ("ios-xr" or "ios") if possible from the log, else "unknown".
+  2) From the log ONLY, assess health for protocols/features that appear (BGP, EVPN/L2VPN,
+     ISIS/OSPF, SR/SRv6, MPLS, interface/port-channel, reachability).
+  3) If intent JSON is provided, use it as context for *expected* state, but do NOT invent facts
+     not visible in the log.
+  4) Return a single JSON object with fields:
+     {
+       "hostname": "<string>",
+       "platform": "ios-xr" | "ios" | "unknown",
+       "signals_seen": ["bgp","evpn","isis","mpls","sr","l2vpn","intf","ip", ...],
+       "status": "healthy" | "degraded" | "error" | "unknown",
+       "findings": [ {"signal":"bgp","severity":"warn|error|info","detail":"..."} , ... ],
+       "recommended_show_cmds": [ "show ...", ... ],   // safe, read-only
+       "optional_active_cmds": [ "ping ...", "traceroute ..." ]  // optional probes only
+     }
+  5) NEVER include config/clear/reload/debug commands in either list.
+  6) Be conservative: if signal is unclear, mark severity "info" and explain.
+  7) Only report signals that are evidenced by the provided log text, agent‑1 intents, or show_cmds.ini. Do not infer protocols that are not visible.
+  8) If `ground_evidence_facts` contains a condition (e.g., interface CLNS=Down, BGP neighbor=Idle/Active), you MUST surface a corresponding finding with the evidence reference.
+
+Output ONLY the JSON object.
+Prefer recommending follow-up 'show' commands that are already present in show_cmds.ini; add at most 3 new 'show' commands only if clearly warranted by the findings. Never suggest config/debug/clear.
+Do not mention devices other than the current hostname. If a signal is not evidenced in the log/context, exclude it.
+
+
+--- USER ---
+### Context (JSON)
+```json
+{
+  "hostname": "A-RR-2",
+  "platform_hint": "unknown",
+  "focus_signals": [
+    "bgp",
+    "intf",
+    "ip",
+    "isis",
+    "mpls",
+    "ospf"
+  ],
+  "allow_active_probes": false,
+  "agent1_summary": {
+    "hostname": "A-RR-2",
+    "provider": "Alpha",
+    "customer": null,
+    "role": "Route-Reflector",
+    "config_intents": [
+      "Enable IPv6 unicast routing",
+      "Configure interfaces GigabitEthernet2, GigabitEthernet3, Loopback0 for ISIS",
+      "Set ISIS network type to point-to-point",
+      "Disable ISIS hello padding",
+      "Configure ISIS router with network address, level-2-only, wide metric-style, and passive interface Loopback0",
+      "Set ISIS IPv6 metric for level-2 to 200"
+    ]
+  },
+  "show_cmds_ini": [
+    "show run group",
+    "show run router isis",
+    "show isis interface brief",
+    "show isis neighbors",
+    "show ip route isis",
+    "show route ipv6 isis",
+    "show run | section router isis",
+    "show ipv6 route isis"
+  ],
+  "ground_evidence_facts": {}
+}
+```
+
+### Device Log (Markdown)
+```md
+# Grading Output for Task task-1
+**Device:** A-RR-2 (192.168.100.112)
+_Generated: 2025-08-27 15:54:05.665031_
+
+## show isis neighbors
+
+```
+show isis neighbors
+
+Tag null:
+System Id       Type Interface     IP Address      State Holdtime Circuit Id
+A-P-3           L2   Gi2           1.0.71.2        UP    27       00
+A-RR-1          L2   Gi3           1.0.73.1        UP    24       03
+A-RR-2#
+```
+
+## show ip route isis
+
+```
+show ip route isis
+Codes: L - local, C - connected, S - static, R - RIP, M - mobile, B - BGP
+       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area 
+       N1 - OSPF NSSA external type 1, N2 - OSPF NSSA external type 2
+       E1 - OSPF external type 1, E2 - OSPF external type 2, m - OMP
+       n - NAT, Ni - NAT inside, No - NAT outside, Nd - NAT DIA
+       i - IS-IS, su - IS-IS summary, L1 - IS-IS level-1, L2 - IS-IS level-2
+       ia - IS-IS inter area, * - candidate default, U - per-user static route
+       H - NHRP, G - NHRP registered, g - NHRP registration summary
+       o - ODR, P - periodic downloaded static route, l - LISP
+       a - application route
+       + - replicated route, % - next hop override, p - overrides from PfR
+       & - replicated local route overrides by connected
+
+Gateway of last resort is not set
+
+      1.0.0.0/8 is variably subnetted, 21 subnets, 2 masks
+i L2     1.0.30.0/24 [115/200] via 1.0.71.2, 6d09h, GigabitEthernet2
+i L2     1.0.31.0/24 [115/300] via 1.0.71.2, 04:38:49, GigabitEthernet2
+i L2     1.0.32.0/24 [115/200] via 1.0.71.2, 6d09h, GigabitEthernet2
+i L2     1.0.33.0/24 [115/300] via 1.0.73.1, 08:34:36, GigabitEthernet3
+                     [115/300] via 1.0.71.2, 08:34:36, GigabitEthernet2
+i L2     1.0.34.0/24 [115/200] via 1.0.71.2, 6d09h, GigabitEthernet2
+i L2     1.0.35.0/24 [115/300] via 1.0.73.1, 04:38:49, GigabitEthernet3
+                     [115/300] via 1.0.71.2, 04:38:49, GigabitEthernet2
+i L2     1.0.70.0/24 [115/200] via 1.0.73.1, 6d09h, GigabitEthernet3
+i L2     1.0.101.6/32 [115/300] via 1.0.71.2, 6d09h, GigabitEthernet2
+i L2     1.0.101.7/32 [115/200] via 1.0.71.2, 6d09h, GigabitEthernet2
+i L2     1.0.101.8/32 [115/300] via 1.0.71.2, 04:38:49, GigabitEthernet2
+i L2     1.0.101.11/32 [115/100] via 1.0.73.1, 6d09h, GigabitEthernet3
+A-RR-2#
+```
+
+## show ipv6 route isis
+
+```
+show ipv6 route isis
+IPv6 Routing Table - default - 17 entries
+Codes: C - Connected, L - Local, S - Static, U - Per-user Static route
+       B - BGP, R - RIP, H - NHRP, I1 - ISIS L1
+       I2 - ISIS L2, IA - ISIS interarea, IS - ISIS summary, D - EIGRP
+       EX - EIGRP external, ND - ND Default, NDp - ND Prefix, DCE - Destination
+       NDr - Redirect, RL - RPL, O - OSPF Intra, OI - OSPF Inter
+       OE1 - OSPF ext 1, OE2 - OSPF ext 2, ON1 - OSPF NSSA ext 1
+       ON2 - OSPF NSSA ext 2, la - LISP alt, lr - LISP site-registrations
+       ld - LISP dyn-eid, lA - LISP away, le - LISP extranet-policy
+       lp - LISP publications, a - Application, m - OMP
+I2  2620:FC7:1:30::/64 [115/300]
+     via FE80::5054:FF:FE8C:9841, GigabitEthernet2
+I2  2620:FC7:1:31::/64 [115/400]
+     via FE80::5054:FF:FE8C:9841, GigabitEthernet2
+I2  2620:FC7:1:32::/64 [115/300]
+     via FE80::5054:FF:FE8C:9841, GigabitEthernet2
+I2  2620:FC7:1:33::/64 [115/400]
+     via FE80::5054:FF:FE8A:F0E0, GigabitEthernet3
+     via FE80::5054:FF:FE8C:9841, GigabitEthernet2
+I2  2620:FC7:1:34::/64 [115/300]
+     via FE80::5054:FF:FE8C:9841, GigabitEthernet2
+I2  2620:FC7:1:35::/64 [115/400]
+     via FE80::5054:FF:FE8A:F0E0, GigabitEthernet3
+     via FE80::5054:FF:FE8C:9841, GigabitEthernet2
+I2  2620:FC7:1:70::/64 [115/200]
+     via FE80::5054:FF:FE8A:F0E0, GigabitEthernet3
+I2  2620:FC7:1001::6/128 [115/400]
+     via FE80::5054:FF:FE8C:9841, GigabitEthernet2
+I2  2620:FC7:1001::7/128 [115/300]
+     via FE80::5054:FF:FE8C:9841, GigabitEthernet2
+I2  2620:FC7:1001::8/128 [115/400]
+     via FE80::5054:FF:FE8C:9841, GigabitEthernet2
+I2  2620:FC7:1001::11/128 [115/100]
+     via FE80::5054:FF:FE8A:F0E0, GigabitEthernet3
+A-RR-2#
+```
+
+
+```

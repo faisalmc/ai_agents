@@ -1,0 +1,39 @@
+group ISIS-GRP
+router isis '.*'
+set-overload-bit on-startup 180
+is-type level-2-only
+!
+address-family ipv4 unicast
+metric-style wide
+!
+address-family ipv6 unicast
+metric-style wide
+single-topology
+!
+interface 'Loopback.*'
+point-to-point
+address-family ipv4 unicast
+metric 100 level 2
+!
+address-family ipv6 unicast
+metric 200 level 2
+!
+interface 'GigabitEthernet.*'
+point-to-point
+address-family ipv4 unicast
+metric 100 level 2
+!
+address-family ipv6 unicast
+metric 200 level 2
+!
+root
+!
+router isis AGG2
+apply-group ISIS-GRP
+net 49.0001.0001.0000.0101.0004.00
+!
+interface Loopback0
+!
+interface GigabitEthernet0/0/0/0
+!
+

@@ -1,0 +1,54 @@
+--- Config Push Log for A-ASBR-1 ---
+Timestamp: 2025-08-05 02:34:57.929474
+
+configure terminal
+
+Tue Aug  5 06:34:51.311 UTC
+RP/0/RP0/CPU0:A-ASBR-1(config)#segment-routing
+
+RP/0/RP0/CPU0:A-ASBR-1(config-sr)#global-block 16000 23999
+
+RP/0/RP0/CPU0:A-ASBR-1(config-sr)#local-block 25000 26000
+
+RP/0/RP0/CPU0:A-ASBR-1(config-sr)#!
+
+RP/0/RP0/CPU0:A-ASBR-1(config-sr)#root
+
+RP/0/RP0/CPU0:A-ASBR-1(config)#!
+
+RP/0/RP0/CPU0:A-ASBR-1(config)#router isis AGG2
+
+RP/0/RP0/CPU0:A-ASBR-1(config-isis)# address-family ipv4 unicast
+
+RP/0/RP0/CPU0:A-ASBR-1(config-isis-af)#  segment-routing mpls sr-prefer
+
+RP/0/RP0/CPU0:A-ASBR-1(config-isis-af)#  microloop avoidance segment-routing
+
+RP/0/RP0/CPU0:A-ASBR-1(config-isis-af)#!
+
+RP/0/RP0/CPU0:A-ASBR-1(config-isis-af)# address-family ipv6 unicast
+
+RP/0/RP0/CPU0:A-ASBR-1(config-isis-af)#  segment-routing mpls sr-prefer
+
+RP/0/RP0/CPU0:A-ASBR-1(config-isis-af)#  microloop avoidance segment-routing
+
+RP/0/RP0/CPU0:A-ASBR-1(config-isis-af)#!
+
+RP/0/RP0/CPU0:A-ASBR-1(config-isis-af)#interface Loopback0
+
+RP/0/RP0/CPU0:A-ASBR-1(config-isis-if)#address-family ipv4 unicast
+
+RP/0/RP0/CPU0:A-ASBR-1(config-isis-if-af)# prefix-sid index 9
+
+RP/0/RP0/CPU0:A-ASBR-1(config-isis-if-af)#!
+
+RP/0/RP0/CPU0:A-ASBR-1(config-isis-if-af)#address-family ipv6 unicast
+
+RP/0/RP0/CPU0:A-ASBR-1(config-isis-if-af)# prefix-sid index 1009
+
+RP/0/RP0/CPU0:A-ASBR-1(config-isis-if-af)#!
+
+RP/0/RP0/CPU0:A-ASBR-1(config-isis-if-af)#commit
+
+Tue Aug  5 06:34:52.729 UTC
+RP/0/RP0/CPU0:A-ASBR-1(config-isis-if-af)#

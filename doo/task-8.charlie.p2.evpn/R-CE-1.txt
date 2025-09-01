@@ -1,0 +1,12 @@
+router ospf 1
+ redistribute connected
+!
+interface GigabitEthernet2
+ no ip address
+ no shutdown
+
+interface GigabitEthernet2.20
+ encapsulation dot1Q 20
+ ip address 10.1.123.1 255.255.255.0
+ ip ospf 1 area 0
+

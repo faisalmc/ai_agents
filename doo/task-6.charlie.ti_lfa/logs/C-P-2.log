@@ -1,0 +1,114 @@
+--- Config Push Log for C-P-2 ---
+Timestamp: 2025-08-05 03:57:06.271370
+
+configure terminal
+
+Tue Aug  5 07:57:00.021 UTC
+RP/0/RP0/CPU0:C-P-2(config)#router isis CORE
+
+RP/0/RP0/CPU0:C-P-2(config-isis)#address-family ipv4 unicast
+
+RP/0/RP0/CPU0:C-P-2(config-isis-af)#microloop avoidance segment-routing
+
+RP/0/RP0/CPU0:C-P-2(config-isis-af)#!
+
+RP/0/RP0/CPU0:C-P-2(config-isis-af)#address-family ipv6 unicast
+
+RP/0/RP0/CPU0:C-P-2(config-isis-af)#microloop avoidance segment-routing
+
+RP/0/RP0/CPU0:C-P-2(config-isis-af)#!
+
+RP/0/RP0/CPU0:C-P-2(config-isis-af)#interface GigabitEthernet0/0/0/0
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if)#address-family ipv4 unicast
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#fast-reroute per-prefix level 2
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#fast-reroute per-prefix ti-lfa level 2
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#!
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#address-family ipv6 unicast
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#fast-reroute per-prefix level 2
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#fast-reroute per-prefix ti-lfa level 2
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#!
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#interface GigabitEthernet0/0/0/1
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if)#address-family ipv4 unicast
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#fast-reroute per-prefix level 2
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#fast-reroute per-prefix ti-lfa level 2
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#!
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#address-family ipv6 unicast
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#fast-reroute per-prefix level 2
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#fast-reroute per-prefix ti-lfa level 2
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#!
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#interface GigabitEthernet0/0/0/2
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if)#address-family ipv4 unicast
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#fast-reroute per-prefix level 2
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#fast-reroute per-prefix ti-lfa level 2
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#!
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#address-family ipv6 unicast
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#fast-reroute per-prefix level 2
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#fast-reroute per-prefix ti-lfa level 2
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#!
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#interface GigabitEthernet0/0/0/3
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if)#address-family ipv4 unicast
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#fast-reroute per-prefix level 2
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#fast-reroute per-prefix ti-lfa level 2
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#!
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#address-family ipv6 unicast
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#fast-reroute per-prefix level 2
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#fast-reroute per-prefix ti-lfa level 2
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#!
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#interface GigabitEthernet0/0/0/4
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if)#address-family ipv4 unicast
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#fast-reroute per-prefix level 2
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#fast-reroute per-prefix ti-lfa level 2
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#!
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#address-family ipv6 unicast
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#fast-reroute per-prefix level 2
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#fast-reroute per-prefix ti-lfa level 2
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#!
+
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#commit
+
+Tue Aug  5 07:57:03.068 UTC
+RP/0/RP0/CPU0:C-P-2(config-isis-if-af)#

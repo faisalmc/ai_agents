@@ -1,0 +1,29 @@
+{
+  "hostname": "A-RR-1",
+  "platform": "ios",
+  "signals_seen": ["isis", "intf", "ip"],
+  "status": "healthy",
+  "findings": [
+    {
+      "signal": "isis",
+      "severity": "info",
+      "detail": "ISIS neighbors A-P-1 and A-RR-2 are UP"
+    },
+    {
+      "signal": "intf",
+      "severity": "info",
+      "detail": "Interfaces GigabitEthernet2 and GigabitEthernet3 are used for ISIS"
+    },
+    {
+      "signal": "ip",
+      "severity": "info",
+      "detail": "IPv4 and IPv6 routes for ISIS are present"
+    }
+  ],
+  "recommended_show_cmds": [
+    "show isis neighbors",
+    "show ip route isis",
+    "show ipv6 route isis"
+  ],
+  "optional_active_cmds": []
+}

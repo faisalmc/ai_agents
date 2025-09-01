@@ -1,0 +1,15 @@
+ipv6 unicast-routing
+router ospf 1
+router-id 10.1.1.4
+!
+router ospfv3 1
+router-id 10.1.1.4
+!
+interface GigabitEthernet2
+ip ospf 1 area 0
+ipv6 ospf 1 area 0
+!
+interface Loopback0
+ip ospf 1 area 0
+ipv6 ospf 1 area 0
+!

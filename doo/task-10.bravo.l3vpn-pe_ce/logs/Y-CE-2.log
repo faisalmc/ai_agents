@@ -1,0 +1,27 @@
+--- Config Push Log for Y-CE-2 ---
+Timestamp: 2025-08-06 10:37:20.905782
+
+configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+Y-CE-2(config)#!
+Y-CE-2(config)#router bgp 2000
+Y-CE-2(config-router)# bgp router-id 10.2.1.2
+Y-CE-2(config-router)# bgp log-neighbor-changes
+Y-CE-2(config-router)# neighbor 2620:FC7:20:5::1 remote-as 200
+Y-CE-2(config-router)# neighbor 2620:FC7:20:6::1 remote-as 200
+Y-CE-2(config-router)# neighbor 10.20.5.1 remote-as 200
+Y-CE-2(config-router)# neighbor 10.20.6.1 remote-as 200
+Y-CE-2(config-router)# !
+Y-CE-2(config-router)# address-family ipv4
+Y-CE-2(config-router-af)#  network 10.2.1.2 mask 255.255.255.255
+Y-CE-2(config-router-af)#  neighbor 10.20.5.1 activate
+Y-CE-2(config-router-af)#  neighbor 10.20.6.1 activate
+Y-CE-2(config-router-af)# exit-address-family
+Y-CE-2(config-router)# !
+Y-CE-2(config-router)# address-family ipv6
+Y-CE-2(config-router-af)#  network 2620:FC7:2:1::2/128
+Y-CE-2(config-router-af)#  neighbor 2620:FC7:20:5::1 activate
+Y-CE-2(config-router-af)#  neighbor 2620:FC7:20:6::1 activate
+Y-CE-2(config-router-af)# exit-address-family
+Y-CE-2(config-router)#end
+Y-CE-2#

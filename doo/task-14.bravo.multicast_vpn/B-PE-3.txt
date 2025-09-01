@@ -1,0 +1,58 @@
+multicast-routing
+ address-family ipv4
+  interface Loopback0
+   enable
+  interface GigabitEthernet0/0/0/0
+   enable
+  !
+ !
+ vrf YELLOW
+  address-family ipv4
+   ! CE-facing interface
+   interface GigabitEthernet0/0/0/1  
+    enable
+    !
+    mdt source Loopback0
+     rate-per-route
+     accounting per-prefix
+     bgp auto-discovery pim
+     !
+    !
+    mdt default ipv4 239.232.0.1
+    mdt data 239.232.100.0/24 threshold 1
+    !
+root
+!
+router bgp 200
+ mvpn
+ address-family ipv4 mvpn
+  neighbor-group IBGP-VPN
+   address-family ipv4 mvpn
+ !
+ vrf YELLOW
+  address-family ipv4 mvpn
+ !
+ root
+!
+ipv4 access-list SSM
+ 10 permit ipv4 239.232.0.0 0.0.255.255 any
+ 20 permit ipv4 232.0.0.0 0.255.255.255 any
+!
+route-policy CORE_TREE
+ set core-tree pim-default
+end-policy
+!
+router pim
+ address-family ipv4
+  interface Loopback0
+   enable
+  interface GigabitEthernet0/0/0/0
+   enable
+  ssm range SSM
+  !
+ vrf YELLOW
+  address-family ipv4
+   rpf topology route-policy CORE_TREE
+   interface GigabitEthernet0/0/0/1
+    enable
+

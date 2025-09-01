@@ -1,0 +1,15 @@
+router bgp 200
+ !
+ vrf YELLOW
+  address-family ipv6 unicast
+   exit
+  neighbor 10.20.6.2
+   address-family ipv4 unicast
+    site-of-origin 2000:200
+   !
+  !
+  neighbor 2620:FC7:20:6::2
+   address-family ipv6 unicast
+    site-of-origin 2000:200
+   !
+  !

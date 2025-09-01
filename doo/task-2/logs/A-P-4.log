@@ -1,0 +1,86 @@
+--- Config Push Log for A-P-4 ---
+Timestamp: 2025-08-05 02:34:52.785760
+
+configure terminal
+
+Tue Aug  5 06:34:44.874 UTC
+RP/0/RP0/CPU0:A-P-4(config)#segment-routing
+
+RP/0/RP0/CPU0:A-P-4(config-sr)#global-block 16000 23999
+
+RP/0/RP0/CPU0:A-P-4(config-sr)#local-block 25000 26000
+
+RP/0/RP0/CPU0:A-P-4(config-sr)#!
+
+RP/0/RP0/CPU0:A-P-4(config-sr)#root
+
+RP/0/RP0/CPU0:A-P-4(config)#!
+
+RP/0/RP0/CPU0:A-P-4(config)#router isis CORE
+
+RP/0/RP0/CPU0:A-P-4(config-isis)# address-family ipv4 unicast
+
+RP/0/RP0/CPU0:A-P-4(config-isis-af)#  segment-routing mpls sr-prefer
+
+RP/0/RP0/CPU0:A-P-4(config-isis-af)#  microloop avoidance segment-routing
+
+RP/0/RP0/CPU0:A-P-4(config-isis-af)#!
+
+RP/0/RP0/CPU0:A-P-4(config-isis-af)# address-family ipv6 unicast
+
+RP/0/RP0/CPU0:A-P-4(config-isis-af)#  segment-routing mpls sr-prefer
+
+RP/0/RP0/CPU0:A-P-4(config-isis-af)#  microloop avoidance segment-routing
+
+RP/0/RP0/CPU0:A-P-4(config-isis-af)#!
+
+RP/0/RP0/CPU0:A-P-4(config-isis-af)#interface Loopback0
+
+RP/0/RP0/CPU0:A-P-4(config-isis-if)#address-family ipv4 unicast
+
+RP/0/RP0/CPU0:A-P-4(config-isis-if-af)# prefix-sid index 8
+
+RP/0/RP0/CPU0:A-P-4(config-isis-if-af)#!
+
+RP/0/RP0/CPU0:A-P-4(config-isis-if-af)#address-family ipv6 unicast
+
+RP/0/RP0/CPU0:A-P-4(config-isis-if-af)# prefix-sid index 1008
+
+RP/0/RP0/CPU0:A-P-4(config-isis-if-af)#!
+
+RP/0/RP0/CPU0:A-P-4(config-isis-if-af)#router isis AGG2
+
+RP/0/RP0/CPU0:A-P-4(config-isis)# address-family ipv4 unicast
+
+RP/0/RP0/CPU0:A-P-4(config-isis-af)#  segment-routing mpls sr-prefer
+
+RP/0/RP0/CPU0:A-P-4(config-isis-af)#  microloop avoidance segment-routing
+
+RP/0/RP0/CPU0:A-P-4(config-isis-af)#!
+
+RP/0/RP0/CPU0:A-P-4(config-isis-af)# address-family ipv6 unicast
+
+RP/0/RP0/CPU0:A-P-4(config-isis-af)#  segment-routing mpls sr-prefer
+
+RP/0/RP0/CPU0:A-P-4(config-isis-af)#  microloop avoidance segment-routing
+
+RP/0/RP0/CPU0:A-P-4(config-isis-af)#!
+
+RP/0/RP0/CPU0:A-P-4(config-isis-af)#interface Loopback0
+
+RP/0/RP0/CPU0:A-P-4(config-isis-if)#address-family ipv4 unicast
+
+RP/0/RP0/CPU0:A-P-4(config-isis-if-af)# prefix-sid index 8
+
+RP/0/RP0/CPU0:A-P-4(config-isis-if-af)#!
+
+RP/0/RP0/CPU0:A-P-4(config-isis-if-af)#address-family ipv6 unicast
+
+RP/0/RP0/CPU0:A-P-4(config-isis-if-af)# prefix-sid index 1008
+
+RP/0/RP0/CPU0:A-P-4(config-isis-if-af)#!
+
+RP/0/RP0/CPU0:A-P-4(config-isis-if-af)#commit
+
+Tue Aug  5 06:34:47.201 UTC
+RP/0/RP0/CPU0:A-P-4(config-isis-if-af)#

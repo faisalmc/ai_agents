@@ -1,0 +1,9 @@
+!
+interface loopback 8
+ip address 8.8.8.8 255.255.255.255
+!
+router bgp 4000
+address-family ipv4
+network 8.8.8.8 mask 255.255.255.255
+!
+

@@ -1,0 +1,413 @@
+--- SYSTEM ---
+You are a senior NOC service lead.
+You will receive a JSON array of per-device analyses (from other calls).
+Correlate across devices to identify fabric-wide issues (e.g., EVPN VPWS down on both PEs,
+BGP session asymmetry, DF election pending, bundle down causing AC down, etc).
+You MUST only reference devices that appear in the input array. If a device or link name is not present in the input data, do NOT invent it. 
+If no cross‑device issue is clear, set top_incidents to an empty list.  
+You must only report issues based upon information provided
+Return ONLY one JSON object:
+{
+  "task_status": "healthy" | "mixed" | "degraded" | "error" | "unknown",
+  "top_incidents": [ {"scope":"pair|site|global","summary":"...","impact":"...","devices":["...","..."]} ],
+  "remediation_themes": [ "Check LACP on BE23 on C-PE-2/3", "Validate DF election for EVI 30020", ... ],
+  "safe_followup_show_cmds": [ "show ..." ],
+  "optional_active_probes": [ "ping ...", "traceroute ..." ]
+}
+Be conservative and avoid config changes; only suggest read-only checks and optional probes.
+Prefer recommending follow-up 'show' commands that are already present in show_cmds.ini; add at most 3 new 'show' commands only if clearly warranted by the findings. Never suggest config/debug/clear.
+Use only device names that appear in the provided per-device JSON array; do NOT invent devices or links. 
+If no clear cross-device issue exists, return empty lists for top_incidents and remediation_themes.
+Prefer recommending follow-up 'show' commands that are already present in show_cmds.ini across devices; add at most 3 new 'show' commands, read-only only.
+
+
+--- USER ---
+```json
+[
+  {
+    "hostname": "A-ASBR-1",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "isis",
+      "intf",
+      "ip"
+    ],
+    "status": "healthy",
+    "findings": [
+      {
+        "signal": "isis",
+        "severity": "info",
+        "detail": "ISIS process AGG2 is operational with 2 neighbors (A-P-3, A-ASBR-2)"
+      },
+      {
+        "signal": "intf",
+        "severity": "info",
+        "detail": "Interfaces Lo0, Gi0/0/0/1, Gi0/0/0/2 are up and participating in ISIS process AGG2"
+      },
+      {
+        "signal": "ip",
+        "severity": "info",
+        "detail": "IPv4 and IPv6 routes are learned via ISIS process AGG2"
+      }
+    ],
+    "recommended_show_cmds": [
+      "show isis neighbors",
+      "show isis interface brief",
+      "show ip route isis",
+      "show route ipv6 isis"
+    ],
+    "optional_active_cmds": []
+  },
+  {
+    "hostname": "A-ASBR-2",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "isis",
+      "intf",
+      "ip"
+    ],
+    "status": "healthy",
+    "findings": [
+      {
+        "signal": "isis",
+        "severity": "info",
+        "detail": "ISIS is configured with overload bit set on startup for 180 seconds and level-2-only. Wide metric style is configured for IPv4 and IPv6 unicast address families. Loopback and GigabitEthernet interfaces are configured with point-to-point, IPv4 metric 100 level 2, and IPv6 metric 200 level 2. ISIS group ISIS-GRP is applied to router AGG2 with network 49.0001.0001.0000.0101.0010.00."
+      },
+      {
+        "signal": "intf",
+        "severity": "info",
+        "detail": "Interfaces are up and operational."
+      },
+      {
+        "signal": "ip",
+        "severity": "info",
+        "detail": "IPv4 and IPv6 routes for ISIS are present and reachable."
+      }
+    ],
+    "recommended_show_cmds": [
+      "show run group",
+      "show run router isis",
+      "show isis interface brief",
+      "show isis neighbors",
+      "show ip route isis",
+      "show route ipv6 isis"
+    ],
+    "optional_active_cmds": []
+  },
+  {
+    "hostname": "A-P-1",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "intf",
+      "isis",
+      "mpls"
+    ],
+    "status": "healthy",
+    "findings": [
+      {
+        "signal": "isis",
+        "severity": "info",
+        "detail": "ISIS interfaces are up and forming adjacencies. No issues detected."
+      },
+      {
+        "signal": "mpls",
+        "severity": "info",
+        "detail": "MPLS routes for IPv4 and IPv6 are present in the routing table."
+      }
+    ],
+    "recommended_show_cmds": [
+      "show isis interface brief",
+      "show isis neighbors",
+      "show ip route isis",
+      "show route ipv6 isis"
+    ],
+    "optional_active_cmds": []
+  },
+  {
+    "hostname": "A-P-2",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "isis",
+      "intf",
+      "ip"
+    ],
+    "status": "healthy",
+    "findings": [
+      {
+        "signal": "isis",
+        "severity": "info",
+        "detail": "ISIS is configured with group ISIS-GRP, overload bit set on startup for 180 seconds, and level-2-only specified"
+      },
+      {
+        "signal": "intf",
+        "severity": "info",
+        "detail": "Interfaces are up and have IS-IS adjacency established"
+      },
+      {
+        "signal": "ip",
+        "severity": "info",
+        "detail": "IPv4 and IPv6 routes are learned via IS-IS"
+      }
+    ],
+    "recommended_show_cmds": [
+      "show isis interface brief",
+      "show isis neighbors",
+      "show ip route isis",
+      "show route ipv6 isis"
+    ],
+    "optional_active_cmds": []
+  },
+  {
+    "hostname": "A-P-3",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "isis",
+      "intf",
+      "ip"
+    ],
+    "status": "healthy",
+    "findings": [
+      {
+        "signal": "isis",
+        "severity": "info",
+        "detail": "ISIS is configured with group ISIS-GRP, overload bit set on-startup for 180 seconds, level-2-only for IPv4 and IPv6 address families. Loopback and GigabitEthernet interfaces are configured with point-to-point mode and metrics."
+      },
+      {
+        "signal": "intf",
+        "severity": "info",
+        "detail": "Interfaces are up and operational."
+      },
+      {
+        "signal": "ip",
+        "severity": "info",
+        "detail": "IPv4 and IPv6 routes for ISIS are present."
+      }
+    ],
+    "recommended_show_cmds": [
+      "show isis interface brief",
+      "show isis neighbors",
+      "show ip route isis",
+      "show route ipv6 isis"
+    ],
+    "optional_active_cmds": []
+  },
+  {
+    "hostname": "A-P-4",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "intf",
+      "isis",
+      "mpls"
+    ],
+    "status": "healthy",
+    "findings": [
+      {
+        "signal": "intf",
+        "severity": "info",
+        "detail": "Interface Gi0/0/0/4 in IS-IS AGG2 is down"
+      }
+    ],
+    "recommended_show_cmds": [
+      "show isis neighbors",
+      "show ip route isis",
+      "show route ipv6 isis"
+    ],
+    "optional_active_cmds": []
+  },
+  {
+    "hostname": "A-PE-1",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "isis",
+      "intf",
+      "ip"
+    ],
+    "status": "healthy",
+    "findings": [
+      {
+        "signal": "isis",
+        "severity": "info",
+        "detail": "ISIS is configured with specific settings as per intent"
+      },
+      {
+        "signal": "intf",
+        "severity": "info",
+        "detail": "Interfaces are up and running"
+      },
+      {
+        "signal": "ip",
+        "severity": "info",
+        "detail": "IP routes for ISIS are present"
+      }
+    ],
+    "recommended_show_cmds": [
+      "show isis interface brief",
+      "show isis neighbors",
+      "show ip route isis",
+      "show route ipv6 isis"
+    ],
+    "optional_active_cmds": []
+  },
+  {
+    "hostname": "A-PE-2",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "isis",
+      "intf",
+      "ip"
+    ],
+    "status": "healthy",
+    "findings": [
+      {
+        "signal": "isis",
+        "severity": "info",
+        "detail": "ISIS is configured with group ISIS-GRP, overload bit set on startup for 180 seconds, level-2-only, wide metric style, and specific metrics for interfaces"
+      },
+      {
+        "signal": "intf",
+        "severity": "info",
+        "detail": "Interfaces are up and running with point-to-point configuration"
+      },
+      {
+        "signal": "ip",
+        "severity": "info",
+        "detail": "IPv4 and IPv6 routes are learned via ISIS"
+      }
+    ],
+    "recommended_show_cmds": [
+      "show isis interface brief",
+      "show isis neighbors",
+      "show ip route isis",
+      "show route ipv6 isis"
+    ],
+    "optional_active_cmds": []
+  },
+  {
+    "hostname": "A-PE-3",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "isis",
+      "intf",
+      "ip"
+    ],
+    "status": "healthy",
+    "findings": [
+      {
+        "signal": "isis",
+        "severity": "info",
+        "detail": "ISIS is configured with group 'ISIS-GRP' with overload bit set on startup for 180 seconds and level-2-only. Loopback and GigabitEthernet interfaces are configured with specified metrics."
+      },
+      {
+        "signal": "intf",
+        "severity": "info",
+        "detail": "Interfaces Lo0 and Gi0/0/0/0 are up and operational."
+      },
+      {
+        "signal": "ip",
+        "severity": "info",
+        "detail": "IPv4 and IPv6 routes for ISIS are present and reachable."
+      }
+    ],
+    "recommended_show_cmds": [
+      "show isis interface brief",
+      "show isis neighbors",
+      "show ip route isis",
+      "show route ipv6 isis"
+    ],
+    "optional_active_cmds": []
+  },
+  {
+    "hostname": "A-PE-4",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "isis"
+    ],
+    "status": "degraded",
+    "findings": [
+      {
+        "signal": "isis",
+        "severity": "error",
+        "detail": "ISIS interface GigabitEthernet0/0/0/0 is down"
+      },
+      {
+        "signal": "isis",
+        "severity": "info",
+        "detail": "No ISIS routes found for IPv4 and IPv6"
+      },
+      {
+        "signal": "isis",
+        "severity": "info",
+        "detail": "No ISIS neighbors are established"
+      }
+    ],
+    "recommended_show_cmds": [
+      "show isis interface brief",
+      "show isis neighbors",
+      "show ip route isis",
+      "show route ipv6 isis"
+    ],
+    "optional_active_cmds": []
+  },
+  {
+    "hostname": "A-RR-1",
+    "platform": "ios",
+    "signals_seen": [
+      "isis",
+      "intf",
+      "ip"
+    ],
+    "status": "healthy",
+    "findings": [
+      {
+        "signal": "isis",
+        "severity": "info",
+        "detail": "ISIS neighbors A-P-1 and A-RR-2 are UP"
+      },
+      {
+        "signal": "intf",
+        "severity": "info",
+        "detail": "Interfaces GigabitEthernet2 and GigabitEthernet3 are used for ISIS"
+      },
+      {
+        "signal": "ip",
+        "severity": "info",
+        "detail": "IPv4 and IPv6 routes for ISIS are present"
+      }
+    ],
+    "recommended_show_cmds": [
+      "show isis neighbors",
+      "show ip route isis",
+      "show ipv6 route isis"
+    ],
+    "optional_active_cmds": []
+  },
+  {
+    "hostname": "A-RR-2",
+    "platform": "ios",
+    "signals_seen": [
+      "isis",
+      "intf",
+      "ip"
+    ],
+    "status": "healthy",
+    "findings": [
+      {
+        "signal": "isis",
+        "severity": "info",
+        "detail": "ISIS neighbors A-P-3 and A-RR-1 are UP"
+      },
+      {
+        "signal": "ip",
+        "severity": "info",
+        "detail": "IPv4 and IPv6 routes for ISIS are present"
+      }
+    ],
+    "recommended_show_cmds": [
+      "show isis neighbors",
+      "show ip route isis",
+      "show ipv6 route isis"
+    ],
+    "optional_active_cmds": []
+  }
+]
+```

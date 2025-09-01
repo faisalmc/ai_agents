@@ -1,0 +1,80 @@
+--- Config Push Log for C-PE-2 ---
+Timestamp: 2025-08-05 04:12:57.194882
+
+
+
+RP/0/RP0/CPU0:C-PE-2#configure terminal
+
+Tue Aug  5 08:12:51.177 UTC
+RP/0/RP0/CPU0:C-PE-2(config)#! SRv6 Configuration for C-PE-2
+
+RP/0/RP0/CPU0:C-PE-2(config)#segment-routing
+
+RP/0/RP0/CPU0:C-PE-2(config-sr)# srv6
+
+RP/0/RP0/CPU0:C-PE-2(config-srv6)#  logging locator status
+
+RP/0/RP0/CPU0:C-PE-2(config-srv6)#  encapsulation
+
+RP/0/RP0/CPU0:C-PE-2(config-srv6-encap)#   source-address 2620:fc7:3:0101::2
+
+RP/0/RP0/CPU0:C-PE-2(config-srv6-encap)#  !
+
+RP/0/RP0/CPU0:C-PE-2(config-srv6-encap)#  locators
+
+RP/0/RP0/CPU0:C-PE-2(config-srv6-locators)#   locator CCIE_ALGO_0
+
+RP/0/RP0/CPU0:C-PE-2(config-srv6-locator)#   micro-segment behavior unode psp-usd
+
+RP/0/RP0/CPU0:C-PE-2(config-srv6-locator)#    prefix FC00:0100:0002::/48
+
+RP/0/RP0/CPU0:C-PE-2(config-srv6-locator)#!
+
+RP/0/RP0/CPU0:C-PE-2(config-srv6-locator)#root
+
+RP/0/RP0/CPU0:C-PE-2(config)#!
+
+RP/0/RP0/CPU0:C-PE-2(config)#router isis CORE
+
+RP/0/RP0/CPU0:C-PE-2(config-isis)#address-family ipv6 unicast
+
+RP/0/RP0/CPU0:C-PE-2(config-isis-af)#no segment-routing mpls sr-prefer
+
+RP/0/RP0/CPU0:C-PE-2(config-isis-af)#!
+
+RP/0/RP0/CPU0:C-PE-2(config-isis-af)#interface Loopback0
+
+RP/0/RP0/CPU0:C-PE-2(config-isis-if)#address-family ipv6 unicast
+
+RP/0/RP0/CPU0:C-PE-2(config-isis-if-af)#no prefix-sid index 1002
+
+RP/0/RP0/CPU0:C-PE-2(config-isis-if-af)#!
+
+RP/0/RP0/CPU0:C-PE-2(config-isis-if-af)#
+
+RP/0/RP0/CPU0:C-PE-2(config-isis-if-af)#root
+
+RP/0/RP0/CPU0:C-PE-2(config)#!
+
+RP/0/RP0/CPU0:C-PE-2(config)#router isis CORE
+
+RP/0/RP0/CPU0:C-PE-2(config-isis)#address-family ipv6 unicast
+
+RP/0/RP0/CPU0:C-PE-2(config-isis-af)#segment-routing srv6
+
+RP/0/RP0/CPU0:C-PE-2(config-isis-srv6)#locator CCIE_ALGO_0
+
+RP/0/RP0/CPU0:C-PE-2(config-isis-srv6-loc)#tag 300
+
+RP/0/RP0/CPU0:C-PE-2(config-isis-srv6-loc)#
+
+RP/0/RP0/CPU0:C-PE-2(config-isis-srv6-loc)#
+
+RP/0/RP0/CPU0:C-PE-2(config-isis-srv6-loc)#
+
+RP/0/RP0/CPU0:C-PE-2(config-isis-srv6-loc)#
+
+RP/0/RP0/CPU0:C-PE-2(config-isis-srv6-loc)#commit
+
+Tue Aug  5 08:12:53.410 UTC
+RP/0/RP0/CPU0:C-PE-2(config-isis-srv6-loc)#

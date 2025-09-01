@@ -1,0 +1,24 @@
+--- Config Push Log for Y-CE-1 ---
+Timestamp: 2025-08-07 01:36:13.423764
+
+configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+Y-CE-1(config)#
+Y-CE-1(config)#!!!!!!!!!!!!!!!!!!!!!!!!!
+Y-CE-1(config)#!!! RECEVIER >> Y-CE-1 !!!!
+Y-CE-1(config)#! ! loopback 0: 10.2.1.1
+Y-CE-1(config)#ip multicast-routing distributed
+Y-CE-1(config)#!
+Y-CE-1(config)#interface loopback0
+Y-CE-1(config-if)# ip pim sparse-mode
+Y-CE-1(config-if)#!
+Y-CE-1(config-if)#interface GigabitE 2
+Y-CE-1(config-if)# ip pim sparse-mode
+Y-CE-1(config-if)# ip igmp version 3
+Y-CE-1(config-if)# ip igmp join-group 224.1.1.1 source 10.2.1.3
+Y-CE-1(config-if)# exit
+Y-CE-1(config)#!
+Y-CE-1(config)#!no ip pim bsr-candidate loopback0
+Y-CE-1(config)#!no ip pim sp-candidate loopback0
+Y-CE-1(config)#end
+Y-CE-1#

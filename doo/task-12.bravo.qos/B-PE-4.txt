@@ -1,0 +1,40 @@
+ipv6 access-list IPV6_TO_S_CE3
+ 10 permit ipv6 any host 2620:FC7:20:1::2
+!
+ipv4 access-list IPV4_TO_S_CE3
+ 10 permit ipv4 any host 10.20.1.2
+!
+class-map match-any VIDEO
+ match dscp af41
+!
+class-map match-any TO_S_CE3
+ match access-group ipv4 IPV4_TO_S_CE3
+ match access-group ipv6 IPV6_TO_S_CE3
+
+!
+policy-map TO_S_CE3
+ class TO_S_CE3
+  police rate percent 60
+   conform-action set dscp af21
+   exceed-action set dscp af13
+ !
+ class class-default
+  set dscp cs1
+end-policy-map
+!
+policy-map VIDEO_POLICY
+ class VIDEO
+  priority level 1
+  police rate percent 10
+ !
+ class class-default
+  service-policy TO_S_CE3
+end-policy-map
+!
+policy-map OUTBOUND_QOS
+ class class-default
+  service-policy VIDEO_POLICY
+  shape average percent 70
+  !
+interface GigabitEthernet0/0/0/1
+ service-policy output OUTBOUND_QOS

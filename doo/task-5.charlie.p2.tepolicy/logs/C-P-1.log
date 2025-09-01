@@ -1,0 +1,22 @@
+--- Config Push Log for C-P-1 ---
+Timestamp: 2025-08-05 02:59:56.805470
+
+configure terminal
+
+Tue Aug  5 06:59:53.145 UTC
+RP/0/RP0/CPU0:C-P-1(config)#
+
+RP/0/RP0/CPU0:C-P-1(config)#router isis CORE
+
+RP/0/RP0/CPU0:C-P-1(config-isis)#address-family ipv4 unicast
+
+RP/0/RP0/CPU0:C-P-1(config-isis-af)#mpls traffic-eng level-2-only
+
+RP/0/RP0/CPU0:C-P-1(config-isis-af)#mpls traffic-eng router-id loopback 0
+
+RP/0/RP0/CPU0:C-P-1(config-isis-af)#!
+
+RP/0/RP0/CPU0:C-P-1(config-isis-af)#commit
+
+Tue Aug  5 06:59:53.776 UTC
+RP/0/RP0/CPU0:C-P-1(config-isis-af)#

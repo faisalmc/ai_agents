@@ -1,0 +1,28 @@
+--- Config Push Log for R-CE-2 ---
+Timestamp: 2025-08-06 02:48:06.401406
+
+configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+R-CE-2(config)#router ospf 1
+R-CE-2(config-router)# redistribute connected
+R-CE-2(config-router)#!
+R-CE-2(config-router)#interface Port-channel1
+R-CE-2(config-if)# no ip address
+R-CE-2(config-if)#
+R-CE-2(config-if)#interface Port-channel1.20
+R-CE-2(config-subif)# encapsulation dot1Q 20
+R-CE-2(config-subif)# ip address 10.1.123.2 255.255.255.0
+R-CE-2(config-subif)# ip ospf 1 area 0
+R-CE-2(config-subif)#!
+R-CE-2(config-subif)#interface GigabitEthernet2
+R-CE-2(config-if)# no ip address
+R-CE-2(config-if)# no ipv6 address
+R-CE-2(config-if)# channel-group 1 mode active
+R-CE-2(config-if)#
+R-CE-2(config-if)#interface GigabitEthernet3
+R-CE-2(config-if)# no ip address
+R-CE-2(config-if)# no ipv6 address
+R-CE-2(config-if)# channel-group 1 mode active
+R-CE-2(config-if)#
+R-CE-2(config-if)#end
+R-CE-2#

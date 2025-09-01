@@ -1,0 +1,31 @@
+ip multicast-routing distributed
+ip multicast-routing vrf YELLOW distributed
+!
+ip access-list standard SSM
+permit 239.232.0.0 0.0.255.255
+!
+ip pim ssm range SSM 
+!
+interface loopback0
+ip pim sparse-mode
+!
+interface GigabitEthernet 0/0/0/0
+ip pim sparse-mode
+!
+interface  GigabitEthernet 0/0/0/1
+ip pim sparse-mode
+!
+interface  GigabitEthernet 0/0/0/2
+ip pim sparse-mode
+!
+router bgp 200
+ address-family ipv4 mvpn
+ neighbor IBGPV4 send-community extended
+ neighbor 2.0.200.9 activate
+ !
+ vrf definition YELLOW
+  address-family ipv4
+  mdt auto-discovery pin
+  mdt default 239.232.0.1
+  mdt data 239.232.100.0 0.0.0.255
+  mdt data threshold 1

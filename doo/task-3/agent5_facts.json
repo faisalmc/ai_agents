@@ -1,0 +1,883 @@
+[
+  {
+    "hostname": "A-ASBR-1",
+    "platform_guess": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "evpn",
+      "mpls"
+    ],
+    "facts": {
+      "bgp_neighbors": [
+        {
+          "peer": "1.0.101.7",
+          "state": "Established",
+          "evidence": "1.0.101.7         0   100                                         1d06h Established"
+        },
+        {
+          "peer": "1.0.101.8",
+          "state": "Established",
+          "evidence": "1.0.101.8         0   100                                         1d06h Established"
+        }
+      ],
+      "evpn_xconnects": [],
+      "lacp_bundles": [],
+      "reachability": [],
+      "mpls_labeled_paths": [
+        {
+          "local_label": 16001,
+          "outgoing_label": 16001,
+          "prefix": "SR Pfx (idx 1)",
+          "outgoing_interface": "",
+          "next_hop": "1.0.101.7",
+          "bytes_switched": 400
+        },
+        {
+          "local_label": 16002,
+          "outgoing_label": 16002,
+          "prefix": "SR Pfx (idx 2)",
+          "outgoing_interface": "",
+          "next_hop": "1.0.101.7",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": 16003,
+          "outgoing_label": 16003,
+          "prefix": "SR Pfx (idx 3)",
+          "outgoing_interface": "",
+          "next_hop": "1.0.101.7",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": 16004,
+          "outgoing_label": 16004,
+          "prefix": "SR Pfx (idx 4)",
+          "outgoing_interface": "Gi0/0/0/2",
+          "next_hop": "1.0.60.2",
+          "bytes_switched": 181566
+        },
+        {
+          "local_label": 16006,
+          "outgoing_label": 16006,
+          "prefix": "SR Pfx (idx 6)",
+          "outgoing_interface": "",
+          "next_hop": "1.0.101.7",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": 16007,
+          "outgoing_label": "Pop",
+          "prefix": "SR Pfx (idx 7)",
+          "outgoing_interface": "Gi0/0/0/1",
+          "next_hop": "1.0.50.2",
+          "bytes_switched": 363918
+        },
+        {
+          "local_label": 16008,
+          "outgoing_label": 16008,
+          "prefix": "SR Pfx (idx 8)",
+          "outgoing_interface": "Gi0/0/0/2",
+          "next_hop": "1.0.60.2",
+          "bytes_switched": 180195
+        },
+        {
+          "local_label": 16009,
+          "outgoing_label": "Aggregate",
+          "prefix": "SR Pfx (idx 9)",
+          "outgoing_interface": "default",
+          "next_hop": "",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": 16010,
+          "outgoing_label": "Pop",
+          "prefix": "SR Pfx (idx 10)",
+          "outgoing_interface": "Gi0/0/0/2",
+          "next_hop": "1.0.60.2",
+          "bytes_switched": 177638
+        },
+        {
+          "local_label": 17004,
+          "outgoing_label": 17004,
+          "prefix": "SR Pfx (idx 1004)",
+          "outgoing_interface": "Gi0/0/0/2",
+          "next_hop": "fe80::5054:ff:fea0:38db",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": 17007,
+          "outgoing_label": "Pop",
+          "prefix": "SR Pfx (idx 1007)",
+          "outgoing_interface": "Gi0/0/0/1",
+          "next_hop": "fe80::5054:ff:fe1f:6393",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": 17008,
+          "outgoing_label": 17008,
+          "prefix": "SR Pfx (idx 1008)",
+          "outgoing_interface": "Gi0/0/0/2",
+          "next_hop": "fe80::5054:ff:fea0:38db",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": 17009,
+          "outgoing_label": "Aggregate",
+          "prefix": "SR Pfx (idx 1009)",
+          "outgoing_interface": "default",
+          "next_hop": "",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": 17010,
+          "outgoing_label": "Pop",
+          "prefix": "SR Pfx (idx 1010)",
+          "outgoing_interface": "Gi0/0/0/2",
+          "next_hop": "fe80::5054:ff:fea0:38db",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": 24000,
+          "outgoing_label": "Pop",
+          "prefix": "SR Adj (idx 1)",
+          "outgoing_interface": "Gi0/0/0/1",
+          "next_hop": "1.0.50.2",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": 24001,
+          "outgoing_label": "Pop",
+          "prefix": "SR Adj (idx 3)",
+          "outgoing_interface": "Gi0/0/0/1",
+          "next_hop": "1.0.50.2",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": 24002,
+          "outgoing_label": "Pop",
+          "prefix": "SR Adj (idx 1)",
+          "outgoing_interface": "Gi0/0/0/2",
+          "next_hop": "1.0.60.2",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": 24003,
+          "outgoing_label": "Pop",
+          "prefix": "SR Adj (idx 3)",
+          "outgoing_interface": "Gi0/0/0/2",
+          "next_hop": "1.0.60.2",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": 24004,
+          "outgoing_label": "Pop",
+          "prefix": "SR Adj (idx 1)",
+          "outgoing_interface": "Gi0/0/0/1",
+          "next_hop": "fe80::5054:ff:fe1f:6393",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": 24005,
+          "outgoing_label": "Pop",
+          "prefix": "SR Adj (idx 3)",
+          "outgoing_interface": "Gi0/0/0/1",
+          "next_hop": "fe80::5054:ff:fe1f:6393",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": 24006,
+          "outgoing_label": "Pop",
+          "prefix": "SR Adj (idx 1)",
+          "outgoing_interface": "Gi0/0/0/2",
+          "next_hop": "fe80::5054:ff:fea0:38db",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": 24007,
+          "outgoing_label": "Pop",
+          "prefix": "SR Adj (idx 3)",
+          "outgoing_interface": "Gi0/0/0/2",
+          "next_hop": "fe80::5054:ff:fea0:38db",
+          "bytes_switched": 0
+        }
+      ]
+    }
+  },
+  {
+    "hostname": "A-ASBR-2",
+    "platform_guess": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "evpn",
+      "mpls"
+    ],
+    "facts": {
+      "bgp_neighbors": [
+        {
+          "peer": "1.0.101.7",
+          "state": "Established",
+          "evidence": "1.0.101.7         0   100                                         1d06h Established"
+        },
+        {
+          "peer": "1.0.101.8",
+          "state": "Established",
+          "evidence": "1.0.101.8         0   100                                         1d06h Established"
+        }
+      ],
+      "evpn_xconnects": [],
+      "lacp_bundles": [],
+      "reachability": [],
+      "mpls_lsp": [
+        {
+          "local_label": "16001",
+          "outgoing_label": "16001",
+          "prefix": "SR Pfx (idx 1)",
+          "outgoing_interface": "",
+          "next_hop": "1.0.101.8",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": "16002",
+          "outgoing_label": "16002",
+          "prefix": "SR Pfx (idx 2)",
+          "outgoing_interface": "",
+          "next_hop": "1.0.101.8",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": "16003",
+          "outgoing_label": "16003",
+          "prefix": "SR Pfx (idx 3)",
+          "outgoing_interface": "",
+          "next_hop": "1.0.101.8",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": "16004",
+          "outgoing_label": "16004",
+          "prefix": "SR Pfx (idx 4)",
+          "outgoing_interface": "Gi0/0/0/1",
+          "next_hop": "1.0.51.2",
+          "bytes_switched": 181566
+        },
+        {
+          "local_label": "16006",
+          "outgoing_label": "16006",
+          "prefix": "SR Pfx (idx 6)",
+          "outgoing_interface": "",
+          "next_hop": "1.0.101.8",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": "16007",
+          "outgoing_label": "16007",
+          "prefix": "SR Pfx (idx 7)",
+          "outgoing_interface": "Gi0/0/0/2",
+          "next_hop": "1.0.60.1",
+          "bytes_switched": 180283
+        },
+        {
+          "local_label": "16008",
+          "outgoing_label": "Pop",
+          "prefix": "SR Pfx (idx 8)",
+          "outgoing_interface": "Gi0/0/0/1",
+          "next_hop": "1.0.51.2",
+          "bytes_switched": 360310
+        },
+        {
+          "local_label": "16009",
+          "outgoing_label": "Pop",
+          "prefix": "SR Pfx (idx 9)",
+          "outgoing_interface": "Gi0/0/0/2",
+          "next_hop": "1.0.60.1",
+          "bytes_switched": 181682
+        },
+        {
+          "local_label": "16010",
+          "outgoing_label": "Aggregate",
+          "prefix": "SR Pfx (idx 10)",
+          "outgoing_interface": "default",
+          "next_hop": "",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": "17004",
+          "outgoing_label": "Pop",
+          "prefix": "SR Pfx (idx 1004)",
+          "outgoing_interface": "Gi0/0/0/1",
+          "next_hop": "fe80::5054:ff:feb6:3f58",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": "17007",
+          "outgoing_label": "Pop",
+          "prefix": "SR Pfx (idx 1007)",
+          "outgoing_interface": "Gi0/0/0/2",
+          "next_hop": "fe80::5054:ff:fee7:f63c",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": "17008",
+          "outgoing_label": "Pop",
+          "prefix": "SR Pfx (idx 1008)",
+          "outgoing_interface": "Gi0/0/0/1",
+          "next_hop": "fe80::5054:ff:feb6:3f58",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": "17009",
+          "outgoing_label": "Pop",
+          "prefix": "SR Pfx (idx 1009)",
+          "outgoing_interface": "Gi0/0/0/2",
+          "next_hop": "fe80::5054:ff:fee7:f63c",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": "17010",
+          "outgoing_label": "Aggregate",
+          "prefix": "SR Pfx (idx 1010)",
+          "outgoing_interface": "default",
+          "next_hop": "",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": "24000",
+          "outgoing_label": "Pop",
+          "prefix": "SR Adj (idx 1)",
+          "outgoing_interface": "Gi0/0/0/1",
+          "next_hop": "1.0.51.2",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": "24001",
+          "outgoing_label": "Pop",
+          "prefix": "SR Adj (idx 3)",
+          "outgoing_interface": "Gi0/0/0/1",
+          "next_hop": "1.0.51.2",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": "24002",
+          "outgoing_label": "Pop",
+          "prefix": "SR Adj (idx 1)",
+          "outgoing_interface": "Gi0/0/0/2",
+          "next_hop": "1.0.60.1",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": "24003",
+          "outgoing_label": "Pop",
+          "prefix": "SR Adj (idx 3)",
+          "outgoing_interface": "Gi0/0/0/2",
+          "next_hop": "1.0.60.1",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": "24004",
+          "outgoing_label": "Pop",
+          "prefix": "SR Adj (idx 1)",
+          "outgoing_interface": "Gi0/0/0/1",
+          "next_hop": "fe80::5054:ff:feb6:3f58",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": "24005",
+          "outgoing_label": "Pop",
+          "prefix": "SR Adj (idx 3)",
+          "outgoing_interface": "Gi0/0/0/1",
+          "next_hop": "fe80::5054:ff:feb6:3f58",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": "24006",
+          "outgoing_label": "Pop",
+          "prefix": "SR Adj (idx 1)",
+          "outgoing_interface": "Gi0/0/0/2",
+          "next_hop": "fe80::5054:ff:fee7:f63c",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": "24007",
+          "outgoing_label": "Pop",
+          "prefix": "SR Adj (idx 3)",
+          "outgoing_interface": "Gi0/0/0/2",
+          "next_hop": "fe80::5054:ff:fee7:f63c",
+          "bytes_switched": 0
+        }
+      ]
+    }
+  },
+  {
+    "hostname": "A-P-1",
+    "platform_guess": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "mpls"
+    ],
+    "facts": {
+      "bgp_neighbors": [
+        {
+          "peer": "1.0.101.1",
+          "state": "Idle",
+          "evidence": "1.0.101.1         0   100                                         1d04h Idle"
+        },
+        {
+          "peer": "1.0.101.2",
+          "state": "Idle",
+          "evidence": "1.0.101.2         0   100                                         1d04h Idle"
+        },
+        {
+          "peer": "1.0.101.3",
+          "state": "Idle",
+          "evidence": "1.0.101.3         0   100                                         1d04h Idle"
+        },
+        {
+          "peer": "1.0.101.11",
+          "state": "Idle",
+          "evidence": "1.0.101.11        0   100                                         1d04h Idle"
+        },
+        {
+          "peer": "1.0.101.12",
+          "state": "Idle",
+          "evidence": "1.0.101.12        0   100                                         1d04h Idle"
+        }
+      ],
+      "evpn_xconnects": [],
+      "lacp_bundles": [],
+      "reachability": []
+    }
+  },
+  {
+    "hostname": "A-P-2",
+    "platform_guess": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "mpls"
+    ],
+    "facts": {
+      "bgp_neighbors": [
+        {
+          "peer": "1.0.101.1",
+          "state": "Established",
+          "evidence": "1.0.101.1         0   100                                         1d06h Established"
+        },
+        {
+          "peer": "1.0.101.2",
+          "state": "Established",
+          "evidence": "1.0.101.2         0   100                                         1d06h Established"
+        },
+        {
+          "peer": "1.0.101.3",
+          "state": "Established",
+          "evidence": "1.0.101.3         0   100                                         1d06h Established"
+        },
+        {
+          "peer": "1.0.101.11",
+          "state": "Established",
+          "evidence": "1.0.101.11        0   100                                         1d06h Established"
+        },
+        {
+          "peer": "1.0.101.12",
+          "state": "Established",
+          "evidence": "1.0.101.12        0   100                                         1d06h Established"
+        }
+      ],
+      "evpn_xconnects": [],
+      "lacp_bundles": [],
+      "reachability": []
+    }
+  },
+  {
+    "hostname": "A-P-3",
+    "platform_guess": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "evpn",
+      "intf",
+      "ip",
+      "isis",
+      "l2vpn",
+      "mpls"
+    ],
+    "facts": {
+      "bgp_neighbors": [
+        {
+          "peer": "1.0.101.4",
+          "state": "Established",
+          "evidence": "1.0.101.4         0   100                                         1d06h Established"
+        },
+        {
+          "peer": "1.0.101.9",
+          "state": "Established",
+          "evidence": "1.0.101.9         0   100                                         1d06h Established"
+        },
+        {
+          "peer": "1.0.101.10",
+          "state": "Established",
+          "evidence": "1.0.101.10        0   100                                         1d06h Established"
+        },
+        {
+          "peer": "1.0.101.11",
+          "state": "Established",
+          "evidence": "1.0.101.11        0   100                                         1d06h Established"
+        },
+        {
+          "peer": "1.0.101.12",
+          "state": "Established",
+          "evidence": "1.0.101.12        0   100                                         1d06h Established"
+        }
+      ],
+      "evpn_xconnects": [],
+      "lacp_bundles": [],
+      "reachability": []
+    }
+  },
+  {
+    "hostname": "A-P-4",
+    "platform_guess": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "mpls"
+    ],
+    "facts": {
+      "bgp_neighbors": [
+        {
+          "peer": "1.0.101.4",
+          "state": "Established",
+          "evidence": "1.0.101.4         0   100                                         1d06h Established"
+        },
+        {
+          "peer": "1.0.101.9",
+          "state": "Established",
+          "evidence": "1.0.101.9         0   100                                         1d06h Established"
+        },
+        {
+          "peer": "1.0.101.10",
+          "state": "Established",
+          "evidence": "1.0.101.10        0   100                                         1d06h Established"
+        },
+        {
+          "peer": "1.0.101.11",
+          "state": "Established",
+          "evidence": "1.0.101.11        0   100                                         1d06h Established"
+        },
+        {
+          "peer": "1.0.101.12",
+          "state": "Established",
+          "evidence": "1.0.101.12        0   100                                         1d06h Established"
+        }
+      ],
+      "evpn_xconnects": [],
+      "lacp_bundles": [],
+      "reachability": [],
+      "mpls_interfaces": [
+        {
+          "local_label": 16001,
+          "outgoing_label": 16001,
+          "prefix": "SR Pfx (idx 1)",
+          "outgoing_interface": "",
+          "next_hop": "1.0.101.6",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": 16002,
+          "outgoing_label": 16002,
+          "prefix": "SR Pfx (idx 2)",
+          "outgoing_interface": "",
+          "next_hop": "1.0.101.6",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": 16003,
+          "outgoing_label": 16003,
+          "prefix": "SR Pfx (idx 3)",
+          "outgoing_interface": "",
+          "next_hop": "1.0.101.6",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": 16004,
+          "outgoing_label": "Pop",
+          "prefix": "SR Pfx (idx 4)",
+          "outgoing_interface": "Gi0/0/0/4",
+          "next_hop": "1.0.23.1",
+          "bytes_switched": 363077
+        },
+        {
+          "local_label": 16006,
+          "outgoing_label": "Pop",
+          "prefix": "SR Pfx (idx 6)",
+          "outgoing_interface": "Gi0/0/0/1",
+          "next_hop": "1.0.31.1",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": 16007,
+          "outgoing_label": "Pop",
+          "prefix": "SR Pfx (idx 7)",
+          "outgoing_interface": "Gi0/0/0/2",
+          "next_hop": "1.0.34.1",
+          "bytes_switched": 180358
+        },
+        {
+          "local_label": 16008,
+          "outgoing_label": "Aggregate",
+          "prefix": "SR Pfx (idx 8)",
+          "outgoing_interface": "default",
+          "next_hop": "",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": 16009,
+          "outgoing_label": 16009,
+          "prefix": "SR Pfx (idx 9)",
+          "outgoing_interface": "Gi0/0/0/0",
+          "next_hop": "1.0.51.1",
+          "bytes_switched": 181642
+        },
+        {
+          "local_label": 16010,
+          "outgoing_label": "Pop",
+          "prefix": "SR Pfx (idx 10)",
+          "outgoing_interface": "Gi0/0/0/0",
+          "next_hop": "1.0.51.1",
+          "bytes_switched": 177575
+        }
+      ]
+    }
+  },
+  {
+    "hostname": "A-PE-1",
+    "platform_guess": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "evpn",
+      "intf",
+      "ip",
+      "isis",
+      "l2vpn",
+      "mpls"
+    ],
+    "facts": {
+      "bgp_neighbors": [
+        {
+          "peer": "1.0.101.5",
+          "state": "Idle",
+          "evidence": "1.0.101.5         0   100                                         1d04h Idle"
+        },
+        {
+          "peer": "1.0.101.6",
+          "state": "Established",
+          "evidence": "1.0.101.6         0   100                                         1d06h Established"
+        }
+      ],
+      "evpn_xconnects": [],
+      "lacp_bundles": [],
+      "reachability": []
+    }
+  },
+  {
+    "hostname": "A-PE-2",
+    "platform_guess": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "evpn",
+      "intf",
+      "ip",
+      "isis",
+      "l2vpn",
+      "mpls"
+    ],
+    "facts": {
+      "bgp_neighbors": [
+        {
+          "peer": "1.0.101.5",
+          "state": "Idle",
+          "evidence": "1.0.101.5         0   100                                         1d04h Idle"
+        },
+        {
+          "peer": "1.0.101.6",
+          "state": "Established",
+          "evidence": "1.0.101.6         0   100                                         1d06h Established"
+        }
+      ],
+      "evpn_xconnects": [],
+      "lacp_bundles": [],
+      "reachability": []
+    }
+  },
+  {
+    "hostname": "A-PE-3",
+    "platform_guess": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "evpn",
+      "intf",
+      "ip",
+      "isis",
+      "l2vpn",
+      "mpls"
+    ],
+    "facts": {
+      "bgp_neighbors": [
+        {
+          "peer": "1.0.101.5",
+          "state": "Idle",
+          "evidence": "1.0.101.5         0   100                                         1d04h Idle"
+        },
+        {
+          "peer": "1.0.101.6",
+          "state": "Established",
+          "evidence": "1.0.101.6         0   100                                         1d06h Established"
+        }
+      ],
+      "evpn_xconnects": [],
+      "lacp_bundles": [],
+      "reachability": []
+    }
+  },
+  {
+    "hostname": "A-PE-4",
+    "platform_guess": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "evpn",
+      "mpls"
+    ],
+    "facts": {
+      "bgp_neighbors": [
+        {
+          "peer": "1.0.101.7",
+          "state": "Established",
+          "evidence": "1.0.101.7         0   100                                         1d06h Established"
+        },
+        {
+          "peer": "1.0.101.8",
+          "state": "Established",
+          "evidence": "1.0.101.8         0   100                                         1d06h Established"
+        }
+      ],
+      "evpn_xconnects": [],
+      "lacp_bundles": [],
+      "reachability": [],
+      "mpls_lables": [
+        {
+          "local_label": 16001,
+          "outgoing_label": 16001,
+          "prefix": "SR Pfx (idx 1)",
+          "outgoing_interface": "",
+          "next_hop": "1.0.101.8",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": 16002,
+          "outgoing_label": 16002,
+          "prefix": "SR Pfx (idx 2)",
+          "outgoing_interface": "",
+          "next_hop": "1.0.101.8",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": 16003,
+          "outgoing_label": 16003,
+          "prefix": "SR Pfx (idx 3)",
+          "outgoing_interface": "",
+          "next_hop": "1.0.101.8",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": 16006,
+          "outgoing_label": 16006,
+          "prefix": "SR Pfx (idx 6)",
+          "outgoing_interface": "",
+          "next_hop": "1.0.101.8",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": 16007,
+          "outgoing_label": 16007,
+          "prefix": "SR Pfx (idx 7)",
+          "outgoing_interface": "Gi0/0/0/0",
+          "next_hop": "1.0.23.2",
+          "bytes_switched": 180299
+        },
+        {
+          "local_label": 16008,
+          "outgoing_label": "Pop",
+          "prefix": "SR Pfx (idx 8)",
+          "outgoing_interface": "Gi0/0/0/0",
+          "next_hop": "1.0.23.2",
+          "bytes_switched": 180259
+        },
+        {
+          "local_label": 16009,
+          "outgoing_label": 16009,
+          "prefix": "SR Pfx (idx 9)",
+          "outgoing_interface": "Gi0/0/0/0",
+          "next_hop": "1.0.23.2",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": 16010,
+          "outgoing_label": 16010,
+          "prefix": "SR Pfx (idx 10)",
+          "outgoing_interface": "Gi0/0/0/0",
+          "next_hop": "1.0.23.2",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": 17007,
+          "outgoing_label": 17007,
+          "prefix": "SR Pfx (idx 1007)",
+          "outgoing_interface": "Gi0/0/0/0",
+          "next_hop": "fe80::5054:ff:fe6c:c8cf",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": 17008,
+          "outgoing_label": "Pop",
+          "prefix": "SR Pfx (idx 1008)",
+          "outgoing_interface": "Gi0/0/0/0",
+          "next_hop": "fe80::5054:ff:fe6c:c8cf",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": 17009,
+          "outgoing_label": 17009,
+          "prefix": "SR Pfx (idx 1009)",
+          "outgoing_interface": "Gi0/0/0/0",
+          "next_hop": "fe80::5054:ff:fe6c:c8cf",
+          "bytes_switched": 0
+        },
+        {
+          "local_label": 17010,
+          "outgoing_label": 17010,
+          "prefix": "SR Pfx (idx 1010)",
+          "outgoing_interface": "Gi0/0/0/0",
+          "next_hop": "fe80::5054:ff:fe6c:c8cf",
+          "bytes_switched": 0
+        }
+      ]
+    }
+  },
+  {
+    "hostname": "A-RR-1",
+    "platform_guess": "ios",
+    "signals_seen": [
+      "bgp",
+      "evpn",
+      "intf",
+      "ip",
+      "isis",
+      "l2vpn",
+      "mpls",
+      "sr"
+    ],
+    "facts": {
+      "bgp_neighbors": [],
+      "evpn_xconnects": [],
+      "lacp_bundles": [],
+      "reachability": []
+    }
+  }
+]
