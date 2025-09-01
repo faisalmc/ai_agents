@@ -1,0 +1,261 @@
+devices:
+  - name: A-PE-1
+    hostname: 192.168.100.101
+    username: cisco
+    password: cisco
+    device_type: cisco_xr
+
+  - name: A-PE-2
+    hostname: 192.168.100.102
+    username: cisco
+    password: cisco
+    device_type: cisco_xr
+
+  - name: A-PE-3
+    hostname: 192.168.100.103
+    username: cisco
+    password: cisco
+    device_type: cisco_xr
+
+  - name: A-PE-4
+    hostname: 192.168.100.104
+    username: cisco
+    password: cisco
+    device_type: cisco_xr
+
+  - name: A-P-1
+    hostname: 192.168.100.105
+    username: cisco
+    password: cisco
+    device_type: cisco_xr
+
+  - name: A-P-2
+    hostname: 192.168.100.106
+    username: cisco
+    password: cisco
+    device_type: cisco_xr
+
+  - name: A-P-3
+    hostname: 192.168.100.107
+    username: cisco
+    password: cisco
+    device_type: cisco_xr
+
+  - name: A-P-4
+    hostname: 192.168.100.108
+    username: cisco
+    password: cisco
+    device_type: cisco_xr
+
+  - name: B-CE-1
+    hostname: 192.168.100.113
+    username: cisco
+    password: cisco
+    device_type: cisco_ios
+
+  - name: B-CE-2
+    hostname: 192.168.100.114
+    username: cisco
+    password: cisco
+    device_type: cisco_ios
+
+  - name: S-CE-1
+    hostname: 192.168.100.115
+    username: cisco
+    password: cisco
+    device_type: cisco_ios
+
+  - name: S-CE-2
+    hostname: 192.168.100.116
+    username: cisco
+    password: cisco
+    device_type: cisco_ios
+
+  - name: A-RR-1
+    hostname: 192.168.100.111
+    username: cisco
+    password: cisco
+    device_type: cisco_ios
+
+  - name: A-RR-2
+    hostname: 192.168.100.112
+    username: cisco
+    password: cisco
+    device_type: cisco_ios
+  - name: A-ASBR-1
+    hostname: 192.168.100.109
+    username: cisco
+    password: cisco
+    device_type: cisco_xr
+
+  - name: A-ASBR-2
+    hostname: 192.168.100.110
+    username: cisco
+    password: cisco
+    device_type: cisco_xr
+
+
+
+
+  - name: C-PE-1
+    hostname: 192.168.100.131
+    username: cisco
+    password: cisco
+    device_type: cisco_xr
+
+  - name: C-PE-2
+    hostname: 192.168.100.132
+    username: cisco
+    password: cisco
+    device_type: cisco_xr
+
+  - name: C-PE-3
+    hostname: 192.168.100.133
+    username: cisco
+    password: cisco
+    device_type: cisco_xr
+
+  - name: C-PE-4
+    hostname: 192.168.100.134
+    username: cisco
+    password: cisco
+    device_type: cisco_xr
+
+  - name: C-P-1
+    hostname: 192.168.100.135
+    username: cisco
+    password: cisco
+    device_type: cisco_xr
+
+  - name: C-P-2
+    hostname: 192.168.100.136
+    username: cisco
+    password: cisco
+    device_type: cisco_xr
+
+  - name: C-ASBR-1
+    hostname: 192.168.100.137
+    username: cisco
+    password: cisco
+    device_type: cisco_xr
+
+  - name: C-ASBR-2
+    hostname: 192.168.100.138
+    username: cisco
+    password: cisco
+    device_type: cisco_xr
+
+  - name: R-CE-1
+    hostname: 192.168.100.139
+    username: cisco
+    password: cisco
+    device_type: cisco_ios
+
+  - name: R-CE-2
+    hostname: 192.168.100.140
+    username: cisco
+    password: cisco
+    device_type: cisco_ios
+
+  - name: M-CE-1
+    hostname: 192.168.100.141
+    username: cisco
+    password: cisco
+    device_type: cisco_ios
+
+  - name: M-CE-2
+    hostname: 192.168.100.142
+    username: cisco
+    password: cisco
+    device_type: cisco_ios
+
+
+
+
+
+
+
+  - name: B-ASBR-1
+    hostname: 192.168.100.124
+    username: cisco
+    password: cisco
+    device_type: cisco_xr
+
+  - name: B-ASBR-2
+    hostname: 192.168.100.125
+    username: cisco
+    password: cisco
+    device_type: cisco_xr
+
+  - name: B-PE-1
+    hostname: 192.168.100.117
+    username: cisco
+    password: cisco
+    device_type: cisco_xr
+
+  - name: B-PE-2
+    hostname: 192.168.100.118
+    username: cisco
+    password: cisco
+    device_type: cisco_xr
+
+  - name: B-PE-3
+    hostname: 192.168.100.119
+    username: cisco
+    password: cisco
+    device_type: cisco_xr
+
+  # - name: B-PE-4
+  #   hostname: 192.168.100.120
+  #   username: cisco
+  #   password: cisco
+  #   device_type: cisco_xr
+
+# B-PE-5 renamed to B-PE-4
+  - name: B-PE-4
+    hostname: 192.168.100.121
+    username: cisco
+    password: cisco
+    device_type: cisco_xr
+
+  - name: B-P-1
+    hostname: 192.168.100.122
+    username: cisco
+    password: cisco
+    device_type: cisco_xr
+
+  - name: B-P-2
+    hostname: 192.168.100.123
+    username: cisco
+    password: cisco
+    device_type: cisco_xr
+
+  - name: B-RR-1
+    hostname: 192.168.100.126
+    username: cisco
+    password: cisco
+    device_type: cisco_ios
+
+  - name: Y-CE-1
+    hostname: 192.168.100.127
+    username: cisco
+    password: cisco
+    device_type: cisco_ios
+
+  - name: Y-CE-2
+    hostname: 192.168.100.128
+    username: cisco
+    password: cisco
+    device_type: cisco_ios
+
+  - name: Y-CE-3
+    hostname: 192.168.100.129
+    username: cisco
+    password: cisco
+    device_type: cisco_ios
+
+  - name: S-CE-3
+    hostname: 192.168.100.130
+    username: cisco
+    password: cisco
+    device_type: cisco_ios

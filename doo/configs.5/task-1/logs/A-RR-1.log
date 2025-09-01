@@ -1,0 +1,35 @@
+--- Config Push Log for A-RR-1 ---
+Timestamp: 2025-08-21 06:33:10.875227
+
+configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+A-RR-1(config)#ipv6 unicast-routing
+A-RR-1(config)#interface GigabitEthernet2
+A-RR-1(config-if)#ip router isis
+A-RR-1(config-if)#ipv6 router isis
+A-RR-1(config-if)#isis network point-to-point
+A-RR-1(config-if)#no isis hello padding always
+A-RR-1(config-if)#!
+A-RR-1(config-if)#interface GigabitEthernet3
+A-RR-1(config-if)#ip router isis
+A-RR-1(config-if)#ipv6 router isis
+A-RR-1(config-if)#isis network point-to-point
+A-RR-1(config-if)#no isis hello padding always
+A-RR-1(config-if)#!
+A-RR-1(config-if)#interface Loopback0
+A-RR-1(config-if)#ip router isis
+A-RR-1(config-if)#ipv6 router isis
+A-RR-1(config-if)#!
+A-RR-1(config-if)#router isis
+A-RR-1(config-router)#net 49.0001.0001.0000.0101.0011.00
+A-RR-1(config-router)#is-type level-2-only
+A-RR-1(config-router)#metric-style wide
+A-RR-1(config-router)#metric 100 level-2
+A-RR-1(config-router)#passive-interface Loopback0
+A-RR-1(config-router)#!
+A-RR-1(config-router)#address-family ipv6
+A-RR-1(config-router-af)#metric 200 level-2
+A-RR-1(config-router-af)#exit-address-family
+A-RR-1(config-router)#!
+A-RR-1(config-router)#end
+A-RR-1#

@@ -1,0 +1,13 @@
+```json
+{
+  "hostname": "A-RR-1",
+  "platform_guess": "ios",
+  "signals_seen": ["bgp","evpn","intf","ip","isis","l2vpn","mpls","sr"],
+  "facts": {
+    "bgp_neighbors": [],
+    "evpn_xconnects": [],
+    "lacp_bundles": [],
+    "reachability": []
+  }
+}
+```

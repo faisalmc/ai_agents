@@ -1,0 +1,16 @@
+--- Config Push Log for B-CE-1 ---
+Timestamp: 2025-08-07 04:51:46.569501
+
+configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+B-CE-1(config)#!
+B-CE-1(config)#interface loopback 8
+B-CE-1(config-if)#ip address 8.8.8.8 255.255.255.255
+B-CE-1(config-if)#!
+B-CE-1(config-if)#router bgp 4000
+B-CE-1(config-router)#address-family ipv4
+B-CE-1(config-router-af)#network 8.8.8.8 mask 255.255.255.255
+B-CE-1(config-router-af)#!
+B-CE-1(config-router-af)#
+B-CE-1(config-router-af)#end
+B-CE-1#

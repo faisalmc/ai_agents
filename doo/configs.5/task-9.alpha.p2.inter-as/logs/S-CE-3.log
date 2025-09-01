@@ -1,0 +1,22 @@
+--- Config Push Log for S-CE-3 ---
+Timestamp: 2025-08-06 04:05:38.207257
+
+configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+S-CE-3(config)#ipv6 unicast-routing
+S-CE-3(config)#router bgp 1003
+S-CE-3(config-router)#bgp router-id 10.2.1.4
+S-CE-3(config-router)#neighbor 10.20.1.1 remote-as 200
+S-CE-3(config-router)#!
+S-CE-3(config-router)#neighbor 2620:fc7:10:201::1 remote-as 200
+S-CE-3(config-router)#!
+S-CE-3(config-router)#address-family ipv4
+S-CE-3(config-router-af)#network 10.2.1.4 mask 255.255.255.255
+S-CE-3(config-router-af)#neighbor 10.20.1.1 activate
+S-CE-3(config-router-af)#!
+S-CE-3(config-router-af)#address-family ipv6
+S-CE-3(config-router-af)#network 2620:FC7:2:1::4/128
+S-CE-3(config-router-af)#neighbor 2620:FC7:10:201::1 activate
+S-CE-3(config-router-af)#!
+S-CE-3(config-router-af)#end
+S-CE-3#

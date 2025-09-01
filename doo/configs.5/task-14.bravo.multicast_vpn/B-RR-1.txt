@@ -1,0 +1,10 @@
+router bgp 200
+address-family ipv4 mvpn
+ neighbor IBGPV4 send-community extended
+ neighbor IBGPV4 route-reflector-client
+ neighbor 2.0.101.1 activate
+ neighbor 2.0.101.2 activate
+ neighbor 2.0.101.3 activate
+! neighbor 2.0.101.4 activate
+! neighbor 2.0.101.6 activate
+! neighbor 2.0.101.7 activate

@@ -1,0 +1,50 @@
+--- Config Push Log for A-PE-2 ---
+Timestamp: 2025-08-07 04:51:45.234622
+
+configure terminal
+
+Thu Aug  7 08:51:37.799 UTC
+RP/0/RP0/CPU0:A-PE-2(config)#!
+
+RP/0/RP0/CPU0:A-PE-2(config)#prefix-set CUST4000-V4-PREFIXES
+
+RP/0/RP0/CPU0:A-PE-2(config-pfx)#  10.0.0.0/8 le 32, 172.16.0.0/12, 192.168.0.0/16
+
+RP/0/RP0/CPU0:A-PE-2(config-pfx)#end-set
+
+RP/0/RP0/CPU0:A-PE-2(config)#!
+
+RP/0/RP0/CPU0:A-PE-2(config)#route-policy CUST4000-IN-V4
+
+RP/0/RP0/CPU0:A-PE-2(config-rpl)#  if destination in CUST4000-V4-PREFIXES then
+
+RP/0/RP0/CPU0:A-PE-2(config-rpl-if)#    pass
+
+RP/0/RP0/CPU0:A-PE-2(config-rpl-if)#  else
+
+RP/0/RP0/CPU0:A-PE-2(config-rpl-else)#    drop
+
+RP/0/RP0/CPU0:A-PE-2(config-rpl-else)#  endif
+
+RP/0/RP0/CPU0:A-PE-2(config-rpl)#end-policy
+
+RP/0/RP0/CPU0:A-PE-2(config)#!
+
+RP/0/RP0/CPU0:A-PE-2(config)#!
+
+RP/0/RP0/CPU0:A-PE-2(config)#router bgp 100
+
+RP/0/RP0/CPU0:A-PE-2(config-bgp)# vrf BLUE
+
+RP/0/RP0/CPU0:A-PE-2(config-bgp-vrf)#   neighbor 10.10.2.2
+
+RP/0/RP0/CPU0:A-PE-2(config-bgp-vrf-nbr)#    address-family ipv4 unicast
+
+RP/0/RP0/CPU0:A-PE-2(config-bgp-vrf-nbr-af)#    route-policy CUST4000-IN-V4 in
+
+RP/0/RP0/CPU0:A-PE-2(config-bgp-vrf-nbr-af)#  !
+
+RP/0/RP0/CPU0:A-PE-2(config-bgp-vrf-nbr-af)#commit
+
+Thu Aug  7 08:51:39.193 UTC
+RP/0/RP0/CPU0:A-PE-2(config-bgp-vrf-nbr-af)#

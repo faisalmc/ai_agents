@@ -1,0 +1,232 @@
+[
+{
+  "hostname": "A-ASBR-1",
+  "provider": "Alpha",
+  "customer": null,
+  "role": "ASBR",
+  "config_intents": [
+    "Disable ISIS process AGG2",
+    "Configure ISIS with overload bit set on startup for 180 seconds and as level-2-only",
+    "Configure ISIS address families for IPv4 and IPv6 with wide metric style",
+    "Configure Loopback interfaces for ISIS with point-to-point, IPv4 metric 100 level 2, and IPv6 metric 200 level 2",
+    "Configure GigabitEthernet interfaces for ISIS with point-to-point, IPv4 metric 100 level 2, and IPv6 metric 200 level 2",
+    "Apply ISIS group ISIS-GRP to router process AGG2 with specified network",
+    "Configure Loopback0 interface",
+    "Configure GigabitEthernet0/0/0/1 interface",
+    "Configure GigabitEthernet0/0/0/2 interface"
+  ]
+},
+{
+  "hostname": "A-ASBR-2",
+  "provider": "Beta",
+  "customer": null,
+  "role": "ASBR",
+  "config_intents": [
+    "Configure ISIS with overload bit set on startup for 180 seconds and level-2-only",
+    "Configure wide metric style for IPv4 and IPv6 unicast address families",
+    "Configure Loopback interfaces with point-to-point, IPv4 metric 100 level 2, and IPv6 metric 200 level 2",
+    "Configure GigabitEthernet interfaces with point-to-point, IPv4 metric 100 level 2, and IPv6 metric 200 level 2",
+    "Apply ISIS group ISIS-GRP to router AGG2 with network 49.0001.0001.0000.0101.0010.00"
+  ]
+},
+{
+  "hostname": "A-P-1",
+  "provider": "Alpha",
+  "customer": null,
+  "role": "Provider",
+  "config_intents": [
+    "Configure ISIS with group ISIS-GRP, set overload bit on startup for 180 seconds, and specify level 2 only",
+    "Configure ISIS address families for IPv4 and IPv6 with wide metric style",
+    "Configure Loopback interfaces with point-to-point, IPv4 metric 100 level 2, and IPv6 metric 200 level 2",
+    "Configure GigabitEthernet interfaces with point-to-point, IPv4 metric 100 level 2, and IPv6 metric 200 level 2",
+    "Configure ISIS router instances AGG1 and CORE with group ISIS-GRP and network addresses",
+    "Configure interfaces Loopback0 and GigabitEthernet interfaces under router instances AGG1 and CORE"
+  ]
+},
+{
+  "hostname": "A-P-2",
+  "provider": "Alpha",
+  "customer": null,
+  "role": "Provider",
+  "config_intents": [
+    "Configure ISIS with group ISIS-GRP",
+    "Set overload bit on-startup with a timer of 180 seconds",
+    "Configure ISIS to operate in level-2-only mode for IPv4 and IPv6",
+    "Configure Loopback interfaces with point-to-point mode and metrics for IPv4 and IPv6",
+    "Configure GigabitEthernet interfaces with point-to-point mode and metrics for IPv4 and IPv6",
+    "Configure router isis AGG1 with network address 49.0001.0001.0000.0101.0006.00 and apply ISIS-GRP",
+    "Configure router isis CORE with network address 49.0001.0001.0000.0101.0006.00 and apply ISIS-GRP"
+  ]
+},
+{
+  "hostname": "A-P-3",
+  "provider": "Alpha",
+  "customer": null,
+  "role": "Provider",
+  "config_intents": [
+    "Configure ISIS with group ISIS-GRP and set overload bit on-startup for 180 seconds",
+    "Specify ISIS as level-2-only for IPv4 and IPv6 address families",
+    "Configure Loopback interfaces with point-to-point mode and metrics for IPv4 and IPv6 address families",
+    "Configure GigabitEthernet interfaces with point-to-point mode and metrics for IPv4 and IPv6 address families",
+    "Configure router ISIS AGG2 with group ISIS-GRP and network address",
+    "Configure router ISIS CORE with group ISIS-GRP and network address"
+  ]
+},
+{
+  "hostname": "A-P-4",
+  "provider": "Alpha",
+  "customer": null,
+  "role": "Provider",
+  "config_intents": [
+    "Configure ISIS with group ISIS-GRP, set overload bit on startup for 180 seconds, and specify level-2-only",
+    "Configure ISIS address families for IPv4 and IPv6 with wide metric style",
+    "Configure Loopback interfaces under ISIS with point-to-point, IPv4 metric 100 level 2, and IPv6 metric 200 level 2",
+    "Configure GigabitEthernet interfaces under ISIS with point-to-point, IPv4 metric 100 level 2, and IPv6 metric 200 level 2",
+    "Configure ISIS router instances AGG2 and CORE with group ISIS-GRP and network 49.0001.0001.0000.0101.0008.00"
+  ]
+},
+{
+  "hostname": "A-PE-1",
+  "provider": "Alpha",
+  "customer": null,
+  "role": "Provider-Edge",
+  "config_intents": [
+    "Configure ISIS with overload bit set on startup for 180 seconds and type level-2-only",
+    "Configure ISIS address families for IPv4 and IPv6 with wide metric style",
+    "Configure Loopback interfaces to be passive, point-to-point with metrics for IPv4 and IPv6",
+    "Configure GigabitEthernet interfaces to be point-to-point with metrics for IPv4 and IPv6",
+    "Apply ISIS group ISIS-GRP to router AGG1 with specified network",
+    "Configure Loopback0, GigabitEthernet0/0/0/0, GigabitEthernet0/0/0/2 interfaces"
+  ]
+},
+{
+  "hostname": "A-PE-2",
+  "provider": "Alpha",
+  "customer": null,
+  "role": "Provider-Edge",
+  "config_intents": [
+    "Configure ISIS with group ISIS-GRP, set overload bit on startup for 180 seconds, and specify level-2-only",
+    "Configure ISIS address families for IPv4 and IPv6 with wide metric style",
+    "Configure Loopback interfaces with point-to-point, IPv4 metric 100 level 2, and IPv6 metric 200 level 2",
+    "Configure GigabitEthernet interfaces with point-to-point, IPv4 metric 100 level 2, and IPv6 metric 200 level 2",
+    "Apply ISIS group ISIS-GRP to router AGG1 with specified network and interfaces"
+  ]
+},
+{
+  "hostname": "A-PE-3",
+  "provider": "Alpha",
+  "customer": null,
+  "role": "Provider-Edge",
+  "config_intents": [
+    "Configure ISIS with group ISIS-GRP and set overload bit on-startup for 180 seconds",
+    "Specify ISIS as level-2-only",
+    "Configure wide metric style for IPv4 and IPv6 unicast address families",
+    "Configure Loopback interfaces with point-to-point, IPv4 metric 100 level 2, and IPv6 metric 200 level 2",
+    "Configure GigabitEthernet interfaces with point-to-point, IPv4 metric 100 level 2, and IPv6 metric 200 level 2",
+    "Apply ISIS group ISIS-GRP to router AGG1 with specified network",
+    "Configure Loopback0 interface",
+    "Configure GigabitEthernet0/0/0/0 interface"
+  ]
+},
+{
+  "hostname": "A-PE-4",
+  "provider": "Alpha",
+  "customer": null,
+  "role": "Provider-Edge",
+  "config_intents": [
+    "Create ISIS group ISIS-GRP with overload bit set on startup for 180 seconds and level-2-only",
+    "Configure wide metric style for IPv4 and IPv6 unicast address families",
+    "Configure Loopback interfaces with point-to-point, IPv4 metric 100 level 2, and IPv6 metric 200 level 2",
+    "Configure GigabitEthernet interfaces with point-to-point, IPv4 metric 100 level 2, and IPv6 metric 200 level 2",
+    "Apply ISIS group ISIS-GRP to router AGG2 with specified network address"
+  ]
+},
+{
+  "hostname": "A-RR-1",
+  "provider": "Alpha",
+  "customer": null,
+  "role": "Route-Reflector",
+  "config_intents": [
+    "Enable IPv6 unicast routing",
+    "Configure interfaces GigabitEthernet2, GigabitEthernet3, Loopback0 for ISIS",
+    "Set ISIS network type to point-to-point",
+    "Disable ISIS hello padding",
+    "Configure ISIS router with NET 49.0001.0001.0000.0101.0011.00",
+    "Set ISIS to operate in level-2-only mode with wide metric style",
+    "Set metric to 100 for level-2, 200 for IPv6 level-2",
+    "Passive interface Loopback0 for ISIS"
+  ]
+},
+{
+  "hostname": "A-RR-2",
+  "provider": "Alpha",
+  "customer": null,
+  "role": "Route-Reflector",
+  "config_intents": [
+    "Enable IPv6 unicast routing",
+    "Configure interfaces GigabitEthernet2, GigabitEthernet3, Loopback0 for ISIS",
+    "Set ISIS network type to point-to-point",
+    "Disable ISIS hello padding",
+    "Configure ISIS router with net 49.0001.0001.0000.0101.0012.00 and level-2-only",
+    "Set ISIS metric-style to wide with metric 100 for level-2",
+    "Passive interface Loopback0 for ISIS",
+    "Configure ISIS address-family for IPv6 with metric 200 for level-2"
+  ]
+},
+{
+  "hostname": "Operational-Checks: show_cmds.ini",
+  "role": "validation-commands",
+  "checks": [
+    {
+      "intent": "Show running configuration for all groups",
+      "command": "show run group",
+      "protocol": "Common"
+    },
+    {
+      "intent": "Show ISIS configuration",
+      "command": "show run router isis",
+      "protocol": "Common"
+    },
+    {
+      "intent": "Display brief ISIS interface information",
+      "command": "show isis interface brief",
+      "protocol": "ISIS"
+    },
+    {
+      "intent": "Show ISIS neighbors",
+      "command": "show isis neighbors",
+      "protocol": "ISIS"
+    },
+    {
+      "intent": "Display IPv4 routes learned via ISIS",
+      "command": "show ip route isis",
+      "protocol": "ISIS"
+    },
+    {
+      "intent": "Display IPv6 routes learned via ISIS",
+      "command": "show route ipv6 isis",
+      "protocol": "ISIS"
+    },
+    {
+      "intent": "Show ISIS configuration",
+      "command": "show run | section router isis",
+      "protocol": "ISIS"
+    },
+    {
+      "intent": "Show ISIS neighbors",
+      "command": "show isis neighbors",
+      "protocol": "ISIS"
+    },
+    {
+      "intent": "Display IPv4 routes learned via ISIS",
+      "command": "show ip route isis",
+      "protocol": "ISIS"
+    },
+    {
+      "intent": "Display IPv6 routes learned via ISIS",
+      "command": "show ipv6 route isis",
+      "protocol": "ISIS"
+    }
+  ]
+}
+]

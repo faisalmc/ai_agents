@@ -1,0 +1,22 @@
+--- Config Push Log for B-CE-1 ---
+Timestamp: 2025-08-06 03:21:26.530178
+
+configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+B-CE-1(config)#ipv6 unicast-routing
+B-CE-1(config)#router bgp 4000
+B-CE-1(config-router)#bgp router-id 10.1.1.2
+B-CE-1(config-router)#neighbor 10.10.2.1 remote-as 100
+B-CE-1(config-router)#!
+B-CE-1(config-router)#neighbor 2620:FC7:10:102::1 remote-as 100
+B-CE-1(config-router)#!
+B-CE-1(config-router)#address-family ipv4
+B-CE-1(config-router-af)#network 10.1.1.2 mask 255.255.255.255
+B-CE-1(config-router-af)#neighbor 10.10.2.1 activate
+B-CE-1(config-router-af)#!
+B-CE-1(config-router-af)#address-family ipv6
+B-CE-1(config-router-af)#network 2620:FC7:1011::2/128
+B-CE-1(config-router-af)#neighbor 2620:FC7:10:102::1 activate
+B-CE-1(config-router-af)#!
+B-CE-1(config-router-af)#end
+B-CE-1#

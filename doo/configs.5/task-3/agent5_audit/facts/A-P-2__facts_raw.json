@@ -1,0 +1,19 @@
+```json
+{
+  "hostname": "A-P-2",
+  "platform_guess": "ios-xr",
+  "signals_seen": ["bgp", "mpls"],
+  "facts": {
+    "bgp_neighbors": [
+      {"peer": "1.0.101.1", "state": "Established", "evidence": "1.0.101.1         0   100                                         1d06h Established"},
+      {"peer": "1.0.101.2", "state": "Established", "evidence": "1.0.101.2         0   100                                         1d06h Established"},
+      {"peer": "1.0.101.3", "state": "Established", "evidence": "1.0.101.3         0   100                                         1d06h Established"},
+      {"peer": "1.0.101.11", "state": "Established", "evidence": "1.0.101.11        0   100                                         1d06h Established"},
+      {"peer": "1.0.101.12", "state": "Established", "evidence": "1.0.101.12        0   100                                         1d06h Established"}
+    ],
+    "evpn_xconnects": [],
+    "lacp_bundles": [],
+    "reachability": []
+  }
+}
+```

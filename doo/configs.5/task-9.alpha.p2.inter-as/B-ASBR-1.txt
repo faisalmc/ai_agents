@@ -1,0 +1,58 @@
+route-policy PASS
+pass
+end-policy
+!
+interface GigabitEthernet0/0/0/0
+ description to A-ASBR-1
+ ipv4 address 100.64.121.2 255.255.255.0
+ ipv6 address 2620:fc7:64:121::2/64
+!
+router static
+ address-family ipv4 unicast
+  100.64.121.1/32 GigabitEthernet0/0/0/0
+ !
+
+router bgp 200
+ !
+ address-family vpnv4 unicast
+  retain route-target all
+ !
+ address-family vpnv6 unicast
+  retain route-target all
+ !
+ neighbor-group IBGP-VPN
+  remote-as 200
+  update-source Loopback0
+  address-family vpnv4 unicast
+   next-hop-self
+   route-policy PASS in
+   route-policy PASS out
+  !
+  address-family vpnv6 unicast
+   next-hop-self
+   route-policy PASS in
+   route-policy PASS out
+  !
+ !
+ neighbor-group TO_A_ASBR
+  remote-as 100
+  update-source GigabitEthernet0/0/0/0
+  address-family vpnv4 unicast
+   route-policy PASS in
+   route-policy PASS out
+  !
+  address-family vpnv6 unicast
+   route-policy PASS in
+   route-policy PASS out
+  !
+ !
+ neighbor 2.0.101.10
+  use neighbor-group IBGP-VPN
+ !
+ neighbor 100.64.121.1
+  use neighbor-group TO_A_ASBR
+
+!
+
+router ospf 1
+ redistribute bgp 200 route-policy PASS

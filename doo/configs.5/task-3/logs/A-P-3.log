@@ -1,0 +1,86 @@
+--- Config Push Log for A-P-3 ---
+Timestamp: 2025-08-05 02:41:48.613450
+
+configure terminal
+
+Tue Aug  5 06:41:42.237 UTC
+RP/0/RP0/CPU0:A-P-3(config)#route-policy SID($SID)
+
+RP/0/RP0/CPU0:A-P-3(config-rpl)#set label-index $SID
+
+RP/0/RP0/CPU0:A-P-3(config-rpl)#end-policy
+
+RP/0/RP0/CPU0:A-P-3(config)#!
+
+RP/0/RP0/CPU0:A-P-3(config)#router bgp 100
+
+RP/0/RP0/CPU0:A-P-3(config-bgp)# bgp router-id 1.0.101.7
+
+RP/0/RP0/CPU0:A-P-3(config-bgp)# ibgp policy out enforce-modifications
+
+RP/0/RP0/CPU0:A-P-3(config-bgp)# address-family ipv4 unicast
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-af)#network 1.0.101.7/32 route-policy SID(7)
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-af)#allocate-label all
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-af)# !
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-af)# neighbor-group RR
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-nbrgrp)#  remote-as 100
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-nbrgrp)#  update-source Loopback0
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-nbrgrp)#  address-family ipv4 labeled-unicast
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-nbrgrp-af)#   next-hop-self
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-nbrgrp-af)# !
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-nbrgrp-af)# neighbor-group RR_CLIENT
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-nbrgrp)#  remote-as 100
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-nbrgrp)#  update-source Loopback0
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-nbrgrp)#  address-family ipv4 labeled-unicast
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-nbrgrp-af)#   next-hop-self
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-nbrgrp-af)#   route-reflector-client
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-nbrgrp-af)# !
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-nbrgrp-af)# neighbor 1.0.101.4
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-nbr)#  use neighbor-group RR_CLIENT
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-nbr)#  !
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-nbr)# neighbor 1.0.101.9
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-nbr)#  use neighbor-group RR_CLIENT
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-nbr)#  !
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-nbr)# neighbor 1.0.101.10
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-nbr)#  use neighbor-group RR_CLIENT
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-nbr)#  !
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-nbr)# neighbor 1.0.101.11
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-nbr)#  use neighbor-group RR
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-nbr)#  !
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-nbr)# neighbor 1.0.101.12
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-nbr)#  use neighbor-group RR
+
+RP/0/RP0/CPU0:A-P-3(config-bgp-nbr)#commit
+
+Tue Aug  5 06:41:44.513 UTC
+RP/0/RP0/CPU0:A-P-3(config-bgp-nbr)#

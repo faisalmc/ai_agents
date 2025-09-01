@@ -1,0 +1,46 @@
+--- Config Push Log for C-ASBR-2 ---
+Timestamp: 2025-08-07 04:33:09.634380
+
+configure terminal
+
+Thu Aug  7 08:33:02.488 UTC
+RP/0/RP0/CPU0:C-ASBR-2(config)#key chain key1
+
+RP/0/RP0/CPU0:C-ASBR-2(config-key1)# key 1
+
+RP/0/RP0/CPU0:C-ASBR-2(config-key1-1)#  accept-lifetime 10:40:00 Jul 6 2025 infinite
+
+RP/0/RP0/CPU0:C-ASBR-2(config-key1-1)#  key-string password 0832495C1F10061202190312232F213A30362B16
+
+RP/0/RP0/CPU0:C-ASBR-2(config-key1-1)#  send-lifetime 10:40:00 Jul 6 2025 infinite
+
+RP/0/RP0/CPU0:C-ASBR-2(config-key1-1)#  cryptographic-algorithm HMAC-MD5
+
+RP/0/RP0/CPU0:C-ASBR-2(config-key1-1)#!
+
+RP/0/RP0/CPU0:C-ASBR-2(config-key1-1)#accept-tolerance infinite
+
+RP/0/RP0/CPU0:C-ASBR-2(config-key1)#!
+
+RP/0/RP0/CPU0:C-ASBR-2(config-key1)#root
+
+RP/0/RP0/CPU0:C-ASBR-2(config)#!
+
+RP/0/RP0/CPU0:C-ASBR-2(config)#router isis CORE
+
+RP/0/RP0/CPU0:C-ASBR-2(config-isis)# lsp-password keychain key1
+
+RP/0/RP0/CPU0:C-ASBR-2(config-isis)# interface Loopback0
+
+RP/0/RP0/CPU0:C-ASBR-2(config-isis-if)#  hello-password keychain key1
+
+RP/0/RP0/CPU0:C-ASBR-2(config-isis-if)#!
+
+RP/0/RP0/CPU0:C-ASBR-2(config-isis-if)# interface GigabitEthernet0/0/0/2
+
+RP/0/RP0/CPU0:C-ASBR-2(config-isis-if)#  hello-password keychain key1
+
+RP/0/RP0/CPU0:C-ASBR-2(config-isis-if)#commit
+
+Thu Aug  7 08:33:03.753 UTC
+RP/0/RP0/CPU0:C-ASBR-2(config-isis-if)#

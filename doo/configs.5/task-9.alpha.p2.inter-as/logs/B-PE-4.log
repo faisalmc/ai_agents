@@ -1,0 +1,164 @@
+--- Config Push Log for B-PE-4 ---
+Timestamp: 2025-08-06 04:05:34.650389
+
+configure terminal
+
+Wed Aug  6 08:05:25.925 UTC
+RP/0/RP0/CPU0:B-PE-4(config)#route-policy PASS
+
+Wed Aug  6 08:05:26.329 UTC
+% WARNING: Policy object route-policy PASS exists! Reconfiguring it via CLI will replace current definition. Use abort to cancel.
+RP/0/RP0/CPU0:B-PE-4(config-rpl)#pass
+
+RP/0/RP0/CPU0:B-PE-4(config-rpl)#end-policy
+
+RP/0/RP0/CPU0:B-PE-4(config)#
+
+RP/0/RP0/CPU0:B-PE-4(config)#vrf SILVER
+
+RP/0/RP0/CPU0:B-PE-4(config-vrf)# address-family ipv4 unicast
+
+RP/0/RP0/CPU0:B-PE-4(config-vrf-af)#  import route-target
+
+RP/0/RP0/CPU0:B-PE-4(config-vrf-import-rt)#  100:1
+
+RP/0/RP0/CPU0:B-PE-4(config-vrf-import-rt)#  200:1
+
+RP/0/RP0/CPU0:B-PE-4(config-vrf-import-rt)#
+
+RP/0/RP0/CPU0:B-PE-4(config-vrf-import-rt)#  export route-target
+
+RP/0/RP0/CPU0:B-PE-4(config-vrf-export-rt)#  200:1
+
+RP/0/RP0/CPU0:B-PE-4(config-vrf-export-rt)#
+
+RP/0/RP0/CPU0:B-PE-4(config-vrf-export-rt)# address-family ipv6 unicast
+
+RP/0/RP0/CPU0:B-PE-4(config-vrf-af)#  import route-target
+
+RP/0/RP0/CPU0:B-PE-4(config-vrf-import-rt)#  100:1
+
+RP/0/RP0/CPU0:B-PE-4(config-vrf-import-rt)#  200:1
+
+RP/0/RP0/CPU0:B-PE-4(config-vrf-import-rt)#
+
+RP/0/RP0/CPU0:B-PE-4(config-vrf-import-rt)#  export route-target
+
+RP/0/RP0/CPU0:B-PE-4(config-vrf-export-rt)#  200:1
+
+RP/0/RP0/CPU0:B-PE-4(config-vrf-export-rt)#
+
+RP/0/RP0/CPU0:B-PE-4(config-vrf-export-rt)#interface GigabitEthernet0/0/0/1
+
+RP/0/RP0/CPU0:B-PE-4(config-if)#no ipv4 address
+
+RP/0/RP0/CPU0:B-PE-4(config-if)#no ipv6 address
+
+RP/0/RP0/CPU0:B-PE-4(config-if)#vrf SILVER
+
+RP/0/RP0/CPU0:B-PE-4(config-if)#ipv4 address 10.20.1.1 255.255.255.0
+
+RP/0/RP0/CPU0:B-PE-4(config-if)#ipv6 address 2620:FC7:10:201::1/64
+
+RP/0/RP0/CPU0:B-PE-4(config-if)#
+
+RP/0/RP0/CPU0:B-PE-4(config-if)#router bgp 200
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp)#address-family vpnv4 unicast
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-af)#!
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-af)#address-family ipv6 unicast
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-af)#!
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-af)#address-family vpnv6 unicast
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-af)#!
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-af)#neighbor-group SILVER_CE_IPV4
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-nbrgrp)#remote-as 1003
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-nbrgrp)#address-family ipv4 unicast
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-nbrgrp-af)#route-policy PASS in
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-nbrgrp-af)#route-policy PASS out
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-nbrgrp-af)#
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-nbrgrp-af)#!
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-nbrgrp-af)#neighbor-group SILVER_CE_IPV6
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-nbrgrp)#remote-as 1003
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-nbrgrp)#address-family ipv6 unicast
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-nbrgrp-af)#route-policy PASS in
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-nbrgrp-af)#route-policy PASS out
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-nbrgrp-af)#!
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-nbrgrp-af)# neighbor-group IBGP-VPN
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-nbrgrp)#  remote-as 200
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-nbrgrp)#  update-source Loopback0
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-nbrgrp)#  address-family vpnv4 unicast
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-nbrgrp-af)#   next-hop-self
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-nbrgrp-af)#  !
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-nbrgrp-af)#  address-family vpnv6 unicast
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-nbrgrp-af)#   next-hop-self
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-nbrgrp-af)#
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-nbrgrp-af)#!
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-nbrgrp-af)#
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-nbrgrp-af)#!
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-nbrgrp-af)#vrf SILVER
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-vrf)#rd 200:1
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-vrf)#address-family ipv4 unicast
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-vrf-af)#redistribute connected
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-vrf-af)#!
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-vrf-af)#address-family ipv6 unicast
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-vrf-af)#redistribute connected
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-vrf-af)#!
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-vrf-af)#  neighbor 10.20.1.2
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-vrf-nbr)#   use neighbor-group SILVER_CE_IPV4
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-vrf-nbr)#  !
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-vrf-nbr)#  neighbor 2620:fc7:10:201::2
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-vrf-nbr)#   use neighbor-group SILVER_CE_IPV6
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-vrf-nbr)#  !
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-vrf-nbr)# !
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-vrf-nbr)#
+
+RP/0/RP0/CPU0:B-PE-4(config-bgp-vrf-nbr)#commit
+
+Wed Aug  6 08:05:30.406 UTC
+RP/0/RP0/CPU0:B-PE-4(config-bgp-vrf-nbr)#

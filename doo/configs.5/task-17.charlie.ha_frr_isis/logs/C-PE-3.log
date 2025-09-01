@@ -1,0 +1,20 @@
+--- Config Push Log for C-PE-3 ---
+Timestamp: 2025-08-07 04:18:32.371292
+
+configure terminal
+
+Thu Aug  7 08:18:25.859 UTC
+RP/0/RP0/CPU0:C-PE-3(config)#!
+
+RP/0/RP0/CPU0:C-PE-3(config)#router isis CORE
+
+RP/0/RP0/CPU0:C-PE-3(config-isis)# address-family ipv6 unicast
+
+RP/0/RP0/CPU0:C-PE-3(config-isis-af)#  fast-reroute per-prefix priority-limit critical level 2
+
+RP/0/RP0/CPU0:C-PE-3(config-isis-af)#   spf prefix-priority critical tag 300
+
+RP/0/RP0/CPU0:C-PE-3(config-isis-af)#commit
+
+Thu Aug  7 08:18:26.501 UTC
+RP/0/RP0/CPU0:C-PE-3(config-isis-af)#

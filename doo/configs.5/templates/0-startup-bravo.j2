@@ -1,0 +1,66 @@
+lldp
+!
+mpls ldp
+!
+group OSPF-GRP
+ router ospf '.*'
+  address-family ipv4 unicast
+  area '.*'
+   mpls traffic-eng
+  !
+  mpls traffic-eng router-id Loopback0
+  mpls traffic-eng multicast-intact
+  mpls traffic-eng ldp-sync-update
+ !
+end-group
+!
+route-policy PASS
+  pass
+end-policy
+!
+
+{# Extract loopback IP address from interfaces list #}
+{% set loopback_ip = (interfaces | selectattr("name", "equalto", "Loopback0") | map(attribute="ip") | list | first) %}
+
+router ospf 1
+ apply-group OSPF-GRP
+ router-id {{ loopback_ip }}
+ mpls ldp auto-config
+ redistribute connected
+ area 0
+  interface Loopback0
+  {% for iface in ospf_ints.get(name, []) %}
+  !
+  interface {{ iface }}
+  {% endfor %}
+ !
+root
+!
+router ospfv3 1
+ area 0
+  interface Loopback0
+  {% for iface in ospf_ints.get(name, []) %}
+  !
+  interface {{ iface }}
+  {% endfor %}
+ !
+root
+!
+router bgp 200
+ address-family vpnv4 unicast
+ !
+ address-family vpnv6 unicast
+ !
+ neighbor-group IBGP-VPN
+  remote-as 200
+  update-source Loopback0
+  address-family vpnv4 unicast
+  !
+  address-family vpnv6 unicast
+  !
+ !
+{% for rr in bgp_rrs %}
+ neighbor {{ rr }}
+  use neighbor-group IBGP-VPN
+ !
+{% endfor %}

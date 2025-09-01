@@ -1,0 +1,62 @@
+lldp
+!
+mpls ldp
+!
+group OSPF-GRP
+ router ospf '.*'
+  address-family ipv4 unicast
+  area '.*'
+   mpls traffic-eng
+  !
+  mpls traffic-eng router-id Loopback0
+  mpls traffic-eng multicast-intact
+  mpls traffic-eng ldp-sync-update
+ !
+end-group
+!
+route-policy PASS
+  pass
+end-policy
+!
+router ospf 1
+ apply-group OSPF-GRP
+ router-id <loopback0_ip>
+ mpls ldp auto-config
+ redistribute connected
+ area 0
+  interface Loopback0
+  !
+  interface <GigabitEthernet0/0/0/0>
+  !
+  interface <GigabitEthernet0/0/0/1>
+  !
+ !
+root
+!
+router ospfv3 1
+ area 0
+  interface Loopback0
+  !
+  interface GigabitEthernet0/0/0/0
+  !
+  interface GigabitEthernet0/0/0/1
+  !
+ !
+root
+!
+router bgp 200
+ address-family vpnv4 unicast
+ !
+ address-family vpnv6 unicast
+ !
+ neighbor-group IBGP-VPN
+  remote-as 200
+  update-source Loopback0
+  address-family vpnv4 unicast
+  !
+  address-family vpnv6 unicast
+  !
+ !
+ neighbor <route-reflector>
+  use neighbor-group IBGP-VPN
+ !

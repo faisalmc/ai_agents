@@ -1,0 +1,24 @@
+{
+  "hostname": "A-PE-4",
+  "platform": "ios-xr",
+  "signals_seen": ["bgp", "mpls"],
+  "status": "healthy",
+  "findings": [
+    {
+      "signal": "bgp",
+      "severity": "info",
+      "detail": "BGP is operational with 2 established neighbors (1.0.101.7 and 1.0.101.8). Routes are being advertised and received correctly."
+    },
+    {
+      "signal": "mpls",
+      "severity": "info",
+      "detail": "MPLS forwarding table is populated with labels for SR prefixes. Outgoing labels and next hops are correctly configured."
+    }
+  ],
+  "recommended_show_cmds": [
+    "show bgp neighbors brief",
+    "show bgp ipv4 labeled-unicast",
+    "show mpls forwarding"
+  ],
+  "optional_active_cmds": []
+}

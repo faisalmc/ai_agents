@@ -1,0 +1,52 @@
+segment-routing
+global-block 16000 23999
+local-block 25000 26000
+!
+root
+!
+router isis CORE
+ no net 49.1001.0003.0000.0101.0003.00
+net 49.1001.0003.0101.0003.00
+ is-type level-2-only
+ log adjacency changes
+!
+address-family ipv4 unicast
+ metric-style wide
+ segment-routing mpls sr-prefer
+!
+address-family ipv6 unicast
+ metric-style wide
+ segment-routing mpls sr-prefer
+!
+interface Loopback0
+ passive
+  address-family ipv4 unicast
+  prefix-sid index 3
+ !
+ address-family ipv6 unicast
+  prefix-sid index 1003
+!
+interface GigabitEthernet0/0/0/0
+ point-to-point
+ address-family ipv4 unicast
+ !
+ address-family ipv6 unicast
+ !
+interface GigabitEthernet0/0/0/1
+ point-to-point
+ address-family ipv4 unicast
+ !
+ address-family ipv6 unicast
+ !
+interface GigabitEthernet0/0/0/2
+ point-to-point
+ address-family ipv4 unicast
+ !
+ address-family ipv6 unicast
+!
+interface GigabitEthernet0/0/0/3
+ point-to-point
+ address-family ipv4 unicast
+ !
+ address-family ipv6 unicast
+ !

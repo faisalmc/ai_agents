@@ -1,0 +1,26 @@
+```json
+{
+  "hostname": "A-ASBR-2",
+  "platform": "ios-xr",
+  "signals_seen": ["bgp", "mpls"],
+  "status": "healthy",
+  "findings": [
+    {
+      "signal": "bgp",
+      "severity": "info",
+      "detail": "BGP is active with 2 established neighbors (1.0.101.7 and 1.0.101.8). Routes are being advertised with labeled-unicast."
+    },
+    {
+      "signal": "mpls",
+      "severity": "info",
+      "detail": "MPLS forwarding table is populated with labels for SR prefixes and adjacencies."
+    }
+  ],
+  "recommended_show_cmds": [
+    "show bgp neighbors brief",
+    "show bgp ipv4 labeled-unicast",
+    "show mpls forwarding"
+  ],
+  "optional_active_cmds": []
+}
+```

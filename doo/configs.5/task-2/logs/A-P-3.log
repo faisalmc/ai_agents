@@ -1,0 +1,88 @@
+--- Config Push Log for A-P-3 ---
+Timestamp: 2025-08-05 02:34:47.358471
+
+configure terminal
+
+Tue Aug  5 06:34:39.727 UTC
+RP/0/RP0/CPU0:A-P-3(config)#segment-routing
+
+RP/0/RP0/CPU0:A-P-3(config-sr)#global-block 16000 23999
+
+RP/0/RP0/CPU0:A-P-3(config-sr)#local-block 25000 26000
+
+RP/0/RP0/CPU0:A-P-3(config-sr)#!
+
+RP/0/RP0/CPU0:A-P-3(config-sr)#root
+
+RP/0/RP0/CPU0:A-P-3(config)#!
+
+RP/0/RP0/CPU0:A-P-3(config)#router isis CORE
+
+RP/0/RP0/CPU0:A-P-3(config-isis)# address-family ipv4 unicast
+
+RP/0/RP0/CPU0:A-P-3(config-isis-af)#  segment-routing mpls sr-prefer
+
+RP/0/RP0/CPU0:A-P-3(config-isis-af)#  microloop avoidance segment-routing
+
+RP/0/RP0/CPU0:A-P-3(config-isis-af)#!
+
+RP/0/RP0/CPU0:A-P-3(config-isis-af)# address-family ipv6 unicast
+
+RP/0/RP0/CPU0:A-P-3(config-isis-af)#  segment-routing mpls sr-prefer
+
+RP/0/RP0/CPU0:A-P-3(config-isis-af)#  microloop avoidance segment-routing
+
+RP/0/RP0/CPU0:A-P-3(config-isis-af)#!
+
+RP/0/RP0/CPU0:A-P-3(config-isis-af)#interface Loopback0
+
+RP/0/RP0/CPU0:A-P-3(config-isis-if)# address-family ipv4 unicast
+
+RP/0/RP0/CPU0:A-P-3(config-isis-if-af)# prefix-sid index 7
+
+RP/0/RP0/CPU0:A-P-3(config-isis-if-af)# !
+
+RP/0/RP0/CPU0:A-P-3(config-isis-if-af)# address-family ipv6 unicast
+
+RP/0/RP0/CPU0:A-P-3(config-isis-if-af)#  prefix-sid index 1007
+
+RP/0/RP0/CPU0:A-P-3(config-isis-if-af)# !
+
+RP/0/RP0/CPU0:A-P-3(config-isis-if-af)#!
+
+RP/0/RP0/CPU0:A-P-3(config-isis-if-af)#router isis AGG2
+
+RP/0/RP0/CPU0:A-P-3(config-isis)# address-family ipv4 unicast
+
+RP/0/RP0/CPU0:A-P-3(config-isis-af)#  segment-routing mpls sr-prefer
+
+RP/0/RP0/CPU0:A-P-3(config-isis-af)#  microloop avoidance segment-routing
+
+RP/0/RP0/CPU0:A-P-3(config-isis-af)#!
+
+RP/0/RP0/CPU0:A-P-3(config-isis-af)# address-family ipv6 unicast
+
+RP/0/RP0/CPU0:A-P-3(config-isis-af)#  segment-routing mpls sr-prefer
+
+RP/0/RP0/CPU0:A-P-3(config-isis-af)#  microloop avoidance segment-routing
+
+RP/0/RP0/CPU0:A-P-3(config-isis-af)#!
+
+RP/0/RP0/CPU0:A-P-3(config-isis-af)#interface Loopback0
+
+RP/0/RP0/CPU0:A-P-3(config-isis-if)# address-family ipv4 unicast
+
+RP/0/RP0/CPU0:A-P-3(config-isis-if-af)# prefix-sid index 7
+
+RP/0/RP0/CPU0:A-P-3(config-isis-if-af)# !
+
+RP/0/RP0/CPU0:A-P-3(config-isis-if-af)# address-family ipv6 unicast
+
+RP/0/RP0/CPU0:A-P-3(config-isis-if-af)#  prefix-sid index 1007
+
+RP/0/RP0/CPU0:A-P-3(config-isis-if-af)# !
+
+RP/0/RP0/CPU0:A-P-3(config-isis-if-af)#commit
+
+Tue Aug  5 06:34:42.137 UTC
+RP/0/RP0/CPU0:A-P-3(config-isis-if-af)#

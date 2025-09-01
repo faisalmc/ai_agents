@@ -1,0 +1,21 @@
+router bgp 300
+ address-family ipv4 unicast
+ !
+ address-family ipv6 unicast
+ !
+ !
+ neighbor-group TO_B_ASBR
+  remote-as 200
+  bfd minimum-interval 500
+  bfd multiplier 5
+  bfd fast-detect
+  address-family ipv4 unicast
+  !
+  address-family ipv6 unicast
+   exit
+  !
+ neighbor 100.64.231.1
+  use neighbor-group TO_B_ASBR
+ neighbor 2620:FC7:64:231::1
+  use neighbor-group TO_B_ASBR
+  !
