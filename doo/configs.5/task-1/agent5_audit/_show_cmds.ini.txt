@@ -1,8 +1,0 @@
-show run group
-show run router isis
-show isis interface brief
-show isis neighbors
-show ip route isis
-show route ipv6 isis
-show run | section router isis
-show ipv6 route isis
