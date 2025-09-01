@@ -1,0 +1,24 @@
+{
+  "hostname": "B-ASBR-1",
+  "platform": "ios-xr",
+  "signals_seen": ["bgp", "intf", "ip", "mpls", "bfd"],
+  "status": "healthy",
+  "findings": [
+    {
+      "signal": "bgp",
+      "severity": "info",
+      "detail": "BGP process is running. Neighbors with AS 100, AS 200, and AS 300 are established."
+    },
+    {
+      "signal": "bfd",
+      "severity": "info",
+      "detail": "BFD session is UP for interface GigabitEthernet0/0/0/3 with neighbor 100.64.231.2. BFD configured with minimum-interval 500ms, multiplier 5."
+    }
+  ],
+  "recommended_show_cmds": [
+    "show bgp summary",
+    "show bgp neighbor 100.64.231.2",
+    "show bfd neighbors"
+  ],
+  "optional_active_cmds": []
+}
