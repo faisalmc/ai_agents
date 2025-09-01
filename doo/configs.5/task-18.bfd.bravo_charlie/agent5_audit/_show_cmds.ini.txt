@@ -1,5 +1,0 @@
-show run router bgp
-show ip bgp neighbor brief
-show bfd session
-show bfd session detail
-show ver

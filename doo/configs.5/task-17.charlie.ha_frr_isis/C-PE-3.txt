@@ -1,5 +1,0 @@
-!
-router isis CORE
- address-family ipv6 unicast
-  fast-reroute per-prefix priority-limit critical level 2
-   spf prefix-priority critical tag 300

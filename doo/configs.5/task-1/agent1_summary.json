@@ -1,160 +1,325 @@
 [
 {
-  "hostname": "A-ASBR-1",
-  "provider": "Alpha",
-  "customer": null,
-  "role": "ASBR",
-  "config_intents": [
-    "Disable ISIS process AGG2",
-    "Configure ISIS with overload bit set on startup for 180 seconds and as level-2-only",
-    "Configure ISIS address families for IPv4 and IPv6 with wide metric style",
-    "Configure Loopback interfaces for ISIS with point-to-point, IPv4 metric 100 level 2, and IPv6 metric 200 level 2",
-    "Configure GigabitEthernet interfaces for ISIS with point-to-point, IPv4 metric 100 level 2, and IPv6 metric 200 level 2",
-    "Apply ISIS group ISIS-GRP to router process AGG2 with specified network",
-    "Configure Loopback0 interface",
-    "Configure GigabitEthernet0/0/0/1 interface",
-    "Configure GigabitEthernet0/0/0/2 interface"
-  ]
+    "hostname": "A-ASBR-1",
+    "provider": "Alpha",
+    "customer": null,
+    "role": "ASBR",
+    "platform_hint": "cisco-ios-xr",
+    "vendor": "cisco",
+    "config_intents": [
+        "Configure ISIS with overload bit and metric-style wide",
+        "Define Loopback and GigabitEthernet interfaces with IPv4 and IPv6 metrics"
+    ],
+    "expected_state": [
+        {
+            "signal": "isis",
+            "observation_goals": [
+                "ISIS process configured with overload bit and metric-style wide",
+                "Interfaces Loopback0 and GigabitEthernet0/0/0/1, GigabitEthernet0/0/0/2 defined with IPv4 and IPv6 metrics"
+            ],
+            "suggested_show": [
+                { "cmd": "show run router isis", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+            ],
+            "candidate_show": [
+                { "cmd": "show isis neighbors", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr", "note": "Not directly related to configuration intents" }
+            ]
+        }
+    ]
 },
 {
   "hostname": "A-ASBR-2",
-  "provider": "Beta",
+  "provider": "Alpha",
   "customer": null,
   "role": "ASBR",
+  "platform_hint": "cisco-ios-xr",
+  "vendor": "cisco",
   "config_intents": [
-    "Configure ISIS with overload bit set on startup for 180 seconds and level-2-only",
-    "Configure wide metric style for IPv4 and IPv6 unicast address families",
-    "Configure Loopback interfaces with point-to-point, IPv4 metric 100 level 2, and IPv6 metric 200 level 2",
-    "Configure GigabitEthernet interfaces with point-to-point, IPv4 metric 100 level 2, and IPv6 metric 200 level 2",
-    "Apply ISIS group ISIS-GRP to router AGG2 with network 49.0001.0001.0000.0101.0010.00"
+    "Configure ISIS with overload bit and level-2-only",
+    "Set metric-style wide for IPv4 and IPv6 unicast",
+    "Define Loopback interfaces with specific metrics for IPv4 and IPv6 unicast",
+    "Apply ISIS group ISIS-GRP to router AGG2"
+  ],
+  "expected_state": [
+    {
+      "signal": "isis",
+      "observation_goals": [
+        "ISIS configured with overload bit and level-2-only",
+        "Metric-style wide set for IPv4 and IPv6 unicast",
+        "Loopback interfaces configured with specific metrics for IPv4 and IPv6 unicast",
+        "ISIS group ISIS-GRP applied to router AGG2"
+      ],
+      "suggested_show": [
+        { "cmd": "show run router isis", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": [
+        { "cmd": "show isis neighbors", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr", "note": "Not directly related to configuration intents" }
+      ]
+    }
   ]
 },
 {
-  "hostname": "A-P-1",
-  "provider": "Alpha",
-  "customer": null,
-  "role": "Provider",
-  "config_intents": [
-    "Configure ISIS with group ISIS-GRP, set overload bit on startup for 180 seconds, and specify level 2 only",
-    "Configure ISIS address families for IPv4 and IPv6 with wide metric style",
-    "Configure Loopback interfaces with point-to-point, IPv4 metric 100 level 2, and IPv6 metric 200 level 2",
-    "Configure GigabitEthernet interfaces with point-to-point, IPv4 metric 100 level 2, and IPv6 metric 200 level 2",
-    "Configure ISIS router instances AGG1 and CORE with group ISIS-GRP and network addresses",
-    "Configure interfaces Loopback0 and GigabitEthernet interfaces under router instances AGG1 and CORE"
-  ]
+    "hostname": "A-P-1",
+    "provider": "Alpha",
+    "customer": null,
+    "role": "Provider",
+    "platform_hint": "cisco-ios-xr",
+    "vendor": "cisco",
+    "config_intents": [
+        "Configure ISIS with overload bit and metric-style wide",
+        "Define Loopback interfaces with IPv4 and IPv6 address families",
+        "Configure GigabitEthernet interfaces with IPv4 and IPv6 address families"
+    ],
+    "expected_state": [
+        {
+            "signal": "isis",
+            "observation_goals": [
+                "ISIS configured with overload bit and metric-style wide",
+                "Interfaces configured with IPv4 and IPv6 address families"
+            ],
+            "suggested_show": [
+                { "cmd": "show run router isis", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+            ],
+            "candidate_show": [
+                { "cmd": "show isis neighbors", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr", "note": "Not directly related to configuration intents" }
+            ]
+        }
+    ]
 },
 {
-  "hostname": "A-P-2",
-  "provider": "Alpha",
-  "customer": null,
-  "role": "Provider",
-  "config_intents": [
-    "Configure ISIS with group ISIS-GRP",
-    "Set overload bit on-startup with a timer of 180 seconds",
-    "Configure ISIS to operate in level-2-only mode for IPv4 and IPv6",
-    "Configure Loopback interfaces with point-to-point mode and metrics for IPv4 and IPv6",
-    "Configure GigabitEthernet interfaces with point-to-point mode and metrics for IPv4 and IPv6",
-    "Configure router isis AGG1 with network address 49.0001.0001.0000.0101.0006.00 and apply ISIS-GRP",
-    "Configure router isis CORE with network address 49.0001.0001.0000.0101.0006.00 and apply ISIS-GRP"
-  ]
+    "hostname": "A-P-2",
+    "provider": "Alpha",
+    "customer": null,
+    "role": "Provider",
+    "platform_hint": "cisco-ios-xr",
+    "vendor": "cisco",
+    "config_intents": [
+        "Configure ISIS with overload bit and metric-style wide",
+        "Define Loopback and GigabitEthernet interfaces with IPv4 and IPv6 metrics",
+        "Apply ISIS group ISIS-GRP to routers AGG1 and CORE"
+    ],
+    "expected_state": [
+        {
+            "signal": "isis",
+            "observation_goals": [
+                "ISIS configured with overload bit and metric-style wide",
+                "Interfaces configured with IPv4 and IPv6 metrics",
+                "ISIS group ISIS-GRP applied to routers AGG1 and CORE"
+            ],
+            "suggested_show": [
+                { "cmd": "show run router isis", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+            ],
+            "candidate_show": [
+                { "cmd": "show isis neighbors", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr", "note": "Neighboring routers check" }
+            ]
+        }
+    ]
 },
 {
   "hostname": "A-P-3",
   "provider": "Alpha",
   "customer": null,
   "role": "Provider",
+  "platform_hint": "cisco-ios-xr",
+  "vendor": "cisco",
   "config_intents": [
-    "Configure ISIS with group ISIS-GRP and set overload bit on-startup for 180 seconds",
-    "Specify ISIS as level-2-only for IPv4 and IPv6 address families",
-    "Configure Loopback interfaces with point-to-point mode and metrics for IPv4 and IPv6 address families",
-    "Configure GigabitEthernet interfaces with point-to-point mode and metrics for IPv4 and IPv6 address families",
-    "Configure router ISIS AGG2 with group ISIS-GRP and network address",
-    "Configure router ISIS CORE with group ISIS-GRP and network address"
+    "Configure ISIS with overload bit and level 2 only",
+    "Define wide metric style for IPv4 and IPv6 unicast",
+    "Assign metrics to Loopback and GigabitEthernet interfaces"
+  ],
+  "expected_state": [
+    {
+      "signal": "isis",
+      "observation_goals": [
+        "ISIS configured with overload bit and level 2 only",
+        "Wide metric style set for IPv4 and IPv6 unicast",
+        "Interfaces have assigned metrics"
+      ],
+      "suggested_show": [
+        { "cmd": "show run router isis", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": [
+        { "cmd": "show isis neighbors", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr", "note": "Not directly related to configuration intents" }
+      ]
+    }
   ]
 },
 {
-  "hostname": "A-P-4",
-  "provider": "Alpha",
-  "customer": null,
-  "role": "Provider",
-  "config_intents": [
-    "Configure ISIS with group ISIS-GRP, set overload bit on startup for 180 seconds, and specify level-2-only",
-    "Configure ISIS address families for IPv4 and IPv6 with wide metric style",
-    "Configure Loopback interfaces under ISIS with point-to-point, IPv4 metric 100 level 2, and IPv6 metric 200 level 2",
-    "Configure GigabitEthernet interfaces under ISIS with point-to-point, IPv4 metric 100 level 2, and IPv6 metric 200 level 2",
-    "Configure ISIS router instances AGG2 and CORE with group ISIS-GRP and network 49.0001.0001.0000.0101.0008.00"
-  ]
+    "hostname": "A-P-4",
+    "provider": "Alpha",
+    "customer": null,
+    "role": "Provider",
+    "platform_hint": "cisco-ios-xr",
+    "vendor": "cisco",
+    "config_intents": [
+        "Configure ISIS with overload bit and level-2-only",
+        "Define metric-style wide for IPv4 and IPv6 unicast",
+        "Configure Loopback interfaces with specific metrics for IPv4 and IPv6 unicast",
+        "Apply ISIS group ISIS-GRP to routers AGG2 and CORE"
+    ],
+    "expected_state": [
+        {
+            "signal": "isis",
+            "observation_goals": [
+                "ISIS configured with overload bit and level-2-only",
+                "Metric-style wide set for IPv4 and IPv6 unicast",
+                "Interfaces configured with specific metrics for IPv4 and IPv6 unicast",
+                "ISIS group ISIS-GRP applied to routers AGG2 and CORE"
+            ],
+            "suggested_show": [
+                { "cmd": "show run router isis", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+            ],
+            "candidate_show": [
+                { "cmd": "show isis neighbors", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr", "note": "Not directly related to configuration intents" }
+            ]
+        }
+    ]
 },
 {
-  "hostname": "A-PE-1",
-  "provider": "Alpha",
-  "customer": null,
-  "role": "Provider-Edge",
-  "config_intents": [
-    "Configure ISIS with overload bit set on startup for 180 seconds and type level-2-only",
-    "Configure ISIS address families for IPv4 and IPv6 with wide metric style",
-    "Configure Loopback interfaces to be passive, point-to-point with metrics for IPv4 and IPv6",
-    "Configure GigabitEthernet interfaces to be point-to-point with metrics for IPv4 and IPv6",
-    "Apply ISIS group ISIS-GRP to router AGG1 with specified network",
-    "Configure Loopback0, GigabitEthernet0/0/0/0, GigabitEthernet0/0/0/2 interfaces"
-  ]
+    "hostname": "A-PE-1",
+    "provider": "Alpha",
+    "customer": null,
+    "role": "Provider-Edge",
+    "platform_hint": "cisco-ios-xr",
+    "vendor": "cisco",
+    "config_intents": [
+        "Configure ISIS with overload bit and metric-style wide",
+        "Define address families for IPv4 and IPv6 unicast with wide metric style",
+        "Configure Loopback interfaces with passive mode and specific metrics",
+        "Configure GigabitEthernet interfaces as point-to-point with specific metrics",
+        "Apply ISIS group 'ISIS-GRP' to router AGG1"
+    ],
+    "expected_state": [
+        {
+            "signal": "isis",
+            "observation_goals": [
+                "ISIS configured with overload bit and metric-style wide",
+                "Address families for IPv4 and IPv6 unicast with wide metric style defined",
+                "Loopback interfaces configured in passive mode with specific metrics",
+                "GigabitEthernet interfaces configured as point-to-point with specific metrics",
+                "ISIS group 'ISIS-GRP' applied to router AGG1"
+            ],
+            "suggested_show": [
+                { "cmd": "show run router isis", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+            ],
+            "candidate_show": [
+                { "cmd": "show isis neighbors", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr", "note": "Not directly related to configuration intents" }
+            ]
+        }
+    ]
 },
 {
-  "hostname": "A-PE-2",
-  "provider": "Alpha",
-  "customer": null,
-  "role": "Provider-Edge",
-  "config_intents": [
-    "Configure ISIS with group ISIS-GRP, set overload bit on startup for 180 seconds, and specify level-2-only",
-    "Configure ISIS address families for IPv4 and IPv6 with wide metric style",
-    "Configure Loopback interfaces with point-to-point, IPv4 metric 100 level 2, and IPv6 metric 200 level 2",
-    "Configure GigabitEthernet interfaces with point-to-point, IPv4 metric 100 level 2, and IPv6 metric 200 level 2",
-    "Apply ISIS group ISIS-GRP to router AGG1 with specified network and interfaces"
-  ]
+    "hostname": "A-PE-2",
+    "provider": "Alpha",
+    "customer": null,
+    "role": "Provider-Edge",
+    "platform_hint": "cisco-ios-xr",
+    "vendor": "cisco",
+    "config_intents": [
+        "Configure ISIS with overload bit and metric-style wide",
+        "Define Loopback and GigabitEthernet interfaces with IPv4 and IPv6 metrics"
+    ],
+    "expected_state": [
+        {
+            "signal": "isis",
+            "observation_goals": [
+                "ISIS configured with overload bit and metric-style wide",
+                "Interfaces Loopback and GigabitEthernet configured with IPv4 and IPv6 metrics"
+            ],
+            "suggested_show": [
+                { "cmd": "show run router isis", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+            ],
+            "candidate_show": [
+                { "cmd": "show isis neighbors", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr", "note": "Not directly related to configuration intents" }
+            ]
+        }
+    ]
 },
 {
   "hostname": "A-PE-3",
   "provider": "Alpha",
   "customer": null,
   "role": "Provider-Edge",
+  "platform_hint": "cisco-ios-xr",
+  "vendor": "cisco",
   "config_intents": [
-    "Configure ISIS with group ISIS-GRP and set overload bit on-startup for 180 seconds",
-    "Specify ISIS as level-2-only",
-    "Configure wide metric style for IPv4 and IPv6 unicast address families",
-    "Configure Loopback interfaces with point-to-point, IPv4 metric 100 level 2, and IPv6 metric 200 level 2",
-    "Configure GigabitEthernet interfaces with point-to-point, IPv4 metric 100 level 2, and IPv6 metric 200 level 2",
-    "Apply ISIS group ISIS-GRP to router AGG1 with specified network",
-    "Configure Loopback0 interface",
-    "Configure GigabitEthernet0/0/0/0 interface"
+    "Configure ISIS with overload bit and metric-style wide",
+    "Define Loopback interfaces with specific metrics for IPv4 and IPv6 unicast",
+    "Apply ISIS group configuration to router AGG1"
+  ],
+  "expected_state": [
+    {
+      "signal": "isis",
+      "observation_goals": [
+        "ISIS configured with overload bit and metric-style wide",
+        "Loopback interfaces have specified metrics for IPv4 and IPv6 unicast",
+        "ISIS group ISIS-GRP applied to router AGG1"
+      ],
+      "suggested_show": [
+        { "cmd": "show run router isis", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": [
+        { "cmd": "show isis neighbors", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr", "note": "Not directly related to intent" }
+      ]
+    }
   ]
 },
 {
-  "hostname": "A-PE-4",
-  "provider": "Alpha",
-  "customer": null,
-  "role": "Provider-Edge",
-  "config_intents": [
-    "Create ISIS group ISIS-GRP with overload bit set on startup for 180 seconds and level-2-only",
-    "Configure wide metric style for IPv4 and IPv6 unicast address families",
-    "Configure Loopback interfaces with point-to-point, IPv4 metric 100 level 2, and IPv6 metric 200 level 2",
-    "Configure GigabitEthernet interfaces with point-to-point, IPv4 metric 100 level 2, and IPv6 metric 200 level 2",
-    "Apply ISIS group ISIS-GRP to router AGG2 with specified network address"
-  ]
+    "hostname": "A-PE-4",
+    "provider": "Alpha",
+    "customer": null,
+    "role": "Provider-Edge",
+    "platform_hint": "cisco-ios-xr",
+    "vendor": "cisco",
+    "config_intents": [
+        "Configure ISIS with overload bit and metric-style wide",
+        "Define Loopback and GigabitEthernet interfaces with IPv4 and IPv6 metrics",
+        "Apply ISIS group ISIS-GRP to router AGG2"
+    ],
+    "expected_state": [
+        {
+            "signal": "isis",
+            "observation_goals": [
+                "ISIS configured with overload bit and metric-style wide",
+                "Interfaces Loopback and GigabitEthernet configured with IPv4 and IPv6 metrics",
+                "ISIS group ISIS-GRP applied to router AGG2"
+            ],
+            "suggested_show": [
+                { "cmd": "show run router isis", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+            ],
+            "candidate_show": [
+                { "cmd": "show isis neighbors", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr", "note": "Neighboring routers check" }
+            ]
+        }
+    ]
 },
 {
   "hostname": "A-RR-1",
   "provider": "Alpha",
   "customer": null,
   "role": "Route-Reflector",
+  "platform_hint": "cisco-ios",
+  "vendor": "cisco",
   "config_intents": [
-    "Enable IPv6 unicast routing",
-    "Configure interfaces GigabitEthernet2, GigabitEthernet3, Loopback0 for ISIS",
-    "Set ISIS network type to point-to-point",
-    "Disable ISIS hello padding",
-    "Configure ISIS router with NET 49.0001.0001.0000.0101.0011.00",
-    "Set ISIS to operate in level-2-only mode with wide metric style",
-    "Set metric to 100 for level-2, 200 for IPv6 level-2",
-    "Passive interface Loopback0 for ISIS"
+    "Configure ISIS for IPv4 and IPv6 with point-to-point network type",
+    "Set IS-IS NET to 49.0001.0001.0000.0101.0011.00",
+    "Use level-2-only IS-IS configuration with wide metric-style"
+  ],
+  "expected_state": [
+    {
+      "signal": "isis",
+      "observation_goals": [
+        "ISIS process is configured",
+        "IS-IS NET is set correctly",
+        "Level-2-only IS-IS configuration",
+        "Wide metric-style is used"
+      ],
+      "suggested_show": [
+        { "cmd": "show run | section router isis", "provenance": "llm", "confidence": "high", "platform": "cisco-ios" }
+      ],
+      "candidate_show": [
+        { "cmd": "show isis neighbors", "provenance": "llm", "confidence": "med", "platform": "cisco-ios", "note": "Not directly related to intent" }
+      ]
+    }
   ]
 },
 {
@@ -162,71 +327,58 @@
   "provider": "Alpha",
   "customer": null,
   "role": "Route-Reflector",
+  "platform_hint": "cisco-ios",
+  "vendor": "cisco",
   "config_intents": [
-    "Enable IPv6 unicast routing",
-    "Configure interfaces GigabitEthernet2, GigabitEthernet3, Loopback0 for ISIS",
-    "Set ISIS network type to point-to-point",
-    "Disable ISIS hello padding",
-    "Configure ISIS router with net 49.0001.0001.0000.0101.0012.00 and level-2-only",
-    "Set ISIS metric-style to wide with metric 100 for level-2",
-    "Passive interface Loopback0 for ISIS",
-    "Configure ISIS address-family for IPv6 with metric 200 for level-2"
+    "Configure ISIS for IPv4 and IPv6 with point-to-point network type",
+    "Set IS-IS NET to 49.0001.0001.0000.0101.0012.00",
+    "Use level-2-only IS-IS configuration with wide metric-style"
+  ],
+  "expected_state": [
+    {
+      "signal": "isis",
+      "observation_goals": [
+        "ISIS process is configured",
+        "IS-IS NET is set",
+        "Level-2-only IS-IS configuration",
+        "Wide metric-style is used"
+      ],
+      "suggested_show": [
+        { "cmd": "show run | section router isis", "provenance": "llm", "confidence": "high", "platform": "cisco-ios" }
+      ],
+      "candidate_show": [
+        { "cmd": "show isis neighbors", "provenance": "llm", "confidence": "med", "platform": "cisco-ios", "note": "Not directly related to configuration intents" }
+      ]
+    }
   ]
 },
 {
   "hostname": "Operational-Checks: show_cmds.ini",
   "role": "validation-commands",
   "checks": [
-    {
-      "intent": "Show running configuration for all groups",
-      "command": "show run group",
-      "protocol": "Common"
-    },
-    {
-      "intent": "Show ISIS configuration",
-      "command": "show run router isis",
-      "protocol": "Common"
-    },
-    {
-      "intent": "Display brief ISIS interface information",
-      "command": "show isis interface brief",
-      "protocol": "ISIS"
-    },
-    {
-      "intent": "Show ISIS neighbors",
-      "command": "show isis neighbors",
-      "protocol": "ISIS"
-    },
-    {
-      "intent": "Display IPv4 routes learned via ISIS",
-      "command": "show ip route isis",
-      "protocol": "ISIS"
-    },
-    {
-      "intent": "Display IPv6 routes learned via ISIS",
-      "command": "show route ipv6 isis",
-      "protocol": "ISIS"
-    },
-    {
-      "intent": "Show ISIS configuration",
-      "command": "show run | section router isis",
-      "protocol": "ISIS"
-    },
-    {
-      "intent": "Show ISIS neighbors",
-      "command": "show isis neighbors",
-      "protocol": "ISIS"
-    },
-    {
-      "intent": "Display IPv4 routes learned via ISIS",
-      "command": "show ip route isis",
-      "protocol": "ISIS"
-    },
-    {
-      "intent": "Display IPv6 routes learned via ISIS",
-      "command": "show ipv6 route isis",
-      "protocol": "ISIS"
-    }
+    {"intent": "Show ISIS config", "command": "show run group", "protocol": "ISIS"},
+    {"intent": "Show ISIS config", "command": "show run router isis", "protocol": "ISIS"},
+    {"intent": "Show ISIS interfaces", "command": "show isis interface brief", "protocol": "ISIS"},
+    {"intent": "ISIS neighbors", "command": "show isis neighbors", "protocol": "ISIS"},
+    {"intent": "IPv4 routes via ISIS", "command": "show ip route isis", "protocol": "ISIS"},
+    {"intent": "IPv6 routes via ISIS", "command": "show route ipv6 isis", "protocol": "ISIS"},
+    {"intent": "Show ISIS config", "command": "show run | section router isis", "protocol": "ISIS"},
+    {"intent": "ISIS neighbors", "command": "show isis neighbors", "protocol": "ISIS"},
+    {"intent": "IPv4 routes via ISIS", "command": "show ip route isis", "protocol": "ISIS"},
+    {"intent": "IPv6 routes via ISIS", "command": "show ipv6 route isis", "protocol": "ISIS"},
+    {"intent": "Show version", "command": "show ver", "protocol": null}
+  ]
+},
+{
+  "hostname": "Operational-Checks: show_cmds.ini",
+  "role": "validation-commands",
+  "checks": [
+    {"intent": "Show ISIS config", "command": "show running-config router isis", "protocol": "ISIS"},
+    {"intent": "ISIS interface brief", "command": "show isis interface brief", "protocol": "ISIS"},
+    {"intent": "ISIS neighbors", "command": "show isis neighbors", "protocol": "ISIS"},
+    {"intent": "IPv4 routes via ISIS", "command": "show ip route isis", "protocol": "ISIS"},
+    {"intent": "IPv6 routes via ISIS", "command": "show route ipv6 isis", "protocol": "ISIS"},
+    {"intent": "Show version", "command": "show version", "protocol": "N/A"}
   ]
 }
 ]
