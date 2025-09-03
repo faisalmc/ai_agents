@@ -1,0 +1,116 @@
+[
+  {
+    "hostname": "B-ASBR-1",
+    "platform_hint": "unknown",
+    "signals_seen": [
+      "bgp",
+      "evpn",
+      "intf",
+      "ip",
+      "isis",
+      "l2vpn",
+      "mpls",
+      "ospf",
+      "sr",
+      "srv6"
+    ],
+    "trusted_from_observed": [
+      "show bfd session",
+      "show bfd session detail",
+      "show ip bgp neighbor brief",
+      "show run router bgp",
+      "show ver"
+    ],
+    "trusted_from_agent1": [],
+    "trusted_all": [
+      "show bfd session",
+      "show bfd session detail",
+      "show ip bgp neighbor brief",
+      "show run router bgp",
+      "show ver"
+    ],
+    "candidates_from_agent1": [
+      "show bgp summary",
+      "show run | section ^router bgp",
+      "show bfd neighbors"
+    ],
+    "ideas_from_lexicon": [],
+    "candidates_all": [
+      "show bgp summary",
+      "show run | section ^router bgp",
+      "show bfd neighbors"
+    ],
+    "source_counts": {
+      "observed": 5,
+      "agent1_suggested": 0,
+      "agent1_candidates": 3,
+      "lexicon_candidates": 0,
+      "trusted_total": 5,
+      "candidates_total": 3
+    },
+    "md_len": 279,
+    "facts": {
+      "bgp_neighbors": [],
+      "evpn_xconnects": [],
+      "lacp_bundles": [],
+      "reachability": []
+    }
+  },
+  {
+    "hostname": "C-ASBR-1",
+    "platform_hint": "unknown",
+    "signals_seen": [
+      "bgp",
+      "evpn",
+      "intf",
+      "ip",
+      "isis",
+      "l2vpn",
+      "mpls",
+      "ospf",
+      "sr",
+      "srv6"
+    ],
+    "trusted_from_observed": [
+      "show bfd session",
+      "show bfd session detail",
+      "show ip bgp neighbor brief",
+      "show run router bgp",
+      "show ver"
+    ],
+    "trusted_from_agent1": [],
+    "trusted_all": [
+      "show bfd session",
+      "show bfd session detail",
+      "show ip bgp neighbor brief",
+      "show run router bgp",
+      "show ver"
+    ],
+    "candidates_from_agent1": [
+      "show bgp summary",
+      "show running-config router bgp 300",
+      "show bfd neighbors"
+    ],
+    "ideas_from_lexicon": [],
+    "candidates_all": [
+      "show bgp summary",
+      "show running-config router bgp 300",
+      "show bfd neighbors"
+    ],
+    "source_counts": {
+      "observed": 5,
+      "agent1_suggested": 0,
+      "agent1_candidates": 3,
+      "lexicon_candidates": 0,
+      "trusted_total": 5,
+      "candidates_total": 3
+    },
+    "md_len": 279,
+    "facts": {
+      "bgp_neighbors": [],
+      "evpn_xconnects": [],
+      "lacp_bundles": [],
+      "reachability": []
+    }
+  }
+]
