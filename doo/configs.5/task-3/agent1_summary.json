@@ -1,0 +1,424 @@
+[
+{
+  "hostname": "A-ASBR-1",
+  "provider": "Alpha",
+  "customer": null,
+  "role": "ASBR",
+  "platform_hint": "cisco-ios-xr",
+  "vendor": "cisco",
+  "config_intents": [
+    "Configure BGP AS 100 with IPv4 labeled-unicast for core reachability",
+    "Use Loopback0 as update-source for core neighbors",
+    "Advertise 1.0.101.9/32 with label via route-policy"
+  ],
+  "expected_state": [
+    {
+      "signal": "bgp",
+      "observation_goals": [
+        "BGP process is running",
+        "Core neighbors should be Established",
+        "AFI/SAFI ipv4 labeled-unicast active",
+        "Router-ID set"
+      ],
+      "suggested_show": [
+        { "cmd": "show bgp summary", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" },
+        { "cmd": "show bgp ipv4 labeled-unicast summary", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": [
+        { "cmd": "show run | section ^router bgp", "provenance": "llm", "confidence": "low", "platform": "cisco-ios-xr", "note": "IOS-style pipe may not work on XR" }
+      ]
+    }
+  ]
+},
+{
+    "hostname": "A-ASBR-2",
+    "provider": "Alpha",
+    "customer": null,
+    "role": "ASBR",
+    "platform_hint": "cisco-ios-xr",
+    "vendor": "cisco",
+    "config_intents": [
+        "Configure BGP AS 100 with IPv4 labeled-unicast for core reachability",
+        "Use Loopback0 as update-source for core neighbors",
+        "Advertise 1.0.101.10/32 with label via route-policy"
+    ],
+    "expected_state": [
+        {
+            "signal": "bgp",
+            "observation_goals": [
+                "BGP process is running",
+                "Core neighbors should be Established",
+                "AFI/SAFI ipv4 labeled-unicast active",
+                "Router-ID set"
+            ],
+            "suggested_show": [
+                { "cmd": "show bgp summary", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" },
+                { "cmd": "show bgp ipv4 labeled-unicast summary", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr" }
+            ],
+            "candidate_show": [
+                { "cmd": "show run | section ^router bgp", "provenance": "llm", "confidence": "low", "platform": "cisco-ios-xr", "note": "IOS-style pipe may not work on XR" }
+            ]
+        }
+    ]
+},
+{
+        "hostname": "A-P-1",
+        "provider": "Alpha",
+        "customer": null,
+        "role": "Provider",
+        "platform_hint": "cisco-ios-xr",
+        "vendor": "cisco",
+        "config_intents": [
+          "Configure BGP AS 100 with IPv4 unicast",
+          "Implement route-policy for SID labeling",
+          "Use Loopback0 as update-source for neighbors"
+        ],
+        "expected_state": [
+          {
+            "signal": "bgp",
+            "observation_goals": [
+              "BGP process running with Router-ID 1.0.101.5",
+              "Core neighbors established",
+              "IPv4 labeled-unicast active",
+              "IBGP policy enforcing modifications"
+            ],
+            "suggested_show": [
+              { "cmd": "show bgp summary", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" },
+              { "cmd": "show bgp ipv4 labeled-unicast summary", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr" }
+            ],
+            "candidate_show": [
+              { "cmd": "show run | section ^router bgp", "provenance": "llm", "confidence": "low", "platform": "cisco-ios-xr", "note": "IOS-style pipe may not work on XR" }
+            ]
+          },
+          {
+            "signal": "intf",
+            "observation_goals": [
+              "Loopback0 used as update-source for neighbors"
+            ],
+            "suggested_show": [
+              { "cmd": "show run interface Loopback0", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+            ]
+          }
+        ]
+},
+{
+        "hostname": "A-P-2",
+        "provider": "Alpha",
+        "customer": null,
+        "role": "Provider",
+        "platform_hint": "cisco-ios-xr",
+        "vendor": "cisco",
+        "config_intents": [
+          "Configure BGP AS 100 with IPv4 labeled-unicast for core reachability",
+          "Implement route reflector setup with next-hop-self and route-reflector-client"
+        ],
+        "expected_state": [
+          {
+            "signal": "bgp",
+            "observation_goals": [
+              "BGP process is running",
+              "Core neighbors should be Established",
+              "AFI/SAFI ipv4 labeled-unicast active",
+              "Router-ID set"
+            ],
+            "suggested_show": [
+              { "cmd": "show bgp summary", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" },
+              { "cmd": "show bgp ipv4 labeled-unicast summary", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr" }
+            ],
+            "candidate_show": [
+              { "cmd": "show run | section ^router bgp", "provenance": "llm", "confidence": "low", "platform": "cisco-ios-xr", "note": "IOS-style pipe may not work on XR" }
+            ]
+          }
+        ]
+},
+{
+        "hostname": "A-P-3",
+        "provider": "Alpha",
+        "customer": null,
+        "role": "Provider",
+        "platform_hint": "cisco-ios-xr",
+        "vendor": "cisco",
+        "config_intents": [
+          "Configure BGP AS 100 with IPv4 labeled-unicast for core reachability",
+          "Use Loopback0 as update-source for BGP neighbors",
+          "Implement iBGP policy 'out enforce-modifications'",
+          "Establish route reflector setup for BGP"
+        ],
+        "expected_state": [
+          {
+            "signal": "bgp",
+            "observation_goals": [
+              "BGP process is running",
+              "Core neighbors should be Established",
+              "AFI/SAFI ipv4 labeled-unicast active",
+              "Router-ID set"
+            ],
+            "suggested_show": [
+              { "cmd": "show bgp summary", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" },
+              { "cmd": "show bgp ipv4 labeled-unicast summary", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr" }
+            ],
+            "candidate_show": [
+              { "cmd": "show run | section ^router bgp", "provenance": "llm", "confidence": "low", "platform": "cisco-ios-xr", "note": "IOS-style pipe may not work on XR" }
+            ]
+          },
+          {
+            "signal": "intf",
+            "observation_goals": [
+              "Loopback0 used as update-source for BGP neighbors"
+            ],
+            "suggested_show": [
+              { "cmd": "show run interface Loopback0", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+            ]
+          }
+        ]
+},
+{
+  "hostname": "A-P-4",
+  "provider": "Alpha",
+  "customer": null,
+  "role": "Provider",
+  "platform_hint": "cisco-ios-xr",
+  "vendor": "cisco",
+  "config_intents": [
+    "Configure BGP AS 100 with IPv4 unicast for core reachability",
+    "Implement route-policy for SID labeling",
+    "Use Loopback0 as update-source for BGP neighbors"
+  ],
+  "expected_state": [
+    {
+      "signal": "bgp",
+      "observation_goals": [
+        "BGP process is running",
+        "Core neighbors should be Established",
+        "AFI/SAFI ipv4 labeled-unicast active",
+        "Router-ID set"
+      ],
+      "suggested_show": [
+        { "cmd": "show bgp summary", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" },
+        { "cmd": "show bgp ipv4 labeled-unicast summary", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": [
+        { "cmd": "show run | section ^router bgp", "provenance": "llm", "confidence": "low", "platform": "cisco-ios-xr", "note": "IOS-style pipe may not work on XR" }
+      ]
+    },
+    {
+      "signal": "intf",
+      "observation_goals": [
+        "Loopback0 used as update-source for BGP neighbors"
+      ],
+      "suggested_show": [
+        { "cmd": "show run interface Loopback0", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+      ]
+    }
+  ]
+},
+{
+    "hostname": "A-PE-1",
+    "provider": "Alpha",
+    "customer": null,
+    "role": "Provider-Edge",
+    "platform_hint": "cisco-ios-xr",
+    "vendor": "cisco",
+    "config_intents": [
+        "Define BGP AS 100 with IPv4 unicast address-family",
+        "Apply route-policy SID(1) for network 1.0.101.1/32",
+        "Allocate labels for all prefixes",
+        "Use Loopback0 as the update source for core neighbors"
+    ],
+    "expected_state": [
+        {
+            "signal": "bgp",
+            "observation_goals": [
+                "BGP process is running",
+                "Core neighbors should be Established",
+                "AFI/SAFI ipv4 labeled-unicast active",
+                "Router-ID is set"
+            ],
+            "suggested_show": [
+                { "cmd": "show bgp summary", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" },
+                { "cmd": "show bgp ipv4 labeled-unicast summary", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr" }
+            ],
+            "candidate_show": [
+                { "cmd": "show run | section ^router bgp", "provenance": "llm", "confidence": "low", "platform": "cisco-ios-xr", "note": "IOS-style pipe may not work on XR" }
+            ]
+        }
+    ]
+},
+{
+    "hostname": "A-PE-2",
+    "provider": "Alpha",
+    "customer": null,
+    "role": "Provider-Edge",
+    "platform_hint": "cisco-ios-xr",
+    "vendor": "cisco",
+    "config_intents": [
+        "Run BGP AS 100 with IPv4 unicast",
+        "Use Loopback0 as update-source for core neighbors",
+        "Advertise 1.0.101.2/32 with label via route-policy"
+    ],
+    "expected_state": [
+        {
+            "signal": "bgp",
+            "observation_goals": [
+                "BGP process is running",
+                "Core neighbors should be Established",
+                "Router-ID set"
+            ],
+            "suggested_show": [
+                { "cmd": "show bgp summary", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+            ],
+            "candidate_show": [
+                { "cmd": "show bgp ipv4 unicast summary", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr", "note": "Specific AFI/SAFI may not be available" }
+            ]
+        }
+    ]
+},
+{
+        "hostname": "A-PE-3",
+        "provider": "Alpha",
+        "customer": null,
+        "role": "Provider-Edge",
+        "platform_hint": "cisco-ios-xr",
+        "vendor": "cisco",
+        "config_intents": [
+          "Run BGP AS 100 with IPv4 unicast",
+          "Use Loopback0 as update-source for core neighbors",
+          "Advertise 1.0.101.3/32 with label via route-policy"
+        ],
+        "expected_state": [
+          {
+            "signal": "bgp",
+            "observation_goals": [
+              "BGP process is running",
+              "Core neighbors should be Established",
+              "Router-ID set"
+            ],
+            "suggested_show": [
+              { "cmd": "show bgp summary", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" },
+              { "cmd": "show running | section ^router bgp", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr" }
+            ],
+            "candidate_show": [
+              { "cmd": "show bgp ipv4 unicast summary", "provenance": "llm", "confidence": "low", "platform": "cisco-ios-xr", "note": "Specific AFI/SAFI not mentioned in config" }
+            ]
+          }
+        ]
+},
+{
+    "hostname": "A-PE-4",
+    "provider": "Alpha",
+    "customer": null,
+    "role": "Provider-Edge",
+    "platform_hint": "cisco-ios-xr",
+    "vendor": "cisco",
+    "config_intents": [
+        "Configure BGP AS 100 with IPv4 labeled-unicast for core reachability",
+        "Use Loopback0 as update-source for core neighbors",
+        "Advertise 1.0.101.4/32 with label via route-policy"
+    ],
+    "expected_state": [
+        {
+            "signal": "bgp",
+            "observation_goals": [
+                "BGP process is running",
+                "Core neighbors should be Established",
+                "AFI/SAFI ipv4 labeled-unicast active",
+                "Router-ID set"
+            ],
+            "suggested_show": [
+                { "cmd": "show bgp summary", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" },
+                { "cmd": "show bgp ipv4 labeled-unicast summary", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr" }
+            ],
+            "candidate_show": [
+                { "cmd": "show run | section ^router bgp", "provenance": "llm", "confidence": "low", "platform": "cisco-ios-xr", "note": "IOS-style pipe may not work on XR" }
+            ]
+        }
+    ]
+},
+{
+    "hostname": "A-RR-1",
+    "provider": "Alpha",
+    "customer": null,
+    "role": "Route-Reflector",
+    "platform_hint": "cisco-ios",
+    "vendor": "cisco",
+    "config_intents": [
+        "Configure BGP AS 100 as a Route Reflector",
+        "Use Loopback0 as the update source for RR_CLIENT neighbors",
+        "Activate BGP neighbors 1.0.101.5, 1.0.101.6, 1.0.101.7, 1.0.101.8"
+    ],
+    "expected_state": [
+        {
+            "signal": "bgp",
+            "observation_goals": [
+                "BGP process is running with AS 100",
+                "RR_CLIENT peer-group configured",
+                "Route-Reflector functionality enabled",
+                "Send-label capability enabled"
+            ],
+            "suggested_show": [
+                { "cmd": "show bgp summary", "provenance": "llm", "confidence": "high", "platform": "cisco-ios" },
+                { "cmd": "show run | section router bgp", "provenance": "llm", "confidence": "med", "platform": "cisco-ios" }
+            ],
+            "candidate_show": [
+                { "cmd": "show ip bgp neighbors", "provenance": "llm", "confidence": "low", "platform": "cisco-ios", "note": "Not specific to RR_CLIENT neighbors" }
+            ]
+        }
+    ]
+},
+{
+    "hostname": "A-RR-2",
+    "provider": "Alpha",
+    "customer": null,
+    "role": "Route-Reflector",
+    "platform_hint": "cisco-ios",
+    "vendor": "cisco",
+    "config_intents": [
+        "Configure BGP AS 100 as a Route Reflector",
+        "Use Loopback0 as the update source for BGP neighbors",
+        "Activate BGP neighbors 1.0.101.5, 1.0.101.6, 1.0.101.7, 1.0.101.8"
+    ],
+    "expected_state": [
+        {
+            "signal": "bgp",
+            "observation_goals": [
+                "BGP process is running with AS 100",
+                "Route Reflector configuration is applied",
+                "BGP neighbors are activated and using Loopback0 as update source"
+            ],
+            "suggested_show": [
+                { "cmd": "show run | section ^router bgp", "provenance": "llm", "confidence": "high", "platform": "cisco-ios" },
+                { "cmd": "show ip bgp neighbors", "provenance": "llm", "confidence": "med", "platform": "cisco-ios" }
+            ],
+            "candidate_show": [
+                { "cmd": "show ip bgp summary", "provenance": "llm", "confidence": "low", "platform": "cisco-ios", "note": "Summary view may not show all details" }
+            ]
+        }
+    ]
+},
+{
+  "hostname": "Operational-Checks: show_cmds.ini",
+  "role": "validation-commands",
+  "checks": [
+    {"intent": "Show BGP configuration", "command": "show running-config router bgp", "protocol": "BGP"},
+    {"intent": "BGP neighbors summary", "command": "show bgp neighbors brief", "protocol": "BGP"},
+    {"intent": "BGP IPv4 labeled-unicast routes", "command": "show bgp ipv4 labeled-unicast", "protocol": "BGP"},
+    {"intent": "MPLS forwarding table", "command": "show mpls forwarding", "protocol": "MPLS"},
+    {"intent": "Show BGP configuration", "command": "show run | section bgp", "protocol": "BGP"},
+    {"intent": "Show BGP IPv4 labeled-unicast for 1.0.101.7", "command": "show bgp ipv4 labeled-unicast 1.0.101.7", "protocol": "BGP"},
+    {"intent": "Show BGP IPv4 labeled-unicast for 1.0.101.9", "command": "show bgp ipv4 labeled-unicast 1.0.101.9", "protocol": "BGP"}
+  ]
+},
+{
+  "hostname": "Operational-Checks: show_cmds.ini",
+  "role": "validation-commands",
+  "checks": [
+    {"intent": "Show BGP configuration", "command": "show running-config router bgp", "protocol": "BGP"},
+    {"intent": "BGP neighbors summary", "command": "show bgp neighbors brief", "protocol": "BGP"},
+    {"intent": "BGP IPv4 labeled-unicast routes", "command": "show bgp ipv4 labeled-unicast", "protocol": "BGP"},
+    {"intent": "MPLS forwarding table", "command": "show mpls forwarding", "protocol": "MPLS"},
+    {"intent": "Show BGP configuration", "command": "show run | section bgp", "protocol": "BGP"},
+    {"intent": "Show BGP IPv4 labeled-unicast for 1.0.101.7", "command": "show bgp ipv4 labeled-unicast 1.0.101.7", "protocol": "BGP"},
+    {"intent": "Show BGP IPv4 labeled-unicast for 1.0.101.9", "command": "show bgp ipv4 labeled-unicast 1.0.101.9", "protocol": "BGP"}
+  ]
+}
+]
