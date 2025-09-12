@@ -1,0 +1,85 @@
+import os
+import time
+import threading
+import requests
+import openai
+from git import Repo
+from slack_sdk import WebClient
+from slack_bolt import App
+from slack_bolt.adapter.socket_mode import SocketModeHandler
+
+# === Configuration from environment ===
+GITHUB_TOKEN       = os.getenv("GITHUB_TOKEN")
+GITHUB_OWNER       = os.getenv("GITHUB_OWNER")
+GITHUB_REPO        = os.getenv("GITHUB_REPO")
+REPO_CLONE_DIR     = os.getenv("REPO_CLONE_DIR", "/opt/tasks")
+POLL_INTERVAL      = int(os.getenv("POLL_INTERVAL", "60"))
+
+SLACK_BOT_TOKEN    = os.getenv("SLACK_BOT_TOKEN")
+SLACK_APP_TOKEN    = os.getenv("SLACK_APP_TOKEN")  # xapp- token
+
+OPENAI_API_KEY     = os.getenv("OPENAI_API_KEY")
+CHANNEL            = os.getenv("SLACK_CHANNEL", "#network-ops")
+
+# === Initialize clients ===
+openai.api_key = OPENAI_API_KEY
+slack_client   = WebClient(token=SLACK_BOT_TOKEN)
+slack_app      = App(token=SLACK_BOT_TOKEN)
+
+# === Helper: store last seen commit SHA ===
+STATE_FILE = ".last_sha"
+
+def get_last_sha():
+    try:
+        return open(STATE_FILE).read().strip()
+    except FileNotFoundError:
+        return None
+
+def set_last_sha(sha: str):
+    with open(STATE_FILE, "w") as f:
+        f.write(sha)
+
+# === Poller Agent A: GitHub polling ===
+def poller_loop():
+    while True:
+        last_sha = get_last_sha()
+        headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+        params  = {"sha": "main", "per_page": 5}
+        commits = requests.get(
+            f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/commits",
+            headers=headers,
+            params=params
+        ).json()
+        if commits:
+            newest = commits[0]["sha"]
+            if newest != last_sha:
+                # detect changes under tasks/
+                changes = Repo.detect_task_changes(commits, REPO_CLONE_DIR)
+                if changes:
+                    summary = Repo.summarize_changes(changes, REPO_CLONE_DIR)
+                    slack_client.chat_postMessage(channel=CHANNEL, text=":robot_face: *New Task Briefing*\n" + summary)
+                set_last_sha(newest)
+        time.sleep(POLL_INTERVAL)
+
+# === Slack Socket Mode: listen for approval ===
+@slack_app.action("approve_push")
+def handle_approve(ack, body, logger):
+    ack()
+    user = body["user"]["username"]
+    channel = body["channel"]["id"]
+    slack_client.chat_postMessage(channel=channel, text=f":white_check_mark: @{user} approved. Pushing configs...")
+    # Trigger Agent B: call your push script
+    os.system("python push_configs.py")
+    slack_client.chat_postMessage(channel=channel, text=":rocket: Push complete. Running drift check...")
+    os.system("python compare_drift.py")
+
+# === Entry Point ===
+if __name__ == "__main__":
+    # Start poller in background
+    t = threading.Thread(target=poller_loop, daemon=True)
+    t.start()
+
+    # Start Slack Socket Mode listener (blocks)
+    handler = SocketModeHandler(slack_app, SLACK_APP_TOKEN)
+    handler.start()
+

@@ -1,0 +1,173 @@
+--- SYSTEM ---
+You are a senior Cisco SP NOC engineer.
+You will receive:
+  • Optional JSON from Agent‑1 summarizing intended configuration for this host
+  • CLI show-output captured in a Markdown (.md) file for this host (IOS or IOS‑XR)
+Your tasks:
+  1) Determine platform ("ios-xr" or "ios") if possible from the log, else "unknown".
+  2) From the log ONLY, assess health for protocols/features that appear (BGP, EVPN/L2VPN,
+     ISIS/OSPF, SR/SRv6, MPLS, interface/port-channel, reachability).
+  3) If intent JSON is provided, use it as context for *expected* state, but do NOT invent facts
+     not visible in the log.
+  4) Return a single JSON object with fields:
+     {
+       "hostname": "<string>",
+       "platform": "ios-xr" | "ios" | "unknown",
+       "signals_seen": ["bgp","evpn","isis","mpls","sr","l2vpn","intf","ip", ...],
+       "status": "healthy" | "degraded" | "error" | "unknown",
+       "findings": [ {"signal":"bgp","severity":"warn|error|info","detail":"..."} , ... ],
+       "recommended_show_cmds": [ "show ...", ... ],   // safe, read-only
+       "optional_active_cmds": [ "ping ...", "traceroute ..." ]  // optional probes only
+     }
+  5) NEVER include config/clear/reload/debug commands in either list.
+  6) Be conservative: if signal is unclear, mark severity "info" and explain.
+  7) Only report signals that are evidenced by the provided log text, agent‑1 intents, or show_cmds.ini. Do not infer protocols that are not visible.
+Output ONLY the JSON object.
+Prefer recommending follow-up 'show' commands that are already present in show_cmds.ini; add at most 3 new 'show' commands only if clearly warranted by the findings. Never suggest config/debug/clear.
+Do not mention devices other than the current hostname. If a signal is not evidenced in the log/context, exclude it.
+
+
+--- USER ---
+### Context (JSON)
+```json
+{
+  "hostname": "A-ASBR-2",
+  "platform_hint": "ios-xr",
+  "focus_signals": [
+    "bgp",
+    "intf",
+    "ip",
+    "mpls"
+  ],
+  "allow_active_probes": false,
+  "agent1_summary": {
+    "hostname": "A-ASBR-2",
+    "provider": "Alpha",
+    "customer": null,
+    "role": "ASBR",
+    "config_intents": [
+      "Define a route-policy named SID($SID) to set label-index $SID",
+      "Configure BGP with router ID 1.0.101.10",
+      "Advertise network 1.0.101.10/32 with route-policy SID(10) and allocate all labels",
+      "Configure BGP neighbors with AS 100, update-source Loopback0, and address-family ipv4 labeled-unicast",
+      "Establish BGP peering with neighbors 1.0.101.7 and 1.0.101.8 using neighbor-group TO_P"
+    ]
+  },
+  "show_cmds_ini": [
+    "show run router bgp",
+    "show bgp neighbors brief",
+    "show bgp ipv4 labeled-unicast",
+    "show mpls forwarding",
+    "show run | sec bgp",
+    "show bgp ipv4 labeled-unicast 1.0.101.7",
+    "show bgp ipv4 labeled-unicast 1.0.101.9"
+  ]
+}
+```
+
+### Device Log (Markdown)
+```md
+# Grading Output for Task task-3
+**Device:** A-ASBR-2 (192.168.100.110)
+_Generated: 2025-08-25 12:24:05.664838_
+
+## show bgp neighbors brief
+
+```
+show bgp neighbors brief
+
+Mon Aug 25 12:23:50.041 UTC
+
+Neighbor         Spk    AS  Description                         Up/Down  NBRState
+1.0.101.7         0   100                                      01:51:20 Established 
+1.0.101.8         0   100                                      01:51:21 Established 
+RP/0/RP0/CPU0:A-ASBR-2#
+```
+
+## show bgp ipv4 labeled-unicast
+
+```
+show bgp ipv4 labeled-unicast
+
+Mon Aug 25 12:23:50.161 UTC
+BGP router identifier 1.0.101.10, local AS number 100
+BGP generic scan interval 60 secs
+Non-stop routing is enabled
+BGP table state: Active
+Table ID: 0xe0000000   RD version: 23
+BGP table nexthop route policy: 
+BGP main routing table version 23
+BGP NSR Initial initsync version 11 (Reached)
+BGP NSR/ISSU Sync-Group versions 0/0
+BGP scan interval 60 secs
+
+Status codes: s suppressed, d damped, h history, * valid, > best
+              i - internal, r RIB-failure, S stale, N Nexthop-discard
+Origin codes: i - IGP, e - EGP, ? - incomplete
+   Network            Next Hop            Metric LocPrf Weight Path
+* i1.0.101.1/32       1.0.101.7                0    100      0 i
+*>i                   1.0.101.8                0    100      0 i
+* i1.0.101.2/32       1.0.101.7                0    100      0 i
+*>i                   1.0.101.8                0    100      0 i
+* i1.0.101.3/32       1.0.101.7                0    100      0 i
+*>i                   1.0.101.8                0    100      0 i
+* i1.0.101.4/32       1.0.101.7                0    100      0 i
+*>i                   1.0.101.8                0    100      0 i
+* i1.0.101.6/32       1.0.101.7                0    100      0 i
+*>i                   1.0.101.8                0    100      0 i
+* i1.0.101.7/32       1.0.101.7                0    100      0 i
+*>i                   1.0.101.8                0    100      0 i
+* i1.0.101.8/32       1.0.101.7                0    100      0 i
+*>i                   1.0.101.8                0    100      0 i
+* i1.0.101.9/32       1.0.101.7                0    100      0 i
+*>i                   1.0.101.8                0    100      0 i
+*> 1.0.101.10/32      0.0.0.0                  0         32768 i
+
+Processed 9 prefixes, 17 paths
+RP/0/RP0/CPU0:A-ASBR-2#
+```
+
+## show mpls forwarding
+
+```
+show mpls forwarding
+
+Mon Aug 25 12:23:50.308 UTC
+Local  Outgoing    Prefix             Outgoing     Next Hop        Bytes       
+Label  Label       or ID              Interface                    Switched    
+------ ----------- ------------------ ------------ --------------- ------------
+16001  16001       SR Pfx (idx 1)                  1.0.101.8       0           
+16002  16002       SR Pfx (idx 2)                  1.0.101.8       0           
+16003  16003       SR Pfx (idx 3)                  1.0.101.8       0           
+16004  16004       SR Pfx (idx 4)     Gi0/0/0/1    1.0.51.2        12910       
+16006  16006       SR Pfx (idx 6)                  1.0.101.8       0           
+16007  16007       SR Pfx (idx 7)     Gi0/0/0/2    1.0.60.1        11686       
+16008  Pop         SR Pfx (idx 8)     Gi0/0/0/1    1.0.51.2        23116       
+16009  Pop         SR Pfx (idx 9)     Gi0/0/0/2    1.0.60.1        13085       
+16010  Aggregate   SR Pfx (idx 10)    default                      0           
+17004  17004       SR Pfx (idx 1004)  Gi0/0/0/1    fe80::5054:ff:feb6:3f58   \
+                                                                   0           
+17007  17007       SR Pfx (idx 1007)  Gi0/0/0/2    fe80::5054:ff:fee7:f63c   \
+                                                                   0           
+17008  Pop         SR Pfx (idx 1008)  Gi0/0/0/1    fe80::5054:ff:feb6:3f58   \
+                                                                   0           
+17009  Pop         SR Pfx (idx 1009)  Gi0/0/0/2    fe80::5054:ff:fee7:f63c   \
+                                                                   0           
+17010  Aggregate   SR Pfx (idx 1010)  default                      0           
+24000  Pop         SR Adj (idx 1)     Gi0/0/0/1    1.0.51.2        0           
+24001  Pop         SR Adj (idx 3)     Gi0/0/0/1    1.0.51.2        0           
+24002  Pop         SR Adj (idx 1)     Gi0/0/0/2    1.0.60.1        0           
+24003  Pop         SR Adj (idx 3)     Gi0/0/0/2    1.0.60.1        0           
+24004  Pop         SR Adj (idx 1)     Gi0/0/0/1    fe80::5054:ff:feb6:3f58   \
+                                                                   0           
+24005  Pop         SR Adj (idx 3)     Gi0/0/0/1    fe80::5054:ff:feb6:3f58   \
+                                                                   0           
+24006  Pop         SR Adj (idx 1)     Gi0/0/0/2    fe80::5054:ff:fee7:f63c   \
+                                                                   0           
+24007  Pop         SR Adj (idx 3)     Gi0/0/0/2    fe80::5054:ff:fee7:f63c   \
+                                                                   0           
+RP/0/RP0/CPU0:A-ASBR-2#
+```
+
+
+```

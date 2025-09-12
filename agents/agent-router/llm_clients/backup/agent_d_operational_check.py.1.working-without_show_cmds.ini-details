@@ -1,0 +1,120 @@
+# agent_d_operational_check.py
+# Author: Faisal Chaudhry
+# Purpose: Run operational checks (show commands) via Socket Mode or CLI
+
+import os
+import subprocess
+import json
+from datetime import datetime
+from slack_bolt import App
+from slack_bolt.adapter.socket_mode import SocketModeHandler
+from slack_sdk import WebClient
+from slack_sdk.errors import SlackApiError
+
+# --- Config ---
+SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
+SLACK_APP_TOKEN = os.getenv("SLACK_APP_TOKEN")
+SLACK_CHANNEL = os.getenv("SLACK_CHANNEL", "general")
+
+app = App(token=SLACK_BOT_TOKEN)
+client = WebClient(token=SLACK_BOT_TOKEN)
+
+# --- Helper Functions ---
+def count_txt_files(task_path):
+    return [f for f in os.listdir(task_path) if f.endswith(".txt")]
+
+def count_grading_logs(log_path):
+    return [f for f in os.listdir(log_path) if f.endswith(".md")]
+
+def validate_log_files(expected, actual):
+    expected_set = set(f.replace(".txt", ".md") for f in expected)
+    actual_set = set(actual)
+    missing = list(expected_set - actual_set)
+    return missing
+
+def validate_log_contents(log_path, filenames):
+    too_short = []
+    for fname in filenames:
+        path = os.path.join(log_path, fname)
+        try:
+            with open(path) as f:
+                lines = f.readlines()
+                if len(lines) < 3:
+                    too_short.append(fname)
+        except Exception:
+            too_short.append(fname)
+    return too_short
+
+def run_show_script(task_name):
+    print(f"[DEBUG] Running run_show_commands.py with task: {task_name}", flush=True)
+    result = subprocess.run([
+        "python3", "/app/doo/configs.3.demo/run_show_commands.py",
+        "--task", task_name
+    ], capture_output=True, text=True)
+    return result
+
+def post_slack_summary(task_name, config_dir, result_summary, channel_id):
+    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')
+    text_summary = f"""
+:white_check_mark: Operational Check for *{task_name}*
+• Config Dir: `{config_dir}`
+• Timestamp: `{timestamp}`
+• Result: {result_summary}
+"""
+    try:
+        client.chat_postMessage(channel=channel_id, text=text_summary)
+    except SlackApiError as e:
+        print(f"[SlackError] {e.response['error']}", flush=True)
+
+@app.command("/operational-check")
+def handle_operational_check(ack, respond, command):
+    try:
+        ack({"response_type": "ephemeral", "text": "Starting operational checks... Please wait ⏳"})
+    except Exception as e:
+        print(f"[ERROR] Failed to ack: {e}", flush=True)
+        return
+
+    try:
+        args = command.get("text", "").strip().split()
+        print(f"[DEBUG] Received /operational-check args: {args}", flush=True)
+
+        if len(args) != 2:
+            respond("Usage: /operational-check <config_dir> <task_name>")
+            return
+
+        config_dir, task_name = args
+        channel_id = command["channel_id"]
+        task_path = os.path.join("/app/doo", config_dir, task_name)
+        log_path = os.path.join(task_path, "grading_logs")
+
+        result = run_show_script(task_name)
+        if result.returncode != 0:
+            respond(f"Error running run_show_commands.py: {result.stderr}")
+            return
+
+        print("[DEBUG] Script STDOUT:", flush=True)
+        print(result.stdout, flush=True)
+
+        txt_files = count_txt_files(task_path)
+        md_files = count_grading_logs(log_path)
+        missing = validate_log_files(txt_files, md_files)
+        too_short = validate_log_contents(log_path, md_files)
+
+        summary = f"{len(md_files)} logs captured and validated."
+        if missing:
+            summary = f"{len(md_files)} logs captured, but missing: {', '.join(missing)}"
+        elif too_short:
+            summary = f"{len(md_files)} logs captured, but some are too short: {', '.join(too_short)}"
+
+        post_slack_summary(task_name, config_dir, summary, channel_id)
+
+    except Exception as e:
+        print(f"[ERROR] Exception in /operational-check: {e}", flush=True)
+        try:
+            respond(f"Exception occurred: {e}")
+        except:
+            print("[WARN] Could not send error to Slack", flush=True)
+
+if __name__ == "__main__":
+    print("[DEBUG] Agent-D is running...", flush=True)
+    SocketModeHandler(app, SLACK_APP_TOKEN).start()

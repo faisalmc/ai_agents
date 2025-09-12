@@ -1,0 +1,316 @@
+# agent5_operational_analyze.py
+# Author: Faisal Chaudhry
+# Purpose: Agent-5 — Operational analysis of per-device .md logs using Agent-1 context
+#
+# Slash command:
+#   /operational-analyze <config_dir> <task_dir>
+#
+# What it does:
+# - Loads /app/doo/<config_dir>/<task_dir>/agent1_summary.json (from Agent-1)
+# - Reads grading_logs/*.md and splits into per-device sections
+# - Sends each device's .md section + Agent-1 context to LLM
+# - Produces strict JSON per device (areas, evidence, actions, confidence)
+# - Posts a concise Slack summary and uploads a combined JSON file
+
+import os
+import re
+import json
+from datetime import datetime
+import threading
+from glob import glob
+
+from slack_bolt import App
+from slack_bolt.adapter.socket_mode import SocketModeHandler
+from slack_sdk import WebClient
+from slack_sdk.errors import SlackApiError
+
+from llm_api import call_llm  # <-- reuse your existing LLM wrapper
+
+SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
+SLACK_APP_TOKEN = os.getenv("SLACK_APP_TOKEN")
+REPO_ROOT = "/app/doo"
+
+app = App(token=SLACK_BOT_TOKEN)
+slack = WebClient(token=SLACK_BOT_TOKEN)
+
+def dbg(msg):
+    print(f"[agent-5] {msg}", flush=True)
+
+# ---------- IO helpers ----------
+
+def load_agent1_summary(config_dir: str, task_dir: str):
+    path = os.path.join(REPO_ROOT, config_dir, task_dir, "agent1_summary.json")
+    if not os.path.exists(path):
+        dbg(f"[WARN] agent1_summary.json not found at {path}")
+        return []
+    try:
+        txt = open(path).read()
+        data = json.loads(txt)
+        if isinstance(data, dict):
+            data = [data]
+        return data
+    except Exception as e:
+        dbg(f"[ERROR] reading agent1_summary.json: {e}")
+        return []
+
+def read_grading_markdowns(config_dir: str, task_dir: str):
+    """Return dict: hostname -> markdown_text.
+       Works whether logs are one-per-device or concatenated in one file."""
+    logs_dir = os.path.join(REPO_ROOT, config_dir, task_dir, "grading_logs")
+    result = {}
+
+    if not os.path.isdir(logs_dir):
+        dbg(f"[WARN] grading_logs dir not found: {logs_dir}")
+        return result
+
+    md_files = sorted(glob(os.path.join(logs_dir, "*.md")))
+    if not md_files:
+        dbg(f"[WARN] no .md files found in {logs_dir}")
+        return result
+
+    # First pass: try one-file-per-device
+    # Heuristic: if filename looks like <hostname>.md, use that
+    used_any = False
+    for fp in md_files:
+        base = os.path.basename(fp)
+        hostname_guess = os.path.splitext(base)[0]
+        try:
+            text = open(fp, encoding="utf-8", errors="ignore").read()
+        except Exception as e:
+            dbg(f"[WARN] cannot read {fp}: {e}")
+            continue
+
+        # If the file obviously contains multiple devices (has multiple "**Device:**" tags), do a split instead
+        device_tags = re.findall(r"\*\*Device:\*\*\s*([A-Za-z0-9_.:-]+)", text)
+        if len(device_tags) <= 1:
+            result[hostname_guess] = text
+            used_any = True
+        else:
+            # fall back to multi-split
+            chunks = split_multi_device_markdown(text)
+            result.update(chunks)
+            used_any = True
+
+    if used_any:
+        return result
+
+    # Second pass: concatenated single .md file (take first file, split)
+    try:
+        text = open(md_files[0], encoding="utf-8", errors="ignore").read()
+        return split_multi_device_markdown(text)
+    except Exception as e:
+        dbg(f"[ERROR] reading concatenated md: {e}")
+        return {}
+
+def split_multi_device_markdown(md_text: str):
+    """Split a big markdown by '**Device:** <HOST>' boundaries."""
+    # Matches:
+    # **Device:** C-PE-1 (192.168.100.131)
+    blocks = re.split(r"(?=^\*\*Device:\*\*\s*[A-Za-z0-9_.:-]+)", md_text, flags=re.MULTILINE)
+    out = {}
+    for b in blocks:
+        m = re.search(r"^\*\*Device:\*\*\s*([A-Za-z0-9_.:-]+)", b, flags=re.MULTILINE)
+        if m:
+            host = m.group(1).strip()
+            out[host] = b
+    return out
+
+# ---------- LLM prompts ----------
+
+SYSTEM_PROMPT = (
+    "You are a senior Cisco SP NOC engineer.\n"
+    "You will receive:\n"
+    " - Device operational log output captured in Markdown (IOS/IOS-XR shows)\n"
+    " - Optional Agent-1 config-intent context for this task (JSON array)\n\n"
+    "Your job: infer the *relevant* feature areas dynamically (e.g., BGP, EVPN, L2VPN, ISIS, SRv6, OSPF, LACP, Interfaces) "
+    "based on what is actually visible in the log and hints from the config-intent. "
+    "Do NOT invent areas that have no evidence. Be conservative.\n\n"
+    "Return a single JSON object with this schema ONLY:\n"
+    "{\n"
+    '  "hostname": "<string>",\n'
+    '  "summary": "<one-sentence overall status>",\n'
+    '  "areas": [\n'
+    '    {"area":"<e.g. BGP>", "status":"ok|warn|fail", "evidence":"<verbatim snippets or counts>", "reasoning":"<why>", "recommended_actions":["<cli or steps>", "..."]}\n'
+    "  ],\n"
+    '  "anomalies": ["<short bullet of anything odd>", "..."],\n'
+    '  "suggested_additional_show_cmds": ["<safe read-only show...>", "..."],\n'
+    '  "confidence":"low|medium|high"\n'
+    "}\n\n"
+    "Strict rules:\n"
+    " - Base all claims on the provided log; cite concrete lines in `evidence`.\n"
+    " - If the log shows *no problems*, return status ok with empty actions.\n"
+    " - If the log is incomplete for a given area, use status 'warn' and propose next checks under suggested_additional_show_cmds.\n"
+    " - DO NOT include configuration (no 'conf t'); only read-only show commands in suggestions.\n"
+)
+
+def build_user_prompt(hostname: str, device_md: str, agent1_json: list):
+    ctx = json.dumps(agent1_json)[:8000] if agent1_json else "[]"
+    # device_md truncated for token safety but large enough to be useful
+    md_trunc = device_md[:20000]
+    return (
+        f"Hostname: {hostname}\n\n"
+        f"Agent-1 (config intent) JSON for this task:\n```json\n{ctx}\n```\n\n"
+        f"Device Markdown log:\n```\n{md_trunc}\n```\n\n"
+        "Respond with ONLY the JSON object per the schema."
+    )
+
+def analyze_device(hostname: str, device_md: str, agent1_json: list):
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": build_user_prompt(hostname, device_md, agent1_json)},
+    ]
+
+    dbg(f"[LLM] Sending device={hostname} (md chars={len(device_md)})")
+    raw = call_llm(messages, temperature=0.0)
+    dbg(f"[LLM] Raw response (first 400 chars): {raw[:400]!r}")
+
+    # Try to parse strict JSON; if fenced, extract
+    try:
+        return json.loads(raw)
+    except Exception:
+        m = re.search(r"```json\s*(.+?)\s*```", raw, flags=re.DOTALL | re.IGNORECASE)
+        if m:
+            try:
+                return json.loads(m.group(1))
+            except Exception as e:
+                dbg(f"[LLM] fenced JSON parse failed: {e}")
+        # last-resort: try first JSON-looking blob
+        m2 = re.search(r"(\{.*\})", raw, flags=re.DOTALL)
+        if m2:
+            try:
+                return json.loads(m2.group(1))
+            except Exception as e:
+                dbg(f"[LLM] loose JSON parse failed: {e}")
+
+    # fallback if totally unparsable
+    return {
+        "hostname": hostname,
+        "summary": "Unable to parse LLM output.",
+        "areas": [],
+        "anomalies": ["LLM output not valid JSON"],
+        "suggested_additional_show_cmds": [],
+        "confidence": "low"
+    }
+
+def apply_confidence_guardrails(device_json: dict):
+    conf = (device_json.get("confidence") or "").lower()
+    if conf not in ("low", "medium", "high"):
+        device_json["confidence"] = "unknown"
+        device_json.setdefault("anomalies", []).append("Confidence missing/unknown.")
+    if conf == "low":
+        # Ensure we don't overstate: downgrade statuses to 'warn' if they were 'fail' with weak evidence
+        for a in device_json.get("areas", []):
+            if a.get("status") == "fail" and len((a.get("evidence") or "")) < 20:
+                a["status"] = "warn"
+        # add reviewer nudge
+        device_json.setdefault("anomalies", []).append("Low confidence — manual review recommended.")
+    return device_json
+
+# ---------- Slack formatting ----------
+
+def render_slack_summary(per_device: list, config_dir: str, task_dir: str):
+    ts = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+
+    # short line per device
+    lines = []
+    for d in per_device:
+        host = d.get("hostname")
+        conf = d.get("confidence", "unknown")
+        # derive overall status: fail if any area fail; else warn if any warn; else ok
+        overall = "ok"
+        for a in d.get("areas", []):
+            if a.get("status") == "fail":
+                overall = "fail"; break
+            if a.get("status") == "warn":
+                overall = "warn"
+        lines.append(f"• {host}: {overall} (confidence: {conf})")
+
+    hdr = (
+        "*Operational Analysis (Agent‑5)*\n\n"
+        f"*Task:* `{task_dir}`\n"
+        f"*Config Dir:* `{config_dir}`\n"
+        f"*Timestamp:* `{ts}`"
+    )
+
+    blocks = [
+        {"type": "section", "text": {"type": "mrkdwn", "text": hdr}},
+        {"type": "section", "text": {"type": "mrkdwn", "text": "*Device status overview*\n" + "\n".join(lines)}},
+        {"type": "section", "text": {"type": "mrkdwn", "text":
+            "Details attached as JSON. For deeper dives, run per-device `/analyze-log <hostname> <config_dir> <task_dir>`."}}
+    ]
+    return blocks
+
+# ---------- Command handler ----------
+
+@app.command("/operational-analyze")
+def handle_operational_analyze(ack, command):
+    try:
+        ack({"response_type": "ephemeral", "text": "Agent‑5 is analyzing logs…"})
+    except Exception as e:
+        dbg(f"[ERROR] ack failed: {e}")
+        return
+
+    def work():
+        try:
+            args = (command.get("text") or "").strip().split()
+            if len(args) != 2:
+                slack.chat_postMessage(
+                    channel=command["channel_id"],
+                    text="Usage: `/operational-analyze <config_dir> <task_dir>`"
+                )
+                return
+
+            config_dir, task_dir = args
+            channel_id = command["channel_id"]
+
+            # Load context + logs
+            agent1_ctx = load_agent1_summary(config_dir, task_dir)
+            device_md_map = read_grading_markdowns(config_dir, task_dir)
+
+            if not device_md_map:
+                slack.chat_postMessage(
+                    channel=channel_id,
+                    text=f"No device Markdown logs found under `{REPO_ROOT}/{config_dir}/{task_dir}/grading_logs`."
+                )
+                return
+
+            per_device_results = []
+            for host, md in device_md_map.items():
+                # LLM analysis per device
+                result = analyze_device(host, md, agent1_ctx)
+                result = apply_confidence_guardrails(result)
+                per_device_results.append(result)
+
+            # Save combined JSON
+            out_dir = os.path.join(REPO_ROOT, config_dir, task_dir)
+            combined_path = os.path.join(out_dir, "agent5_operational_summary.json")
+            with open(combined_path, "w") as f:
+                json.dump(per_device_results, f, indent=2)
+
+            # Post Slack summary + attach JSON
+            blocks = render_slack_summary(per_device_results, config_dir, task_dir)
+            slack.chat_postMessage(channel=channel_id, blocks=blocks, text="Operational Analysis (Agent‑5)")
+
+            try:
+                slack.files_upload_v2(
+                    channel=channel_id,
+                    file=combined_path,
+                    title="Agent‑5 Operational Summary",
+                    filename="agent5_operational_summary.json",
+                    initial_comment="Full per-device JSON attached."
+                )
+            except SlackApiError as e:
+                dbg(f"[Slack upload error] {e.response.get('error')}")
+
+        except Exception as e:
+            dbg(f"[ERROR] Agent‑5 work() exception: {e}")
+            try:
+                slack.chat_postMessage(channel=command["channel_id"], text=f":x: Agent‑5 failed: {e}")
+            except Exception:
+                pass
+
+    threading.Thread(target=work, daemon=True).start()
+
+if __name__ == "__main__":
+    print("[DEBUG] Agent‑5 is running...", flush=True)
+    SocketModeHandler(app, SLACK_APP_TOKEN).start()

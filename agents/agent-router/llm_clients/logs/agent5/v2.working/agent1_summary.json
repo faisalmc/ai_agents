@@ -1,0 +1,218 @@
+[
+{
+  "hostname": "A-ASBR-1",
+  "provider": "Alpha",
+  "customer": null,
+  "role": "ASBR",
+  "config_intents": [
+    "Define a route-policy named SID($SID) to set label-index $SID",
+    "Configure BGP with router ID 1.0.101.9",
+    "Advertise network 1.0.101.9/32 with route-policy SID(9) and allocate all labels",
+    "Configure neighbor group TO_P with remote AS 100, update-source Loopback0, and address-family ipv4 labeled-unicast",
+    "Establish BGP peering with neighbors 1.0.101.7 and 1.0.101.8 using neighbor-group TO_P"
+  ]
+},
+{
+  "hostname": "A-ASBR-2",
+  "provider": "Alpha",
+  "customer": null,
+  "role": "ASBR",
+  "config_intents": [
+    "Define a route-policy named SID($SID) to set label-index $SID",
+    "Configure BGP with router ID 1.0.101.10",
+    "Advertise network 1.0.101.10/32 with route-policy SID(10) and allocate all labels",
+    "Configure BGP neighbors with AS 100, update-source Loopback0, and address-family ipv4 labeled-unicast",
+    "Establish BGP peering with neighbors 1.0.101.7 and 1.0.101.8 using neighbor-group TO_P"
+  ]
+},
+{
+  "hostname": "A-P-1",
+  "provider": "Alpha",
+  "customer": null,
+  "role": "Provider",
+  "config_intents": [
+    "Define a route-policy SID($SID) to set label-index $SID",
+    "Configure BGP with router ID 1.0.101.5 and enforce modifications on outbound iBGP traffic",
+    "Advertise network 1.0.101.5/32 with route-policy SID(5) and allocate all labels",
+    "Configure neighbor groups RR and RR_CLIENT for BGP peering with specific settings",
+    "Establish BGP neighbor relationships with neighbors 1.0.101.1, 1.0.101.2, 1.0.101.3 using neighbor-group RR_CLIENT",
+    "Establish BGP neighbor relationships with neighbors 1.0.101.11, 1.0.101.12 using neighbor-group RR"
+  ]
+},
+{
+  "hostname": "A-P-2",
+  "provider": "Alpha",
+  "customer": null,
+  "role": "Provider",
+  "config_intents": [
+    "Define a route-policy named SID($SID) to set label-index $SID",
+    "Configure BGP with router ID 1.0.101.6 and enforce modifications on outbound iBGP traffic",
+    "Advertise network 1.0.101.6/32 with route-policy SID(6) and allocate all labels",
+    "Configure neighbor groups RR and RR_CLIENT for BGP sessions",
+    "Set next-hop-self for neighbor-group RR and RR_CLIENT under IPv4 labeled-unicast address-family",
+    "Configure neighbor 1.0.101.1, 1.0.101.2, 1.0.101.3 as RR_CLIENT and 1.0.101.11, 1.0.101.12 as RR"
+  ]
+},
+{
+  "hostname": "A-P-3",
+  "provider": "Alpha",
+  "customer": null,
+  "role": "Provider",
+  "config_intents": [
+    "Define a route-policy SID($SID) to set label-index $SID",
+    "Configure BGP with router ID 1.0.101.7 and enforce modifications on outbound iBGP traffic",
+    "Advertise network 1.0.101.7/32 with route-policy SID(7) and allocate all labels",
+    "Configure neighbor groups RR and RR_CLIENT for BGP neighbors",
+    "Set next-hop-self for BGP neighbors in the RR_CLIENT group",
+    "Configure BGP neighbor 1.0.101.11 to use neighbor group RR",
+    "Configure BGP neighbor 1.0.101.12 to use neighbor group RR"
+  ]
+},
+{
+  "hostname": "A-P-4",
+  "provider": "Alpha",
+  "customer": null,
+  "role": "Provider",
+  "config_intents": [
+    "Define a route-policy SID($SID) to set label-index $SID",
+    "Configure BGP with router ID 1.0.101.8 and enforce modifications on outbound iBGP traffic",
+    "Advertise network 1.0.101.8/32 with route-policy SID(8) and allocate all labels",
+    "Configure neighbor groups RR and RR_CLIENT for BGP peering with specific settings",
+    "Establish BGP neighbor relationships with specific peers using neighbor groups"
+  ]
+},
+{
+  "hostname": "A-PE-1",
+  "provider": "Alpha",
+  "customer": null,
+  "role": "Provider-Edge",
+  "config_intents": [
+    "Define a route-policy named SID($SID) to set label-index $SID",
+    "Configure BGP with router ID 1.0.101.1",
+    "Advertise network 1.0.101.1/32 with route-policy SID(1) in BGP IPv4 unicast address family",
+    "Allocate labels for all routes",
+    "Configure a neighbor group TO_P for BGP peering with remote AS 100 using Loopback0 as the update source in the IPv4 labeled-unicast address family",
+    "Establish BGP neighborship with neighbor 1.0.101.5 using neighbor group TO_P",
+    "Establish BGP neighborship with neighbor 1.0.101.6 using neighbor group TO_P"
+  ]
+},
+{
+  "hostname": "A-PE-2",
+  "provider": "Alpha",
+  "customer": null,
+  "role": "Provider-Edge",
+  "config_intents": [
+    "Define a route-policy named SID($SID) to set label-index $SID",
+    "Configure BGP router-id as 1.0.101.2",
+    "Enable BGP with address-family IPv4 unicast for network 1.0.101.2/32 using route-policy SID(2) and allocate all labels",
+    "Configure a neighbor group TO_P with remote-as 100, update-source Loopback0, and address-family IPv4 labeled-unicast",
+    "Establish BGP peering with neighbor 1.0.101.5 using neighbor group TO_P",
+    "Establish BGP peering with neighbor 1.0.101.6 using neighbor group TO_P"
+  ]
+},
+{
+  "hostname": "A-PE-3",
+  "provider": "Alpha",
+  "customer": null,
+  "role": "Provider-Edge",
+  "config_intents": [
+    "Define a route-policy named SID(3) to set label-index 3",
+    "Configure BGP with router ID 1.0.101.3 and advertise network 1.0.101.3/32 with route-policy SID(3)",
+    "Allocate labels for all prefixes",
+    "Configure BGP neighbors 1.0.101.5 and 1.0.101.6 with AS 100, using neighbor-group TO_P and IPv4 labeled-unicast address family"
+  ]
+},
+{
+  "hostname": "A-PE-4",
+  "provider": "Alpha",
+  "customer": null,
+  "role": "Provider-Edge",
+  "config_intents": [
+    "Define a route-policy named SID($SID) to set label-index $SID",
+    "Configure BGP with router ID 1.0.101.4",
+    "Advertise network 1.0.101.4/32 with route-policy SID(4) and allocate all labels",
+    "Configure BGP neighbors 1.0.101.7 and 1.0.101.8 with remote AS 100, update-source Loopback0, and use neighbor-group TO_P for labeled-unicast IPv4"
+  ]
+},
+{
+  "hostname": "A-RR-1",
+  "provider": "Alpha",
+  "customer": null,
+  "role": "Route-Reflector",
+  "config_intents": [
+    "Configure BGP with AS number 100 and router ID 1.0.101.11",
+    "Establish BGP peering with RR_CLIENT peer group using Loopback0 as the update source",
+    "Configure RR_CLIENT as a route reflector client and enable sending labels",
+    "Activate BGP neighbors 1.0.101.5, 1.0.101.6, 1.0.101.7, 1.0.101.8"
+  ]
+},
+{
+  "hostname": "A-RR-2",
+  "provider": "Alpha",
+  "customer": null,
+  "role": "Route-Reflector",
+  "config_intents": [
+    "Configure BGP with AS number 100 and router ID 1.0.101.12",
+    "Configure BGP neighbors as route reflector clients with peer group RR_CLIENT",
+    "Set Loopback0 as the update source for BGP neighbors",
+    "Activate BGP neighbors 1.0.101.5, 1.0.101.6, 1.0.101.7, 1.0.101.8",
+    "Enable sending labels and route reflection for IPv4 unicast address family"
+  ]
+},
+{
+  "hostname": "Operational-Checks: show_cmds.ini",
+  "role": "validation-commands",
+  "checks": [
+    {
+      "intent": "Show BGP configuration",
+      "command": "show run router bgp",
+      "protocol": "BGP"
+    },
+    {
+      "intent": "Display BGP neighbors summary",
+      "command": "show bgp neighbors brief",
+      "protocol": "BGP"
+    },
+    {
+      "intent": "Show labeled-unicast IPv4 routes in BGP",
+      "command": "show bgp ipv4 labeled-unicast",
+      "protocol": "BGP"
+    },
+    {
+      "intent": "Display MPLS forwarding table",
+      "command": "show mpls forwarding",
+      "protocol": "MPLS"
+    },
+    {
+      "intent": "Show BGP configuration",
+      "command": "show run | sec bgp",
+      "protocol": "BGP"
+    },
+    {
+      "intent": "Show labeled-unicast IPv4 routes for 1.0.101.7 in BGP",
+      "command": "show bgp ipv4 labeled-unicast 1.0.101.7",
+      "protocol": "BGP"
+    },
+    {
+      "intent": "Traceroute to 1.0.101.7 sourcing from loopback 0",
+      "command": "traceroute 1.0.101.7 source loopback 0",
+      "protocol": "traceroute"
+    },
+    {
+      "intent": "Show labeled-unicast IPv4 routes for 1.0.101.9 in BGP",
+      "command": "show bgp ipv4 labeled-unicast 1.0.101.9",
+      "protocol": "BGP"
+    },
+    {
+      "intent": "Traceroute to 1.0.101.9 sourcing from loopback 0",
+      "command": "traceroute 1.0.101.9 source loopback 0",
+      "protocol": "traceroute"
+    },
+    {
+      "intent": "Show version information",
+      "command": "show version",
+      "protocol": "General"
+    }
+  ]
+}
+]

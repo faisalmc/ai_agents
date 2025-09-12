@@ -1,0 +1,158 @@
+#!/usr/bin/env python3
+"""
+Agent A Poller:
+ - Poll GitHub for new commits under doo/configs*/task-*
+ - Clone/pull private repo via token-authenticated URL
+ - Diff out changed files
+ - Summarize via OpenAI
+ - Post briefing to Slack
+DEBUG logging is controlled by the DEBUG env var.
+"""
+import os
+import time
+import requests
+import openai
+import re
+from slack_sdk import WebClient
+from git import Repo, GitCommandError
+
+# --- Configuration (via .env) ---
+GITHUB_TOKEN   = os.getenv("GITHUB_TOKEN", "").strip()
+GITHUB_OWNER   = os.getenv("GITHUB_OWNER", "").strip()
+GITHUB_REPO    = os.getenv("GITHUB_REPO", "").strip()
+REPO_CLONE_DIR = os.getenv("REPO_CLONE_DIR", "/opt/tasks").strip()
+POLL_INTERVAL  = int(os.getenv("POLL_INTERVAL", "60").strip())  # seconds
+SLACK_TOKEN    = os.getenv("SLACK_BOT_TOKEN", "").strip()
+SLACK_CHANNEL  = os.getenv("SLACK_CHANNEL", "#network-ops").strip()
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
+OPENAI_MODEL   = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo").strip()
+
+# --- Debug toggle ---
+DEBUG = os.getenv("DEBUG", "false").lower() in ("1", "true", "yes")
+
+# --- Github task folder ----
+TASK_FOLDER_RE = re.compile(r"doo/configs\.\d+/task-[^/]+")
+
+def dbg(msg: str):
+    if DEBUG:
+        print(f"[DEBUG] {msg}", flush=True)
+
+# --- Initialize clients ---
+openai.api_key = OPENAI_API_KEY
+slack = WebClient(token=SLACK_TOKEN)
+
+STATE_FILE = ".last_sha"
+
+def get_last_sha():
+    try:
+        last = open(STATE_FILE).read().strip()
+        dbg(f"last SHA loaded: {last}")
+        return last
+    except FileNotFoundError:
+        dbg("no last SHA file found")
+        return None
+
+def set_last_sha(sha):
+    with open(STATE_FILE, "w") as f:
+        f.write(sha)
+    dbg(f"last SHA updated to: {sha}")
+
+def fetch_commits(since_sha=None):
+    dbg(f"fetch_commits(since_sha={since_sha})")
+    url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/commits"
+    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    params = {"sha": "main", "per_page": 5}
+    if since_sha:
+        params["since"] = since_sha
+    r = requests.get(url, headers=headers, params=params)
+    r.raise_for_status()
+    commits = r.json()
+    dbg(f"GitHub returned {len(commits)} commit(s)")
+    return commits
+
+def detect_task_changes(commits):
+    auth_url = f"https://{GITHUB_TOKEN}@github.com/{GITHUB_OWNER}/{GITHUB_REPO}.git"
+    dbg(f"using auth_url={auth_url}")
+
+    # Clone or pull
+    if not os.path.isdir(REPO_CLONE_DIR):
+        dbg(f"cloning repo into {REPO_CLONE_DIR}")
+        try:
+            Repo.clone_from(auth_url, REPO_CLONE_DIR)
+        except GitCommandError as e:
+            raise RuntimeError(f"Failed to clone repo: {e}")
+    else:
+        dbg(f"pulling updates into {REPO_CLONE_DIR}")
+        try:
+            repo = Repo(REPO_CLONE_DIR)
+            origin = repo.remote(name="origin")
+            origin.set_url(auth_url)
+            origin.pull()
+        except GitCommandError as e:
+            raise RuntimeError(f"Failed to pull repo: {e}")
+
+    # Diff
+    changes = []
+    repo = Repo(REPO_CLONE_DIR)
+    for c in commits:
+        sha = c.get("sha")
+        dbg(f"examining commit {sha}")
+        files = repo.git.show("--name-only", "--pretty=", sha).splitlines()
+        for path in files:
+            # match any doo/configs.<n>/task-... folder
+            if TASK_FOLDER_RE.search(path):
+                dbg(f"  → matched: {path}")
+                changes.append((sha, path))
+
+    dbg(f"total changes detected: {len(changes)}")
+    return changes
+
+def summarize_and_post(changes):
+    prompt = "List each target device and config intent for these changed files:\n"
+    for sha, path in changes:
+        prompt += f"- {path}\n"
+    dbg(f"LLM prompt:\n{prompt}")
+
+    resp = openai.ChatCompletion.create(
+        model=OPENAI_MODEL,
+        messages=[
+            {"role": "system", "content": "You are a concise network config assistant."},
+            {"role": "user",   "content": prompt}
+        ],
+        temperature=0.2
+    )
+    summary = resp.choices[0].message.content.strip()
+    dbg(f"LLM summary:\n{summary}")
+
+    slack.chat_postMessage(
+        channel=SLACK_CHANNEL,
+        text=f":robot_face: *Task Briefing*\n{summary}"
+    )
+    dbg("posted summary to Slack")
+
+def poller_loop():
+    dbg("starting poller_loop()")
+    last_sha = get_last_sha()
+    print(f"[START] Polling every {POLL_INTERVAL}s (DEBUG={DEBUG})", flush=True)
+
+    while True:
+        try:
+            commits = fetch_commits(since_sha=last_sha)
+            if commits:
+                newest = commits[0].get("sha")
+                dbg(f"newest commit={newest}")
+                if newest and newest != last_sha:
+                    changes = detect_task_changes(commits)
+                    if changes:
+                        summarize_and_post(changes)
+                    set_last_sha(newest)
+        except Exception as e:
+            slack.chat_postMessage(
+                channel=SLACK_CHANNEL,
+                text=f":warning: Poller error: {e}"
+            )
+            dbg(f"Caught exception: {e}")
+        time.sleep(POLL_INTERVAL)
+
+if __name__ == "__main__":
+    poller_loop()

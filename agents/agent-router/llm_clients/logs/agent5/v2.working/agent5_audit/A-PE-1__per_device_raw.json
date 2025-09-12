@@ -1,0 +1,33 @@
+{
+  "hostname": "A-PE-1",
+  "platform": "unknown",
+  "signals_seen": [],
+  "status": "unknown",
+  "findings": [
+    {
+      "signal": "bgp",
+      "severity": "error",
+      "detail": "No BGP information found in the log"
+    },
+    {
+      "signal": "ip",
+      "severity": "info",
+      "detail": "No specific IP information found in the log"
+    },
+    {
+      "signal": "mpls",
+      "severity": "info",
+      "detail": "No MPLS information found in the log"
+    }
+  ],
+  "recommended_show_cmds": [
+    "show run router bgp",
+    "show bgp neighbors brief",
+    "show bgp ipv4 labeled-unicast",
+    "show mpls forwarding",
+    "show run | sec bgp",
+    "show bgp ipv4 labeled-unicast 1.0.101.7",
+    "show bgp ipv4 labeled-unicast 1.0.101.9"
+  ],
+  "optional_active_cmds": []
+}

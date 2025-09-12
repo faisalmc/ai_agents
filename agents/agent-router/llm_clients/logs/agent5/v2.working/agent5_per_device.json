@@ -1,0 +1,278 @@
+[
+  {
+    "hostname": "A-ASBR-1",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "mpls"
+    ],
+    "status": "healthy",
+    "findings": [
+      {
+        "signal": "bgp",
+        "severity": "info",
+        "detail": "BGP is active with router ID 1.0.101.9 and local AS number 100. BGP neighbors 1.0.101.7 and 1.0.101.8 are established. Network prefixes are being advertised with the correct next hops."
+      },
+      {
+        "signal": "mpls",
+        "severity": "info",
+        "detail": "MPLS forwarding table is populated with labels for SR prefixes and adjacencies. Outgoing interfaces and next hops are correctly mapped."
+      }
+    ],
+    "recommended_show_cmds": [
+      "show bgp neighbors brief",
+      "show bgp ipv4 labeled-unicast",
+      "show mpls forwarding"
+    ],
+    "optional_active_cmds": []
+  },
+  {
+    "hostname": "A-ASBR-2",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "mpls"
+    ],
+    "status": "healthy",
+    "findings": [
+      {
+        "signal": "bgp",
+        "severity": "info",
+        "detail": "BGP is active with router ID 1.0.101.10, local AS number 100. BGP neighbors 1.0.101.7 and 1.0.101.8 are established."
+      },
+      {
+        "signal": "mpls",
+        "severity": "info",
+        "detail": "MPLS forwarding is operational with multiple local and outgoing labels configured."
+      }
+    ],
+    "recommended_show_cmds": [
+      "show bgp neighbors brief",
+      "show bgp ipv4 labeled-unicast",
+      "show mpls forwarding"
+    ],
+    "optional_active_cmds": []
+  },
+  {
+    "hostname": "A-P-1",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "mpls"
+    ],
+    "status": "degraded",
+    "findings": [
+      {
+        "signal": "bgp",
+        "severity": "warn",
+        "detail": "BGP neighbors are in 'Idle' state"
+      },
+      {
+        "signal": "mpls",
+        "severity": "info",
+        "detail": "MPLS forwarding table entries exist but no detailed information provided"
+      }
+    ],
+    "recommended_show_cmds": [
+      "show bgp neighbors brief",
+      "show bgp ipv4 labeled-unicast",
+      "show mpls forwarding"
+    ],
+    "optional_active_cmds": []
+  },
+  {
+    "hostname": "A-P-2",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "mpls"
+    ],
+    "status": "healthy",
+    "findings": [
+      {
+        "signal": "bgp",
+        "severity": "info",
+        "detail": "BGP neighbors are established and routes are being advertised"
+      },
+      {
+        "signal": "mpls",
+        "severity": "info",
+        "detail": "MPLS forwarding table is populated with labels and next hops"
+      }
+    ],
+    "recommended_show_cmds": [
+      "show bgp neighbors brief",
+      "show bgp ipv4 labeled-unicast",
+      "show mpls forwarding"
+    ],
+    "optional_active_cmds": []
+  },
+  {
+    "hostname": "A-P-3",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "mpls"
+    ],
+    "status": "healthy",
+    "findings": [
+      {
+        "signal": "bgp",
+        "severity": "info",
+        "detail": "BGP neighbors are established and routing table is active"
+      },
+      {
+        "signal": "mpls",
+        "severity": "info",
+        "detail": "MPLS forwarding table shows labels and next hops"
+      }
+    ],
+    "recommended_show_cmds": [
+      "show bgp neighbors brief",
+      "show bgp ipv4 labeled-unicast",
+      "show mpls forwarding"
+    ],
+    "optional_active_cmds": []
+  },
+  {
+    "hostname": "A-P-4",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "mpls"
+    ],
+    "status": "healthy",
+    "findings": [
+      {
+        "signal": "bgp",
+        "severity": "info",
+        "detail": "BGP neighbors are established with AS 100"
+      },
+      {
+        "signal": "mpls",
+        "severity": "info",
+        "detail": "MPLS forwarding table is populated with labels and next hops"
+      }
+    ],
+    "recommended_show_cmds": [
+      "show bgp neighbors brief",
+      "show bgp ipv4 labeled-unicast",
+      "show mpls forwarding"
+    ],
+    "optional_active_cmds": []
+  },
+  {
+    "hostname": "A-PE-1",
+    "platform": "unknown",
+    "signals_seen": [],
+    "status": "unknown",
+    "findings": [
+      {
+        "signal": "bgp",
+        "severity": "error",
+        "detail": "No BGP information found in the log"
+      },
+      {
+        "signal": "ip",
+        "severity": "info",
+        "detail": "No specific IP information found in the log"
+      },
+      {
+        "signal": "mpls",
+        "severity": "info",
+        "detail": "No MPLS information found in the log"
+      }
+    ],
+    "recommended_show_cmds": [
+      "show run router bgp",
+      "show bgp neighbors brief",
+      "show bgp ipv4 labeled-unicast",
+      "show mpls forwarding",
+      "show run | sec bgp",
+      "show bgp ipv4 labeled-unicast 1.0.101.7",
+      "show bgp ipv4 labeled-unicast 1.0.101.9"
+    ],
+    "optional_active_cmds": []
+  },
+  {
+    "hostname": "A-PE-2",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "mpls"
+    ],
+    "status": "degraded",
+    "findings": [
+      {
+        "signal": "bgp",
+        "severity": "warn",
+        "detail": "BGP neighbor 1.0.101.5 is in an Idle state"
+      },
+      {
+        "signal": "mpls",
+        "severity": "info",
+        "detail": "MPLS forwarding table shows some labels with next hops not resolved"
+      }
+    ],
+    "recommended_show_cmds": [
+      "show bgp neighbors brief",
+      "show bgp ipv4 labeled-unicast 1.0.101.5",
+      "show mpls forwarding"
+    ],
+    "optional_active_cmds": []
+  },
+  {
+    "hostname": "A-PE-3",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "mpls"
+    ],
+    "status": "healthy",
+    "findings": [
+      {
+        "signal": "bgp",
+        "severity": "info",
+        "detail": "BGP is configured with router ID 1.0.101.3 and local AS number 100. BGP neighbors 1.0.101.5 and 1.0.101.6 are configured with AS 100."
+      },
+      {
+        "signal": "mpls",
+        "severity": "info",
+        "detail": "MPLS forwarding table is populated with labels for SR prefixes and adjacencies."
+      }
+    ],
+    "recommended_show_cmds": [
+      "show bgp neighbors brief",
+      "show bgp ipv4 labeled-unicast",
+      "show mpls forwarding"
+    ],
+    "optional_active_cmds": []
+  },
+  {
+    "hostname": "A-PE-4",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "mpls"
+    ],
+    "status": "healthy",
+    "findings": [
+      {
+        "signal": "bgp",
+        "severity": "info",
+        "detail": "BGP is established with neighbors 1.0.101.7 and 1.0.101.8"
+      },
+      {
+        "signal": "mpls",
+        "severity": "info",
+        "detail": "MPLS forwarding table is populated with labels and next hops"
+      }
+    ],
+    "recommended_show_cmds": [
+      "show bgp neighbors brief",
+      "show bgp ipv4 labeled-unicast",
+      "show mpls forwarding"
+    ],
+    "optional_active_cmds": []
+  }
+]

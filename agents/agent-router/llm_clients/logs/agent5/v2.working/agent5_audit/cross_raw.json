@@ -1,0 +1,28 @@
+{
+  "task_status": "mixed",
+  "top_incidents": [
+    {
+      "scope": "global",
+      "summary": "BGP neighbors in 'Idle' state on A-P-1",
+      "impact": "Potential routing issues affecting multiple devices",
+      "devices": ["A-P-1"]
+    },
+    {
+      "scope": "global",
+      "summary": "BGP neighbor 1.0.101.5 in Idle state on A-PE-2",
+      "impact": "Potential routing issues affecting multiple devices",
+      "devices": ["A-PE-2"]
+    }
+  ],
+  "remediation_themes": [
+    "Check BGP configuration and neighbor status on A-P-1",
+    "Investigate BGP neighbor 1.0.101.5 on A-PE-2",
+    "Validate MPLS forwarding table on A-P-1 and A-PE-2"
+  ],
+  "safe_followup_show_cmds": [
+    "show bgp neighbors brief",
+    "show bgp ipv4 labeled-unicast",
+    "show mpls forwarding"
+  ],
+  "optional_active_probes": []
+}

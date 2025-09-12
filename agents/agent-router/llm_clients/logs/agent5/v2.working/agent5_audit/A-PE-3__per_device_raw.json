@@ -1,0 +1,24 @@
+{
+  "hostname": "A-PE-3",
+  "platform": "ios-xr",
+  "signals_seen": ["bgp", "mpls"],
+  "status": "healthy",
+  "findings": [
+    {
+      "signal": "bgp",
+      "severity": "info",
+      "detail": "BGP is configured with router ID 1.0.101.3 and local AS number 100. BGP neighbors 1.0.101.5 and 1.0.101.6 are configured with AS 100."
+    },
+    {
+      "signal": "mpls",
+      "severity": "info",
+      "detail": "MPLS forwarding table is populated with labels for SR prefixes and adjacencies."
+    }
+  ],
+  "recommended_show_cmds": [
+    "show bgp neighbors brief",
+    "show bgp ipv4 labeled-unicast",
+    "show mpls forwarding"
+  ],
+  "optional_active_cmds": []
+}

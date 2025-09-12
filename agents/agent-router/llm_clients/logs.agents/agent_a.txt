@@ -1,0 +1,72 @@
+root@labuser-virtual-machine:/home/labuser/sp-1/doo# docker logs agent-b -f
+[DEBUG] Bolt app is starting...
+Failed to establish a connection (session id: c7d62bb8-0fa9-4384-84bc-2f3881e60636, error: _ssl.c:999: The handshake operation timed out)
+on_error invoked (session id: None, error: TimeoutError, message: _ssl.c:999: The handshake operation timed out)
+
+⚡️ Bolt app is running!
+[2025-07-22 13:07:57.579930] [DEBUG] Slack /push-configs received: configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working task-10.bravo.l3vpn-pe_ce
+[2025-07-22 13:08:00.761504] [DEBUG] ── Entering run_push_script()
+[DEBUG] Repo Dir: /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working
+[DEBUG] Script Path: /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/push_cli_configs.py
+[DEBUG] Task Dir: task-10.bravo.l3vpn-pe_ce
+[DEBUG] Command: python3 push_cli_configs.py --task task-10.bravo.l3vpn-pe_ce
+[DEBUG] Files in repo_dir (/app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working): ['push_cli_configs.py', 'devices.yaml', 'task-10.bravo.l3vpn-pe_ce']
+[DEBUG] Subprocess STDOUT:
+[SKIP] No config found for A-PE-1 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for A-PE-2 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for A-PE-3 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for A-PE-4 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for A-P-1 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for A-P-2 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for A-P-3 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for A-P-4 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for B-CE-1 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for B-CE-2 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for S-CE-1 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for S-CE-2 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for A-RR-1 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for A-RR-2 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for A-ASBR-1 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for A-ASBR-2 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for C-PE-1 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for C-PE-2 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for C-PE-3 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for C-PE-4 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for C-P-1 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for C-P-2 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for C-ASBR-1 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for C-ASBR-2 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for R-CE-1 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for R-CE-2 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for M-CE-1 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for M-CE-2 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for B-ASBR-1 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for B-ASBR-2 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[INFO] Pushing config to B-PE-1 (192.168.100.117) for task: task-10.bravo.l3vpn-pe_ce...
+[SUCCESS] Config pushed to B-PE-1. Log saved to /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce/logs/B-PE-1.log
+[INFO] Pushing config to B-PE-2 (192.168.100.118) for task: task-10.bravo.l3vpn-pe_ce...
+[SUCCESS] Config pushed to B-PE-2. Log saved to /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce/logs/B-PE-2.log
+[INFO] Pushing config to B-PE-3 (192.168.100.119) for task: task-10.bravo.l3vpn-pe_ce...
+[SUCCESS] Config pushed to B-PE-3. Log saved to /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce/logs/B-PE-3.log
+[INFO] Pushing config to B-PE-4 (192.168.100.121) for task: task-10.bravo.l3vpn-pe_ce...
+[SUCCESS] Config pushed to B-PE-4. Log saved to /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce/logs/B-PE-4.log
+[SKIP] No config found for B-P-1 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for B-P-2 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[SKIP] No config found for B-RR-1 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+[INFO] Pushing config to Y-CE-1 (192.168.100.127) for task: task-10.bravo.l3vpn-pe_ce...
+[SUCCESS] Config pushed to Y-CE-1. Log saved to /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce/logs/Y-CE-1.log
+[INFO] Pushing config to Y-CE-2 (192.168.100.128) for task: task-10.bravo.l3vpn-pe_ce...
+[SUCCESS] Config pushed to Y-CE-2. Log saved to /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce/logs/Y-CE-2.log
+[INFO] Pushing config to Y-CE-3 (192.168.100.129) for task: task-10.bravo.l3vpn-pe_ce...
+[SUCCESS] Config pushed to Y-CE-3. Log saved to /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce/logs/Y-CE-3.log
+[SKIP] No config found for S-CE-3 under /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce.
+
+[DEBUG] Subprocess STDERR:
+
+[DEBUG] Searching for logs in: /app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce/logs
+[DEBUG] Found log files: ['/app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce/logs/B-PE-3.log', '/app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce/logs/Y-CE-1.log', '/app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce/logs/Y-CE-3.log', '/app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce/logs/B-PE-4.log', '/app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce/logs/B-PE-1.log', '/app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce/logs/Y-CE-2.log', '/app/doo/configs.3.backup.30_june.task1-8,10,12_working.task-11-not_working/task-10.bravo.l3vpn-pe_ce/logs/B-PE-2.log']
+[DEBUG] Found .md files in logs/: []
+
+^X^Croot@labuser-virtual-machine:/home/labuser/sp-1/doo# 
+
+

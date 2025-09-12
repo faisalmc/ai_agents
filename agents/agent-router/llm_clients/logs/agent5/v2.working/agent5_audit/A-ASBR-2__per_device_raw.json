@@ -1,0 +1,26 @@
+```json
+{
+  "hostname": "A-ASBR-2",
+  "platform": "ios-xr",
+  "signals_seen": ["bgp", "mpls"],
+  "status": "healthy",
+  "findings": [
+    {
+      "signal": "bgp",
+      "severity": "info",
+      "detail": "BGP is active with router ID 1.0.101.10, local AS number 100. BGP neighbors 1.0.101.7 and 1.0.101.8 are established."
+    },
+    {
+      "signal": "mpls",
+      "severity": "info",
+      "detail": "MPLS forwarding is operational with multiple local and outgoing labels configured."
+    }
+  ],
+  "recommended_show_cmds": [
+    "show bgp neighbors brief",
+    "show bgp ipv4 labeled-unicast",
+    "show mpls forwarding"
+  ],
+  "optional_active_cmds": []
+}
+```

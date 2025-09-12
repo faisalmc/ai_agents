@@ -1,0 +1,26 @@
+```json
+{
+  "hostname": "A-P-2",
+  "platform": "ios-xr",
+  "signals_seen": ["bgp", "mpls"],
+  "status": "healthy",
+  "findings": [
+    {
+      "signal": "bgp",
+      "severity": "info",
+      "detail": "BGP neighbors are established and routes are being advertised"
+    },
+    {
+      "signal": "mpls",
+      "severity": "info",
+      "detail": "MPLS forwarding table is populated with labels and next hops"
+    }
+  ],
+  "recommended_show_cmds": [
+    "show bgp neighbors brief",
+    "show bgp ipv4 labeled-unicast",
+    "show mpls forwarding"
+  ],
+  "optional_active_cmds": []
+}
+```

@@ -1,0 +1,271 @@
+"""
+Author: Faisal Chaudhry
+Agent-B = Push Task specific configs by executing push_cli_configs.py
+"""
+
+import os
+import glob
+import subprocess
+import re
+from datetime import datetime
+
+from slack_bolt import App
+from slack_bolt.adapter.socket_mode import SocketModeHandler
+from slack_sdk import WebClient
+
+import threading
+
+SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
+SLACK_APP_TOKEN = os.getenv("SLACK_APP_TOKEN")
+
+app = App(token=SLACK_BOT_TOKEN)
+slack_client = WebClient(token=SLACK_BOT_TOKEN)
+
+# Flexible error patterns for both IOS and IOS-XR
+GENERIC_ERROR_PATTERNS = [
+    r"%\s*Invalid input.*",
+    r"%\s*Incomplete command.*",
+    r"%\s*Ambiguous command.*",
+    r"%\s*Unrecognized command.*",
+    r"commit.*failed",
+    r"config apply failed",
+    r"syntax error",
+    r"\^.*%.*input.*",  # caret marker with error
+    r"%\s*Error.*",
+    r"error:.*",
+    r"ERROR:.*",
+    r"command rejected",
+    r"unknown command",
+]
+
+def run_push_script(config_dir, task_dir):
+    repo_dir = os.path.join("/app/doo", config_dir)
+    script_name = "push_cli_configs.py"
+    script_path = os.path.join(repo_dir, script_name)
+    cmd = ["python3", script_path, "--task", task_dir]
+
+    print(f"[DEBUG] Checking for script at: {script_path}", flush=True)
+    print(f"[DEBUG] Task Dir: {task_dir}", flush=True)
+    print(f"[DEBUG] Will run command: {' '.join(cmd)} in dir: {repo_dir}", flush=True)
+
+    try:
+        files = os.listdir(repo_dir)
+        print(f"[DEBUG] Files in repo_dir ({repo_dir}): {files}", flush=True)
+    except Exception as e:
+        print(f"[ERROR] Could not list repo_dir: {e}", flush=True)
+        return "", f"[ERROR] Could not list repo_dir: {e}", -1
+
+    if not os.path.isfile(script_path):
+        print(f"[ERROR] Script not found at: {script_path}", flush=True)
+        return "", f"[ERROR] Script not found at: {script_path}", -1
+
+    print(f"[INFO] Found script. Attempting to run it now...", flush=True)
+    try:
+        result = subprocess.run(
+            cmd,
+            cwd=repo_dir,
+            capture_output=True,
+            text=True,
+            timeout=300
+        )
+        stdout = result.stdout
+        stderr = result.stderr
+        rc = result.returncode
+
+        print(f"[DEBUG] Subprocess return code: {rc}", flush=True)
+        print(f"[DEBUG] STDOUT (first 500 chars):\n{stdout[:500]}", flush=True)
+        print(f"[DEBUG] STDERR (first 500 chars):\n{stderr[:500]}", flush=True)
+
+        # Check if all lines are [SKIP]
+        skip_lines = [line for line in stdout.splitlines() if "[SKIP]" in line]
+        if skip_lines and len(skip_lines) >= 3:
+            print(f"[WARN] Script ran but skipped configs for all devices. Nothing was pushed.", flush=True)
+
+        # Optional: Warn if script exited successfully but no logs were found
+        if rc == 0:
+            expected_log_dir = os.path.join("/app/doo", config_dir, task_dir, "logs")
+            if not glob.glob(os.path.join(expected_log_dir, "*.log")):
+                print(f"[WARN] Script exited with return code 0 but no log files were found in: {expected_log_dir}", flush=True)
+
+        return stdout, stderr, rc
+
+    except subprocess.TimeoutExpired:
+        print(f"[ERROR] Script timed out after 300 seconds", flush=True)
+        return "", "[ERROR] Script timeout", -1
+    except Exception as e:
+        print(f"[ERROR] Exception running subprocess: {e}", flush=True)
+        return "", f"[ERROR] Exception: {e}", -1
+
+
+def basic_log_analysis(config_dir, task_dir):
+    log_dir = os.path.join("/app/doo", config_dir, task_dir, "logs")
+    results = []
+    error_hosts = []
+    found_logs = glob.glob(os.path.join(log_dir, "*.log"))
+    print(f"[DEBUG] Searching for logs in: {log_dir}", flush=True)
+    print(f"[DEBUG] Found log files: {found_logs}", flush=True)
+
+    if not found_logs:
+        results.append(("logs", "No .log files found. Check if push script ran correctly."))
+        return results, error_hosts, log_dir
+
+    for logfile in sorted(found_logs):
+        hostname = os.path.basename(logfile).replace(".log", "")
+        try:
+            with open(logfile) as f:
+                log = f.read()
+        except Exception as e:
+            results.append((hostname, f"Could not read log: {e}"))
+            continue
+
+        issues = []
+
+        # Use the generic error patterns
+        combined_patterns = GENERIC_ERROR_PATTERNS
+
+        # Detect standard CLI errors
+        for pattern in combined_patterns:
+            if re.search(pattern, log, re.IGNORECASE | re.MULTILINE):
+                issues.append(f"Matched: {pattern}")
+                print(f"[DEBUG] Matched error in {hostname}: {pattern}", flush=True)
+
+        # Detect caret + invalid input errors across multiple lines
+        if re.search(r"\s*\^\s*\n.*% Invalid input", log, re.IGNORECASE):
+            issues.append("Caret Invalid Input Detected")
+            print(f"[DEBUG] Detected caret error pattern in {hostname}", flush=True)
+
+        if issues:
+            error_hosts.append(hostname)
+        results.append((hostname, "; ".join(issues) if issues else "Success"))
+
+    return results, error_hosts, log_dir
+
+
+
+def generate_summary_md(log_dir, output_path):
+    print(f"[DEBUG] Generating summary markdown at: {output_path}", flush=True)
+    try:
+        with open(output_path, 'w') as summary:
+            for log_file in sorted(os.listdir(log_dir)):
+                if log_file.endswith('.log'):
+                    summary.write(f"## {log_file}\n\n")
+                    with open(os.path.join(log_dir, log_file), 'r') as lf:
+                        content = lf.read()
+                        summary.write("```\n")
+                        summary.write(content)
+                        summary.write("\n```\n\n")
+    except Exception as e:
+        print(f"[ERROR] Failed to generate summary markdown: {e}", flush=True)
+
+
+@app.command("/push-configs")
+def handle_push_configs(ack, command):
+    try:
+        # Immediate ephemeral acknowledgment (same as HND)
+        ack({"response_type": "ephemeral", "text": "Starting configuration task ⏳"})
+    except Exception as e:
+        print(f"[ERROR] Failed to ack: {e}", flush=True)
+        return
+
+    def work():
+        try:
+            text = command.get("text", "").strip()
+            print(f"[{datetime.now()}] [DEBUG] Slack /push-configs received: {text}", flush=True)
+
+            if not text or len(text.split()) != 2:
+                slack_client.chat_postMessage(
+                    channel=command["channel_id"],
+                    text="Usage: `/push-configs <config_dir> <task_dir>`"
+                )
+                return
+
+            config_dir, task_dir = text.split()
+            repo_dir = os.path.join("/app/doo", config_dir)
+            log_dir = os.path.join(repo_dir, task_dir, "logs")
+
+            try:
+                os.listdir(repo_dir)
+            except Exception as e:
+                slack_client.chat_postMessage(
+                    channel=command["channel_id"],
+                    text=f"[ERROR] Cannot list repo_dir: {e}"
+                )
+                return
+
+            out, err, rc = run_push_script(config_dir, task_dir)
+            results, error_hosts, log_dir = basic_log_analysis(config_dir, task_dir)
+
+            try:
+                os.listdir(log_dir)
+            except Exception as e:
+                slack_client.chat_postMessage(
+                    channel=command["channel_id"],
+                    text=f"[ERROR] Cannot list log dir: {e}"
+                )
+                return
+
+            success_hosts = []
+            error_messages = {}
+
+            for host, status in results:
+                if "Success" in status:
+                    success_hosts.append(host)
+                else:
+                    error_messages[host] = status
+
+            timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')
+            success_count = len(success_hosts)
+            error_count = len(error_messages)
+
+            success_list = ", ".join(sorted(success_hosts)) if success_hosts else "None"
+            error_list = ", ".join(sorted(error_messages.keys())) if error_messages else "None"
+
+            summary_md_filename = "push_cli_configs-summary.md"
+
+            message_lines = [
+                "*Configuration Summary*",
+                f"*Task:* `{task_dir}`",
+                f"*Config Dir:* `{config_dir}`",
+                f"*Timestamp:* {timestamp}",
+                "",
+                f" *{success_count} devices successfully configured:* {success_list}",
+                f" *{error_count} devices failed:* {error_list}",
+                "",
+                f"*A detailed log file (`{summary_md_filename}`) is attached below for review.*"
+            ]
+
+            slack_client.chat_postMessage(
+                channel=command["channel_id"],
+                text="\n".join(message_lines)
+            )
+
+            summary_md_path = os.path.join(log_dir, summary_md_filename)
+            generate_summary_md(log_dir, summary_md_path)
+
+            if os.path.exists(summary_md_path):
+                with open(summary_md_path, "rb") as f:
+                    slack_client.files_upload_v2(
+                        channel=command["channel_id"],
+                        file=f,
+                        title="Configuration Logs",
+                        filename=summary_md_filename,
+                        initial_comment=f"Attached log file: `{summary_md_filename}`"
+                    )
+            else:
+                print("[WARN] Markdown summary file was not created.", flush=True)
+
+        except Exception as e:
+            print(f"[ERROR] Exception in /push-configs handler: {e}", flush=True)
+            slack_client.chat_postMessage(
+                channel=command["channel_id"],
+                text=f"Exception occurred: {e}"
+            )
+
+    # Run work in background thread (same as HND)
+    threading.Thread(target=work).start()
+
+
+
+if __name__ == "__main__":
+    print("[DEBUG] Bolt app is starting...", flush=True)
+    SocketModeHandler(app, SLACK_APP_TOKEN).start()

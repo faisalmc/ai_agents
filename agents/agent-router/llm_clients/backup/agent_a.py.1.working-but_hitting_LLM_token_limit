@@ -1,0 +1,164 @@
+"""
+Author: Faisal Chaudhry
+
+Agent A:
+- Builds structured prompts for summarizing task configuration files
+- Extracts intents from .txt (config) and .ini (show command) files
+- Assigns roles and provider/customer mapping based on filename
+- Generates structured JSON for each host using an OpenAI LLM
+"""
+
+import os
+import re
+import glob
+from datetime import datetime
+
+from llm_clients.llm_api import call_llm
+
+# —————————————————————————————————————————————————————————
+# System prompt: teaches the LLM how to name hostnames,
+# decode SP vs CE, handle .txt vs .ini, and output strict JSON
+# —————————————————————————————————————————————————————————
+SYSTEM_PROMPT = """\
+You are a Cisco SP / Customer‑Edge configuration assistant.
+You will be given a Task name and multiple files under that task,
+each with its full relative path.
+
+Rules:
+1. For .txt files:
+   • Strip off the directory path; hostname = basename (e.g. “A-PE-1.txt” → “A-PE-1”).
+   • Decode X-ROLE-N: if ROLE in {PE,P,ASBR,RR} then X is SP (A=Alpha, B=Beta, C=Charlie).
+     If ROLE == CE then X is customer (B=Blue, S=Silver, R=Red, M=Magneto).
+   • Summarize the config in each .txt as a single intent.
+
+2. For show_cmds.ini (or other non-.txt):
+   • Hostname = “show_cmds.ini”
+   • Each line in the file is a “show command”; list each as its own intent.
+
+Output:
+Return only valid JSON, no prose, with this schema (one object per file):
+
+[
+  {
+    "hostname":      "string",
+    "provider":      "string|null",
+    "customer":      "string|null",
+    "role":          "string",
+    "config_intents":["string", …]
+  }
+]
+"""
+
+# —————————————————————————————————————————————————————————
+# Few‑shot example to teach multi-file arrays
+# —————————————————————————————————————————————————————————
+FEW_SHOT = [
+    {
+        "role": "user",
+        "content": """### Task: task-17.example
+### doo/configs.3/task-17.example/A-PE-1.txt
+interface GigabitEthernet0/0
+no shutdown
+ip address 10.0.0.1/30
+
+### doo/configs.3/task-17.example/show_cmds.ini
+show ip route
+show interfaces brief
+
+"""
+    },
+    {
+        "role": "assistant",
+        "content": """[
+  {
+    "hostname": "A-PE-1",
+    "provider": "Alpha",
+    "customer": null,
+    "role": "Provider-Edge",
+    "config_intents": [
+      "Enable interface GigabitEthernet0/0 with IP 10.0.0.1/30"
+    ]
+  },
+  {
+    "hostname": "show_cmds.ini",
+    "provider": null,
+    "customer": null,
+    "role": "Show-Commands",
+    "config_intents": [
+      "show ip route",
+      "show interfaces brief"
+    ]
+  }
+]"""
+    }
+]
+
+def dbg(msg):
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [DEBUG agent_a] {msg}", flush=True)
+
+def build_messages(changes):
+    """
+    Build the messages array for Agent A:
+     - Include every .txt in the task folder
+     - Then include any changed non-.txt (e.g. show_cmds.ini)
+    """
+    # 1) derive task folder name from first change path
+    # e.g. "doo/configs.3/task-17.charlie.ha_frr_isis/XYZ.txt"
+    first_path = changes[0][1]
+    parts      = first_path.split("/", 3)
+    # parts = ["doo","configs.3","task-17.charlie.ha_frr_isis","..."]
+    task_name  = parts[2]
+    base_dir   = os.getenv("REPO_CLONE_DIR", "/opt/tasks").strip()
+    # FIX: include the 'doo' directory
+    task_dir   = os.path.join(base_dir, parts[0], parts[1], parts[2])
+
+    dbg(f"task_dir: {task_dir}")
+    # 2) gather all .txt files in that folder
+    txt_files = sorted(glob.glob(os.path.join(task_dir, "*.txt")))
+    dbg(f"txt_files found: {txt_files}")
+
+    # 3) start building user prompt
+    user  = f"### Task: {task_name}\n"
+    user += "Here are the configuration files for this task:\n"
+
+    for txt in txt_files:
+        rel     = os.path.relpath(txt, base_dir)
+        dbg(f"Including .txt: {rel}")
+        try:
+            content = open(txt).read()
+        except Exception as e:
+            dbg(f"error reading {txt}: {e}")
+            content = "<error reading file>"
+        dbg(f"content of {rel}:\n{content}\n")
+        user   += f"\n### {rel}\n```text\n{content}\n```\n"
+
+    # 4) append any changed non-.txt files
+    user += "\nAdditionally, these changed files:\n"
+    for sha, path in changes:
+        if not path.endswith(".txt"):
+            full = os.path.join(base_dir, path)
+            dbg(f"Including non-.txt: {path}")
+            try:
+                content = open(full).read() if os.path.exists(full) else "<missing>"
+            except Exception as e:
+                dbg(f"error reading {full}: {e}")
+                content = "<error reading file>"
+            dbg(f"content of {path}:\n{content}\n")
+            user   += f"\n### {path}\n```ini\n{content}\n```\n"
+
+    user += "\nPlease respond with only valid JSON as specified."
+
+    dbg(f"user prompt for LLM:\n{user}")
+    return (
+        [{"role": "system",    "content": SYSTEM_PROMPT}]
+        + FEW_SHOT
+        + [{"role": "user",    "content": user}]
+    )
+
+def summarize_changes(changes):
+    """
+    Call the LLM and return its JSON response.
+    """
+    messages = build_messages(changes)
+    # deterministic for structured output
+    return call_llm(messages, temperature=0.0)

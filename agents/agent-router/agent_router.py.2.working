@@ -1,0 +1,257 @@
+#!/usr/bin/env python3
+"""
+Author: Faisal Chaudhry
+
+Agent Router (Agent A Poller):
+- Polls GitHub for new commits under doo/configs*/task-*
+- Clones or updates the repo securely with token-based authentication
+- Detects new file-level changes in the latest commit (diff changes only in last commit)
+- Uses Agent A + OpenAI LLM to summarize configuration intent
+- Posts JSON summary to Slack with config/task context
+
+DEBUG logging is controlled by the DEBUG env var.
+"""
+
+import os
+import time
+import requests
+import openai
+import re
+from slack_sdk import WebClient
+from git import Repo, GitCommandError
+
+from llm_clients.agent_a import summarize_changes
+
+# --- Configuration (via .env) ---
+GITHUB_TOKEN   = os.getenv("GITHUB_TOKEN", "").strip()
+GITHUB_OWNER   = os.getenv("GITHUB_OWNER", "").strip()
+GITHUB_REPO    = os.getenv("GITHUB_REPO", "").strip()
+REPO_CLONE_DIR = os.getenv("REPO_CLONE_DIR", "/opt/tasks").strip()
+POLL_INTERVAL  = int(os.getenv("POLL_INTERVAL", "60").strip())  # seconds
+SLACK_TOKEN    = os.getenv("SLACK_BOT_TOKEN", "").strip()
+SLACK_CHANNEL  = os.getenv("SLACK_CHANNEL", "#network-ops").strip()
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
+OPENAI_MODEL   = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo").strip()
+
+# --- Debug toggle ---
+DEBUG = os.getenv("DEBUG", "false").lower() in ("1", "true", "yes")
+
+# --- Github task folder ----
+# TASK_FOLDER_RE = re.compile(r"doo/configs\.\d+/task-[^/]+")
+TASK_FOLDER_RE = re.compile(r"^doo/configs\.\d+(?:\.[^/]+)?/task-[^/]+/.+")
+
+def dbg(msg: str):
+    if DEBUG:
+        print(f"[DEBUG] {msg}", flush=True)
+
+# --- Initialize clients ---
+openai.api_key = OPENAI_API_KEY
+slack = WebClient(token=SLACK_TOKEN)
+
+STATE_FILE = ".last_sha"
+
+
+def get_last_sha():
+    try:
+        last = open(STATE_FILE).read().strip()
+        dbg(f"last SHA loaded: {last}")
+        return last
+    except FileNotFoundError:
+        dbg("no last SHA file found")
+        return None
+
+def set_last_sha(sha: str):
+    with open(STATE_FILE, "w") as f:
+        f.write(sha)
+    dbg(f"last SHA updated to: {sha}")
+
+def fetch_latest_commit():
+    """
+    Fetch ONLY the most recent commit on main branch.
+    """
+    url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/commits"
+    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    params = {"sha": "main", "per_page": 1}
+    dbg("Fetching latest commit from GitHub")
+    r = requests.get(url, headers=headers, params=params)
+    r.raise_for_status()
+    commits = r.json()
+    if not commits:
+        raise RuntimeError("No commits found in repo")
+    latest = commits[0]
+    dbg(f"Latest commit: {latest['sha']}")
+    return latest
+
+def fetch_commit_details(sha):
+    """
+    Fetch the file list of a specific commit.
+    """
+    url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/commits/{sha}"
+    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    dbg(f"Fetching details for commit {sha}")
+    r = requests.get(url, headers=headers)
+    r.raise_for_status()
+    return r.json()
+
+# original code - no detailed debugging 
+# def detect_task_changes_in_commit(commit_sha):
+#     """
+#     Pull repo and get changed files in the specific commit matching the task folder pattern.
+#     Only returns changes from the latest commit.
+#     """
+#     auth_url = f"https://{GITHUB_TOKEN}@github.com/{GITHUB_OWNER}/{GITHUB_REPO}.git"
+#     dbg(f"using auth_url={auth_url}")
+
+#     # Clone or pull
+#     if not os.path.isdir(REPO_CLONE_DIR):
+#         dbg(f"cloning repo into {REPO_CLONE_DIR}")
+#         try:
+#             Repo.clone_from(auth_url, REPO_CLONE_DIR)
+#         except GitCommandError as e:
+#             raise RuntimeError(f"Failed to clone repo: {e}")
+#     else:
+#         dbg(f"pulling updates into {REPO_CLONE_DIR}")
+#         try:
+#             repo = Repo(REPO_CLONE_DIR)
+#             origin = repo.remote(name="origin")
+#             origin.set_url(auth_url)
+#             origin.pull()
+#         except GitCommandError as e:
+#             raise RuntimeError(f"Failed to pull repo: {e}")
+
+#     # Diff for just this commit
+#     changes = []
+#     repo = Repo(REPO_CLONE_DIR)
+#     dbg(f"examining commit {commit_sha}")
+#     files = repo.git.show("--name-only", "--pretty=", commit_sha).splitlines()
+#     for path in files:
+#         if TASK_FOLDER_RE.search(path):
+#             dbg(f"  → matched: {path}")
+#             changes.append((commit_sha, path))
+
+#     dbg(f"total changes detected: {len(changes)}")
+#     return changes
+
+# detailed debugging 
+def detect_task_changes_in_commit(commit_sha):
+    """
+    Pull repo and get changed files in the specific commit matching the task folder pattern.
+    Only returns changes from the latest commit.
+    """
+    auth_url = f"https://{GITHUB_TOKEN}@github.com/{GITHUB_OWNER}/{GITHUB_REPO}.git"
+    dbg(f"using auth_url={auth_url}")
+
+    # Clone or pull
+    if not os.path.isdir(REPO_CLONE_DIR):
+        dbg(f"cloning repo into {REPO_CLONE_DIR}")
+        try:
+            Repo.clone_from(auth_url, REPO_CLONE_DIR)
+        except GitCommandError as e:
+            raise RuntimeError(f"Failed to clone repo: {e}")
+    else:
+        dbg(f"pulling updates into {REPO_CLONE_DIR}")
+        try:
+            repo = Repo(REPO_CLONE_DIR)
+            origin = repo.remote(name="origin")
+            origin.set_url(auth_url)
+            origin.pull()
+        except GitCommandError as e:
+            raise RuntimeError(f"Failed to pull repo: {e}")
+
+    # Diff for just this commit
+    changes = []
+    repo = Repo(REPO_CLONE_DIR)
+    dbg(f"examining commit {commit_sha}")
+    try:
+        files = repo.git.show("--name-only", "--pretty=", commit_sha).splitlines()
+    except GitCommandError as e:
+        dbg(f"Error during git show: {e}")
+        return []
+
+    if not files:
+        dbg(f"No files found in commit {commit_sha}")
+        return []
+
+    dbg(f"Files changed in commit:")
+    for path in files:
+        dbg(f"  - {path}")
+        if TASK_FOLDER_RE.search(path):
+            dbg(f"    → matched TASK folder regex ✅")
+            changes.append((commit_sha, path))
+        else:
+            dbg(f"    → did NOT match TASK folder regex ❌")
+
+    dbg(f"total changes detected: {len(changes)}")
+    return changes
+
+def summarize_and_post(changes):
+    # Group changes by (configs.X, task directory)
+    tasks = {}
+    for sha, path in changes:
+        # Example path: doo/configs.3/task-17.charlie.ha_frr_isis/...
+        parts = path.split("/")
+        if len(parts) >= 3:
+            config_dir = parts[1]         # configs.X
+            task_dir   = parts[2]         # task-17.charlie.ha_frr_isis
+            key = (config_dir, task_dir)
+            tasks.setdefault(key, []).append((sha, path))
+
+    for (config_dir, task_dir), task_changes in tasks.items():
+        dbg(f"Summarizing {len(task_changes)} changes for {config_dir} / {task_dir}")
+        json_out = summarize_changes(task_changes)
+        # Make the message more human-friendly, with both config and task
+        slack.chat_postMessage(
+            channel=SLACK_CHANNEL,
+            text=(
+                f":robot_face: *Update for* _{config_dir}_  \n"
+                f"*Task*: `{task_dir}`\n"
+                f"```json\n{json_out}\n```"
+            )
+        )
+        dbg(f"Posted summary for {config_dir} / {task_dir} to Slack")
+
+
+def poller_loop():
+    """
+    Main loop for Agent A polling:
+     - On first run, record HEAD without summarizing.
+     - On subsequent runs, only summarize latest commit if it is new.
+    """
+    dbg("starting poller_loop()")
+    last_sha  = get_last_sha()
+    print(f"[START] Polling every {POLL_INTERVAL}s (DEBUG={DEBUG})", flush=True)
+
+    while True:
+        try:
+            latest_commit = fetch_latest_commit()
+            latest_sha = latest_commit.get("sha")
+            dbg(f"latest commit sha={latest_sha}")
+
+            if last_sha is None:
+                # First run: sync pointer, no processing
+                dbg("First run: syncing SHA without summary")
+                set_last_sha(latest_sha)
+                last_sha = latest_sha
+
+            elif latest_sha != last_sha:
+                dbg(f"New commit found: {latest_sha}, processing changes")
+                changes = detect_task_changes_in_commit(latest_sha)
+                dbg(f"changes list: {changes}")
+                if changes:
+                    summarize_and_post(changes)
+                set_last_sha(latest_sha)
+                last_sha = latest_sha
+            else:
+                dbg("No new commit detected.")
+
+        except Exception as e:
+            slack.chat_postMessage(
+                channel=SLACK_CHANNEL,
+                text=f":warning: Poller error: {e}"
+            )
+            dbg(f"Caught exception: {e}")
+
+        time.sleep(POLL_INTERVAL)
+
+if __name__ == "__main__":
+    poller_loop()
