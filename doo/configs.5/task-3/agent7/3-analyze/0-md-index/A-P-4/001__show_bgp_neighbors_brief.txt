@@ -1,0 +1,10 @@
+
+Tue Aug 26 16:46:33.680 UTC
+
+Neighbor         Spk    AS  Description                         Up/Down  NBRState
+1.0.101.4         0   100                                         1d06h Established 
+1.0.101.9         0   100                                         1d06h Established 
+1.0.101.10        0   100                                         1d06h Established 
+1.0.101.11        0   100                                         1d06h Established 
+1.0.101.12        0   100                                         1d06h Established 
+RP/0/RP0/CPU0:A-P-4#

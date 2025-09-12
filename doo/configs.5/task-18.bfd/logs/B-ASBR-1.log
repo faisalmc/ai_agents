@@ -1,0 +1,52 @@
+--- Config Push Log for B-ASBR-1 ---
+Timestamp: 2025-08-07 04:25:08.146049
+
+configure terminal
+
+Thu Aug  7 08:25:01.976 UTC
+RP/0/RP0/CPU0:B-ASBR-1(config)#router bgp 200
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp)# address-family ipv4 unicast
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-af)# !
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-af)# address-family ipv6 unicast
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-af)# !
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-af)# !
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-af)# neighbor-group TO_C_ASBR
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp)#  remote-as 300
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp)#  bfd minimum-interval 500
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp)#  bfd multiplier 5
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp)#  bfd fast-detect
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp)#  address-family ipv4 unicast
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp-af)#  !
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp-af)#  address-family ipv6 unicast
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp-af)#   exit
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp)#  !
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbrgrp)# neighbor 100.64.231.2
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbr)#  use neighbor-group TO_C_ASBR
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbr)# neighbor 2620:FC7:64:231::2
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbr)#  use neighbor-group TO_C_ASBR
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbr)#  !
+
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbr)#commit
+
+Thu Aug  7 08:25:03.473 UTC
+RP/0/RP0/CPU0:B-ASBR-1(config-bgp-nbr)#

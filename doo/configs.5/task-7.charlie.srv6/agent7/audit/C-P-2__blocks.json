@@ -1,0 +1,50 @@
+[
+  {
+    "host": "C-P-2",
+    "platform_hint": "cisco-ios-xr",
+    "heading": "show segment-routing srv6 manager",
+    "echoed": "show segment-routing srv6 manager",
+    "sanitized_command": "show segment-routing srv6 manager",
+    "cmd_key": "show_segment-routing_srv6_manager",
+    "output_text_sha1": "82b6a9b4ef38e3dfdd11574f42f138654fdffb28",
+    "text_path": "/app/doo/configs.5/taREMOVED7.charlie.srv6/agent7/3-analyze/0-md-index/C-P-2/001__show_segment-routing_srv6_manager.txt",
+    "start_line": 5,
+    "end_line": 106
+  },
+  {
+    "host": "C-P-2",
+    "platform_hint": "cisco-ios-xr",
+    "heading": "show segment-routing srv6 manager | inc \"Enabled|Configured|Base\"",
+    "echoed": "show segment-routing srv6 manager | inc \"Enabled|Configured|Base\"",
+    "sanitized_command": "show segment-routing srv6 manager | inc \"Enabled|Configured|Base\"",
+    "cmd_key": "show_segment-routing_srv6_manager__inc_enabledconfiguredbase",
+    "output_text_sha1": "21db5672427c78dc6bdcb8a3fef0023609c29cf2",
+    "text_path": "/app/doo/configs.5/taREMOVED7.charlie.srv6/agent7/3-analyze/0-md-index/C-P-2/002__show_segment-routing_srv6_manager_inc_en.txt",
+    "start_line": 108,
+    "end_line": 118
+  },
+  {
+    "host": "C-P-2",
+    "platform_hint": "cisco-ios-xr",
+    "heading": "show isis segment-routing srv6 locators detail",
+    "echoed": "show isis segment-routing srv6 locators detail",
+    "sanitized_command": "show isis segment-routing srv6 locators detail",
+    "cmd_key": "show_isis_segment-routing_srv6_locators_detail",
+    "output_text_sha1": "5bc48ccd4f9f1ce5f9cc5a6442f8ffa1fb32aeb0",
+    "text_path": "/app/doo/configs.5/taREMOVED7.charlie.srv6/agent7/3-analyze/0-md-index/C-P-2/003__show_isis_segment-routing_srv6_locators.txt",
+    "start_line": 120,
+    "end_line": 138
+  },
+  {
+    "host": "C-P-2",
+    "platform_hint": "cisco-ios-xr",
+    "heading": "show isis ipv6 route | inc \"fc00|tag\"",
+    "echoed": "show isis ipv6 route | inc \"fc00|tag\"",
+    "sanitized_command": "show isis ipv6 route | inc \"fc00|tag\"",
+    "cmd_key": "show_isis_ipv6_route__inc_fc00tag",
+    "output_text_sha1": "7859f332bd867ce5886d61e27f8a0029e14c96b9",
+    "text_path": "/app/doo/configs.5/taREMOVED7.charlie.srv6/agent7/3-analyze/0-md-index/C-P-2/004__show_isis_ipv6_route_inc_fc00_tag.txt",
+    "start_line": 140,
+    "end_line": 163
+  }
+]

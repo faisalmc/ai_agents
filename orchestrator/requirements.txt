@@ -1,0 +1,8 @@
+fastapi==0.95.2
+uvicorn[standard]==0.22.0
+pydantic
+netmiko
+paramiko
+scp
+httpx
+slack_bolt

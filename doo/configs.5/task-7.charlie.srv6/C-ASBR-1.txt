@@ -1,0 +1,31 @@
+! SRv6 Configuration for C-ASBR-1
+segment-routing
+ srv6
+  logging locator status
+  encapsulation
+   source-address 2620:fc7:3:0101::7
+  !
+  locators
+   locator CCIE_ALGO_0
+   micro-segment behavior unode psp-usd
+    prefix FC00:0100:0007::/48
+!
+root
+!
+router isis CORE
+address-family ipv6 unicast
+no segment-routing mpls sr-prefer
+!
+interface Loopback0
+address-family ipv6 unicast
+no prefix-sid index 1007
+!
+
+root
+!
+router isis CORE
+address-family ipv6 unicast
+segment-routing srv6
+locator CCIE_ALGO_0
+tag 300
+

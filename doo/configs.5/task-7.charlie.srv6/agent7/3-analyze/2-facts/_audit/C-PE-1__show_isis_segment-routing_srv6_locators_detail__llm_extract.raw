@@ -1,0 +1,37 @@
+{
+  "summary": "The output provides details about IS-IS SRv6 locators with one active locator.",
+  "status": {
+    "name": "isis_database",
+    "value": "active",
+    "confidence": "high",
+    "confidence_reason": "The status of the locator is explicitly marked as 'Active'."
+  },
+  "metrics": {
+    "locators_total": 1,
+    "active_locators": 1
+  },
+  "tables": {
+    "locators": [
+      {
+        "Name": "CCIE_ALGO_0",
+        "ID": 1,
+        "Algo": 0,
+        "Prefix": "fc00:100:1::/48",
+        "Status": "Active",
+        "Advertised Level": "level-1-2",
+        "Level": "level-2-only",
+        "Metric": 1,
+        "Administrative Tag": 300,
+        "SID behavior": "uN (PSP/USD)",
+        "SID value": "fc00:100:1::",
+        "Block Length": 32,
+        "Node Length": 16,
+        "Func Length": 0,
+        "Args Length": 80
+      }
+    ]
+  },
+  "evidence": [
+    "L5: Status: Active"
+  ]
+}

@@ -1,0 +1,223 @@
+from __future__ import annotations
+import os, json, time, shutil, subprocess, importlib.util
+from typing import Any, Dict, List, Optional
+
+from bootstrap import Agent7Config, Agent7Paths, load_config, resolve_paths, ensure_dirs
+
+def _dbg(msg: str) -> None:
+    print(f"[agent7][capture] {msg}", flush=True)
+
+def _read_json(path: str) -> dict:
+    try:
+        return json.loads(open(path, "r", encoding="utf-8").read())
+    except Exception:
+        return {}
+
+def _write_json(path: str, obj: Any) -> None:
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(obj, fh, indent=2)
+
+def _copy_if_exists(src: str, dst: str) -> bool:
+    if not os.path.exists(src):
+        return False
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
+    shutil.copy2(src, dst)
+    return True
+
+def _plan_dir(paths: Agent7Paths) -> str:
+    # canonical home for planning artifacts
+    return os.path.join(paths.agent7_root, "1-plan")
+
+def _read_capture_plan(paths: Agent7Paths, explicit_plan: Optional[str]) -> tuple[List[str], str]:
+    """
+    Reads the capture plan JSON and returns (hosts, ini_path).
+    Defaults to agent7/1-plan/capture_plan.json and agent7/1-plan/show_cmds.plan.ini.
+    """
+    plan_path = explicit_plan or os.path.join(_plan_dir(paths), "capture_plan.json")
+    plan = _read_json(plan_path)
+
+    # host list:
+    # 1) preferred: selected_hosts (list)
+    # 2) fallback:  hosts (list)
+    # 3) legacy:    hosts (dict) -> keys()
+    hosts: List[str] = []
+    sel = plan.get("selected_hosts")
+    if isinstance(sel, list):
+        hosts = sel
+    else:
+        h = plan.get("hosts")
+        if isinstance(h, list):
+            hosts = h
+        elif isinstance(h, dict):
+            hosts = list(h.keys())
+        else:
+            hosts = []
+
+    hosts = [str(h).strip() for h in hosts if str(h).strip()]
+
+    # ini_path may be in the plan; otherwise default to plan dir
+    ini_path = plan.get("ini_path") or os.path.join(_plan_dir(paths), "show_cmds.plan.ini")
+    return hosts, ini_path
+
+class _TempIniSwap:
+    """Temporarily place plan INI as <task_root>/show_cmds.ini and restore after run."""
+    def __init__(self, task_root: str, plan_ini: str, enable: bool) -> None:
+        self.task_root = task_root
+        self.plan_ini = plan_ini
+        self.enable = enable
+        self.orig = os.path.join(task_root, "show_cmds.ini")
+        self.back = os.path.join(task_root, "show_cmds.ini.agent7.backup")
+
+    def __enter__(self):
+        if not self.enable:
+            return self
+        if not os.path.exists(self.plan_ini):
+            raise FileNotFoundError(f"Plan INI not found: {self.plan_ini}")
+        if os.path.exists(self.orig):
+            shutil.copy2(self.orig, self.back)
+        shutil.copy2(self.plan_ini, self.orig)
+        _dbg(f"[ini] plan INI active at {self.orig}")
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        if not self.enable:
+            return False
+        try:
+            if os.path.exists(self.back):
+                shutil.move(self.back, self.orig)
+            else:
+                if os.path.exists(self.orig):
+                    os.remove(self.orig)
+        finally:
+            _dbg("[ini] plan INI restored")
+        return False
+
+def _invoke_agent4_shell(cmd_tmpl: str, env: dict) -> int:
+    cmd = cmd_tmpl.format(**env)
+    _dbg(f"[run] shell: {cmd}")
+    proc = subprocess.run(cmd, shell=True)
+    return int(proc.returncode or 0)
+
+def _invoke_agent4_python(py_path: str, func_name: str, kwargs: dict) -> int:
+    spec = importlib.util.spec_from_file_location("agent4_entry", py_path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("Could not load Agent-4 python entrypoint")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)  # type: ignore
+    fn = getattr(mod, func_name, None)
+    if not callable(fn):
+        raise RuntimeError(f"Function {func_name} not found in {py_path}")
+    rc = fn(**kwargs)  # expected to return 0 on success
+    return int(rc or 0)
+
+def _run_agent4(paths: Agent7Paths, hosts: List[str], ini_path: str, config_dir: str, task_dir: str) -> int:
+    """
+    Two modes (env-driven):
+      • AGENT4_MODE=shell (default) with AGENT4_SHELL_CMD template
+      • AGENT4_MODE=python with AGENT4_PY_PATH + AGENT4_PY_FUNC
+    If AGENT4_EXPECTS_INI_IN_TASK=1, we swap show_cmds.ini during run.
+    """
+    mode = os.getenv("AGENT4_MODE", "shell").strip().lower()
+    expects_ini_in_task = os.getenv("AGENT4_EXPECTS_INI_IN_TASK", "0").strip() in ("1", "true", "yes")
+    hosts_csv = ",".join(hosts)
+    env_map = {
+        "CONFIG_DIR": config_dir,
+        "TASK_DIR": task_dir,
+        "TASK_ROOT": paths.task_root,
+        "INI_PATH": os.path.abspath(ini_path),
+        "HOSTS_CSV": hosts_csv,
+    }
+    with _TempIniSwap(paths.task_root, ini_path, enable=expects_ini_in_task):
+        if mode == "python":
+            py_path = os.getenv("AGENT4_PY_PATH", "").strip()
+            py_func = os.getenv("AGENT4_PY_FUNC", "run_capture").strip()
+            if not py_path:
+                raise RuntimeError("AGENT4_PY_PATH not set for python mode")
+            kwargs = {
+                "config_dir": config_dir,
+                "task_dir": task_dir,
+                "ini_path": os.path.abspath(ini_path),
+                "hosts_csv": hosts_csv,
+            }
+            return _invoke_agent4_python(py_path, py_func, kwargs)
+
+        cmd_tmpl = os.getenv("AGENT4_SHELL_CMD", "").strip()
+        if not cmd_tmpl:
+            raise RuntimeError("AGENT4_SHELL_CMD not set for shell mode")
+        return _invoke_agent4_shell(cmd_tmpl, env_map)
+
+def _harvest_show_logs(paths: Agent7Paths, hosts: List[str]) -> Dict[str, Any]:
+    """
+    Copy <task_root>/show_logs/<host>.md → agent7/2-capture/show_logs/<host>.md
+    """
+    src_dir = os.path.join(paths.task_root, "show_logs")
+    dst_dir = paths.show_logs_dir  # should be agent7/2-capture/show_logs per bootstrap
+    os.makedirs(dst_dir, exist_ok=True)
+
+    copied, missing = [], []
+    for h in hosts:
+        src = os.path.join(src_dir, f"{h}.md")
+        dst = os.path.join(dst_dir, f"{h}.md")
+        if _copy_if_exists(src, dst):
+            copied.append(h)
+        else:
+            missing.append(h)
+    _dbg(f"[copy] copied={len(copied)} missing={len(missing)} → {dst_dir}")
+    return {"copied": copied, "missing": missing, "dst_dir": dst_dir}
+
+def run_capture(config_dir: str, task_dir: str, plan_path: Optional[str] = None, hosts_override: Optional[List[str]] = None) -> Dict[str, Any]:
+    """
+    1) Read capture plan + plan INI
+    2) Invoke Agent-4 (shell or python mode)
+    3) Copy ONLY show_logs into agent7/2-capture/show_logs/
+    4) Write audit summary
+    """
+    cfg = load_config()
+    paths = resolve_paths(cfg, config_dir, task_dir)
+    ensure_dirs(paths)
+
+    hosts, ini_path = _read_capture_plan(paths, plan_path)
+    if hosts_override:
+        hosts = hosts_override
+    if not hosts:
+        raise RuntimeError("No hosts selected for capture (plan/override empty)")
+    if not os.path.exists(ini_path):
+        raise FileNotFoundError(f"Plan INI not found: {ini_path}")
+
+    started = int(time.time())
+    _dbg(f"[start] hosts={hosts} ini={ini_path}")
+
+    rc = _run_agent4(paths, hosts, ini_path, config_dir, task_dir)
+    if rc != 0:
+        _dbg(f"[agent4] non-zero return code: {rc}")
+
+    harvest = _harvest_show_logs(paths, hosts)
+    summary = {
+        "config_dir": config_dir,
+        "task_dir": task_dir,
+        "hosts": hosts,
+        "ini_path": os.path.abspath(ini_path),
+        "agent4_rc": rc,
+        "harvest": harvest,
+        "started_at": started,
+        "finished_at": int(time.time()),
+    }
+    _write_json(os.path.join(paths.meta_dir, "capture_summary.json"), summary)
+    _dbg(f"[done] rc={rc} → agent7/2-capture/show_logs")
+    return summary
+
+def _main():
+    import sys, argparse
+    ap = argparse.ArgumentParser(description="Agent-7 capture wrapper (uses Agent-4)")
+    ap.add_argument("config_dir")
+    ap.add_argument("task_dir")
+    ap.add_argument("--plan", help="Path to capture_plan.json (optional)")
+    ap.add_argument("--hosts", help="Comma-separated host list to override plan", default="")
+    args = ap.parse_args()
+
+    hosts_override = [h.strip() for h in args.hosts.split(",") if h.strip()] if args.hosts else None
+    run_capture(args.config_dir, args.task_dir, plan_path=args.plan, hosts_override=hosts_override)
+
+if __name__ == "__main__":
+    _main()

@@ -1,0 +1,60 @@
+```json
+{
+  "network_summary": "2 devices analyzed: 1 healthy, 1 degraded. B-ASBR-1 has all BGP neighbors established, while C-ASBR-1 has 4 idle BGP neighbors.",
+  "status_rollup": {
+    "healthy": 1,
+    "degraded": 1,
+    "error": 0,
+    "unknown": 0
+  },
+  "top_incidents": [
+    {
+      "scope": "pair",
+      "summary": "BGP neighbors in mixed states.",
+      "impact": "C-ASBR-1 BGP connections.",
+      "devices": [
+        "C-ASBR-1"
+      ],
+      "evidence": [
+        {
+          "host": "C-ASBR-1",
+          "path": "commands.show_ip_bgp_neighbor_brief.data.metrics.bgp_neighbors_by_state.idle"
+        }
+      ]
+    }
+  ],
+  "notable_devices": [
+    {
+      "host": "B-ASBR-1",
+      "status": "healthy",
+      "note": "All BGP neighbors established.",
+      "evidence": {
+        "host": "B-ASBR-1",
+        "path": "commands.show_ip_bgp_neighbor_brief.data.tables.bgp_neighbors"
+      }
+    },
+    {
+      "host": "C-ASBR-1",
+      "status": "degraded",
+      "note": "BGP neighbors show 4 idle and 2 established.",
+      "evidence": {
+        "host": "C-ASBR-1",
+        "path": "commands.show_ip_bgp_neighbor_brief.data.metrics.bgp_neighbors_by_state"
+      }
+    }
+  ],
+  "remediation_themes": [
+    "Investigate idle BGP neighbors on C-ASBR-1."
+  ],
+  "trusted_followup_cmds": [
+    "show bgp summary",
+    "show bfd neighbors"
+  ],
+  "unvalidated_followup_cmds": [],
+  "optional_active_probes": [
+    "ping 100.64.231.1",
+    "traceroute 100.64.231.1"
+  ],
+  "task_status": "mixed"
+}
+```

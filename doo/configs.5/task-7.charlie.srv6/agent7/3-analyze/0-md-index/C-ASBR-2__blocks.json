@@ -1,0 +1,50 @@
+[
+  {
+    "host": "C-ASBR-2",
+    "platform_hint": "cisco-ios-xr",
+    "heading": "show segment-routing srv6 manager",
+    "echoed": "show segment-routing srv6 manager",
+    "sanitized_command": "show segment-routing srv6 manager",
+    "cmd_key": "show_segment-routing_srv6_manager",
+    "output_text_sha1": "ad811bbf398a7b4d11693a8b9abd1ef51c78fcf1",
+    "text_path": "/app/doo/configs.5/taREMOVED7.charlie.srv6/agent7/3-analyze/0-md-index/C-ASBR-2/001__show_segment-routing_srv6_manager.txt",
+    "start_line": 5,
+    "end_line": 106
+  },
+  {
+    "host": "C-ASBR-2",
+    "platform_hint": "cisco-ios-xr",
+    "heading": "show segment-routing srv6 manager | inc \"Enabled|Configured|Base\"",
+    "echoed": "show segment-routing srv6 manager | inc \"Enabled|Configured|Base\"",
+    "sanitized_command": "show segment-routing srv6 manager | inc \"Enabled|Configured|Base\"",
+    "cmd_key": "show_segment-routing_srv6_manager__inc_enabledconfiguredbase",
+    "output_text_sha1": "999e9cc5bc861dea72aadc7fbd728e9de2beb101",
+    "text_path": "/app/doo/configs.5/taREMOVED7.charlie.srv6/agent7/3-analyze/0-md-index/C-ASBR-2/002__show_segment-routing_srv6_manager_inc_en.txt",
+    "start_line": 108,
+    "end_line": 118
+  },
+  {
+    "host": "C-ASBR-2",
+    "platform_hint": "cisco-ios-xr",
+    "heading": "show isis segment-routing srv6 locators detail",
+    "echoed": "show isis segment-routing srv6 locators detail",
+    "sanitized_command": "show isis segment-routing srv6 locators detail",
+    "cmd_key": "show_isis_segment-routing_srv6_locators_detail",
+    "output_text_sha1": "f1f675d855904f5ef4f361bd2e80ef58c613cc60",
+    "text_path": "/app/doo/configs.5/taREMOVED7.charlie.srv6/agent7/3-analyze/0-md-index/C-ASBR-2/003__show_isis_segment-routing_srv6_locators.txt",
+    "start_line": 120,
+    "end_line": 138
+  },
+  {
+    "host": "C-ASBR-2",
+    "platform_hint": "cisco-ios-xr",
+    "heading": "show isis ipv6 route | inc \"fc00|tag\"",
+    "echoed": "show isis ipv6 route | inc \"fc00|tag\"",
+    "sanitized_command": "show isis ipv6 route | inc \"fc00|tag\"",
+    "cmd_key": "show_isis_ipv6_route__inc_fc00tag",
+    "output_text_sha1": "27a09d15f7e43accfe70168cc1992afa710fc19e",
+    "text_path": "/app/doo/configs.5/taREMOVED7.charlie.srv6/agent7/3-analyze/0-md-index/C-ASBR-2/004__show_isis_ipv6_route_inc_fc00_tag.txt",
+    "start_line": 140,
+    "end_line": 162
+  }
+]

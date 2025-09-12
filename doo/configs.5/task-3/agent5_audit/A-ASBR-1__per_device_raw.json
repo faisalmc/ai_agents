@@ -1,0 +1,24 @@
+{
+  "hostname": "A-ASBR-1",
+  "platform": "ios-xr",
+  "signals_seen": ["bgp", "mpls"],
+  "status": "healthy",
+  "findings": [
+    {
+      "signal": "bgp",
+      "severity": "info",
+      "detail": "BGP process is running with router ID 1.0.101.9. Core neighbors 1.0.101.7 and 1.0.101.8 are Established. AFI/SAFI ipv4 labeled-unicast is active."
+    },
+    {
+      "signal": "mpls",
+      "severity": "info",
+      "detail": "MPLS forwarding table shows labels being properly assigned and switched for SR prefixes."
+    }
+  ],
+  "recommended_show_cmds": [
+    "show bgp summary",
+    "show bgp ipv4 labeled-unicast summary",
+    "show mpls forwarding"
+  ],
+  "optional_active_cmds": []
+}

@@ -1,0 +1,273 @@
+# agents/agent-7/http_api.py
+from __future__ import annotations
+import os
+import json
+import glob
+from typing import Any, Dict, List, Optional
+
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+
+app = FastAPI(title="Agent-7 HTTP API", version="1.0.0")
+
+REPO_ROOT = os.getenv("REPO_ROOT", "/app/doo")
+
+# -------- helpers --------
+def _agent7_root(config_dir: str, task_dir: str) -> str:
+    return os.path.join(REPO_ROOT, config_dir, task_dir, "agent7")
+
+def _ensure_dirs(root: str) -> Dict[str, str]:
+    """
+    Create the agreed Plan → Capture → Analyze structure and return useful paths.
+    """
+    plan_dir = os.path.join(root, "1-plan")
+    capture_dir = os.path.join(root, "2-capture")
+    show_logs_dir = os.path.join(capture_dir, "show_logs")
+
+    analyze_dir = os.path.join(root, "3-analyze")
+    md_index_dir = os.path.join(analyze_dir, "0-md-index")
+    parsed_dir = os.path.join(analyze_dir, "1-parsed")
+    facts_dir = os.path.join(analyze_dir, "2-facts")
+
+    audit_dir = os.path.join(root, "audit")
+    meta_dir = os.path.join(root, "meta")
+
+    for p in (
+        root,
+        plan_dir,
+        capture_dir,
+        show_logs_dir,
+        analyze_dir,
+        md_index_dir,
+        parsed_dir,
+        facts_dir,
+        audit_dir,
+        meta_dir,
+    ):
+        os.makedirs(p, exist_ok=True)
+
+    return {
+        "plan_dir": plan_dir,
+        "capture_dir": capture_dir,
+        "show_logs_dir": show_logs_dir,
+        "analyze_dir": analyze_dir,
+        "md_index_dir": md_index_dir,
+        "parsed_dir": parsed_dir,
+        "facts_dir": facts_dir,
+        "audit_dir": audit_dir,
+        "meta_dir": meta_dir,
+    }
+
+def _discover_hosts(show_logs_dir: str) -> List[str]:
+    hosts: List[str] = []
+    for p in sorted(glob.glob(os.path.join(show_logs_dir, "*.md"))):
+        hosts.append(os.path.splitext(os.path.basename(p))[0])
+    return hosts
+
+def _write_json(path: str, obj: Any) -> None:
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(obj, fh, indent=2)
+
+# -------- models --------
+class PlanRequest(BaseModel):
+    config_dir: str
+    task_dir: str
+    # optional explicit host list; planner can also infer from context
+    hosts: Optional[List[str]] = None
+    per_signal_limit: int = 3
+    use_adk: bool = True
+    include_lexicon: bool = True
+
+class PlanResponse(BaseModel):
+    # Field names kept for backward compatibility with callers.
+    # We point them to the new canonical files under agent7/1-plan/.
+    overlay_ini: str
+    capture_plan: str
+    hosts: List[str]
+    signals_by_host: Dict[str, List[str]]
+
+class CaptureRequest(BaseModel):
+    config_dir: str
+    task_dir: str
+    plan_path: Optional[str] = None
+    hosts_override: Optional[List[str]] = None
+
+class CaptureResponse(BaseModel):
+    summary_path: str
+
+class AnalyzeRequest(BaseModel):
+    config_dir: str
+    task_dir: str
+
+class AnalyzeResponse(BaseModel):
+    facts_summary_path: str
+    hosts_processed: int
+
+# -------- endpoints --------
+@app.get("/health")
+def health():
+    return {"ok": True}
+
+@app.post("/plan", response_model=PlanResponse)
+def plan(req: PlanRequest):
+    """
+    Planning stage (AI-driven).
+
+    Entry → this function
+      ↓
+    executes → command_plan_builder.plan_commands(...)   [preferred]
+               or overlay_planner.plan_overlay(...)      [fallback]
+      ↓
+    emits (canonical) →
+      • agent7/1-plan/ShowCommandsPlan.ini
+      • agent7/1-plan/capture_plan.json
+      • (optionally) agent7/1-plan/plan_summary.json
+    """
+    # Try the new name first, fall back to legacy module name if needed.
+    try:
+        import command_plan_builder as _planner
+        use_new_api = hasattr(_planner, "plan_commands")
+    except ImportError:
+        _planner = None
+        use_new_api = False
+
+    if not use_new_api:
+        try:
+            import overlay_planner as _planner  # legacy
+        except ImportError as e:
+            raise HTTPException(status_code=500, detail=f"No planner module available: {e}")
+
+    root = _agent7_root(req.config_dir, req.task_dir)
+    dirs = _ensure_dirs(root)
+    plan_dir = dirs["plan_dir"]
+
+    # Call the planner
+    if use_new_api:
+        plan_obj = _planner.plan_commands(
+            config_dir=req.config_dir,
+            task_dir=req.task_dir,
+            hosts=req.hosts,
+            per_signal_limit=req.per_signal_limit,
+            use_adk=req.use_adk,
+            include_lexicon=req.include_lexicon,
+        )
+        plan_ini_path = os.path.join(plan_dir, "ShowCommandsPlan.ini")
+        plan_json_path = os.path.join(plan_dir, "capture_plan.json")
+    else:
+        # Legacy planner returns and writes legacy-named artifacts; normalize them.
+        plan_obj = _planner.plan_overlay(
+            req.config_dir,
+            req.task_dir,
+            per_signal_limit=req.per_signal_limit,
+            use_adk=req.use_adk,
+            include_lexicon=req.include_lexicon,
+        )
+        plan_ini_path = os.path.join(plan_dir, "ShowCommandsPlan.ini")
+        plan_json_path = os.path.join(plan_dir, "capture_plan.json")
+
+        # Copy legacy outputs into canonical locations if they exist
+        legacy_ini = os.path.join(root, "show_cmds.overlay.ini")
+        legacy_json = os.path.join(root, "meta", "overlay_plan.json")
+        try:
+            if os.path.exists(legacy_ini):
+                with open(legacy_ini, "r", encoding="utf-8") as fsrc, open(plan_ini_path, "w", encoding="utf-8") as fdst:
+                    fdst.write(fsrc.read())
+            if os.path.exists(legacy_json):
+                with open(legacy_json, "r", encoding="utf-8") as fsrc:
+                    data = json.load(fsrc)
+                _write_json(plan_json_path, data)
+        except Exception:
+            # Best-effort normalization; planning still succeeds if plan_obj is returned.
+            pass
+
+    # Build response-derived host list/signals for convenience
+    hosts_map = plan_obj.get("hosts", {}) if isinstance(plan_obj, dict) else {}
+    if isinstance(hosts_map, dict):
+        hosts = sorted(list(hosts_map.keys()))
+        signals_by_host = {
+            h: list(hosts_map[h].get("signals", [])) if isinstance(hosts_map.get(h), dict) else []
+            for h in hosts
+        }
+    else:
+        hosts, signals_by_host = [], {}
+
+    return PlanResponse(
+        overlay_ini=plan_ini_path,
+        capture_plan=plan_json_path,
+        hosts=hosts,
+        signals_by_host=signals_by_host,
+    )
+
+@app.post("/capture", response_model=CaptureResponse)
+def capture(req: CaptureRequest):
+    """
+    Capture stage.
+
+    Entry → this function
+      ↓
+    executes → capture_wrapper.run_capture(config_dir, task_dir, plan_path=?, hosts_override=?)
+      ↓
+    emits →
+      • agent7/2-capture/show_logs/<host>.md
+      • agent7/meta/capture_summary.json (by wrapper)
+      • agent7/meta/capture_http_summary.json (tiny roll-up from this API)
+    """
+    import capture_wrapper
+
+    root = _agent7_root(req.config_dir, req.task_dir)
+    dirs = _ensure_dirs(root)
+    default_plan_path = os.path.join(dirs["plan_dir"], "capture_plan.json")
+
+    summary = capture_wrapper.run_capture(
+        req.config_dir,
+        req.task_dir,
+        plan_path=req.plan_path or default_plan_path,
+        hosts_override=req.hosts_override,
+    )
+
+    out_path = os.path.join(dirs["meta_dir"], "capture_http_summary.json")
+    _write_json(out_path, summary or {})
+    return CaptureResponse(summary_path=out_path)
+
+@app.post("/analyze", response_model=AnalyzeResponse)
+def analyze(req: AnalyzeRequest):
+    """
+    Analysis stage.
+
+    Entry → this function
+      ↓
+    executes →
+      1) md_splitter.split_task(config_dir, task_dir)  → agent7/3-analyze/0-md-index/...
+      2) genie_parser.run(config_dir, task_dir)        → agent7/3-analyze/1-parsed/...
+      3) facts_builder.build_all(config_dir, task_dir) → agent7/3-analyze/2-facts/*.json
+      ↓
+    emits →
+      • agent7/3-analyze/coverage.json
+      • agent7/3-analyze/facts_summary.json
+      • agent7/3-analyze/analysis_summary.json (optional roll-up)
+    """
+    import md_splitter
+    import genie_parser
+    import facts_builder
+
+    # Orchestrate the 3 steps (modules will write into the new 3-analyze/* paths
+    # once we update their path helpers; that’s the next step after this file).
+    md_splitter.split_task(req.config_dir, req.task_dir)
+    genie_parser.run(req.config_dir, req.task_dir)
+    facts_summary = facts_builder.build_all(req.config_dir, req.task_dir)
+
+    root = _agent7_root(req.config_dir, req.task_dir)
+    dirs = _ensure_dirs(root)
+    facts_summary_path = os.path.join(dirs["analyze_dir"], "facts_summary.json")
+
+    hosts_processed = int(facts_summary.get("hosts", 0)) if isinstance(facts_summary, dict) else 0
+    return AnalyzeResponse(
+        facts_summary_path=facts_summary_path,
+        hosts_processed=hosts_processed,
+    )
+
+# -------- local dev entrypoint --------
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("http_api:app", host="0.0.0.0", port=int(os.getenv("PORT", "8087")), reload=False)

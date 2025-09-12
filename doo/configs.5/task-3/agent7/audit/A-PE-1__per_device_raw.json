@@ -1,0 +1,50 @@
+```json
+{
+  "hostname": "A-PE-1",
+  "platform": "ios-xr",
+  "signals_seen": ["bgp", "ipv4", "labeled-unicast", "mpls", "neighbor"],
+  "status": "degraded",
+  "status_reason": "One BGP neighbor is Idle while another is Established.",
+  "ok": [
+    {
+      "summary": "BGP table for IPv4 labeled-unicast is active with 9 prefixes processed.",
+      "evidence_ref": { "command_key": "show_bgp_ipv4_labeled-unicast", "path": "commands.show_bgp_ipv4_labeled-unicast.data.summary" }
+    },
+    {
+      "summary": "BGP routing table entry for 1.0.101.7/32 shows one available path.",
+      "evidence_ref": { "command_key": "show_bgp_ipv4_labeled-unicast_1.0.101.7", "path": "commands.show_bgp_ipv4_labeled-unicast_1.0.101.7.data.summary" }
+    },
+    {
+      "summary": "BGP routing table entry for 1.0.101.9/32 shows one available path.",
+      "evidence_ref": { "command_key": "show_bgp_ipv4_labeled-unicast_1.0.101.9", "path": "commands.show_bgp_ipv4_labeled-unicast_1.0.101.9.data.summary" }
+    },
+    {
+      "summary": "MPLS forwarding table shows multiple outgoing labels.",
+      "evidence_ref": { "command_key": "show_mpls_forwarding", "path": "commands.show_mpls_forwarding.data.local_label" }
+    }
+  ],
+  "suspect": [
+    {
+      "summary": "BGP neighbors show one established and one idle neighbor.",
+      "evidence_ref": { "command_key": "show_bgp_neighbors_brief", "path": "commands.show_bgp_neighbors_brief.data.summary" }
+    }
+  ],
+  "findings": [
+    {
+      "signal": "bgp",
+      "severity": "warn",
+      "summary": "One BGP neighbor is Idle while another is Established.",
+      "evidence_ref": {
+        "command_key": "show_bgp_neighbors_brief",
+        "path": "commands.show_bgp_neighbors_brief.data.metrics.bgp_neighbors_by_state"
+      }
+    }
+  ],
+  "recommended_show_cmds": [
+    "show bgp summary",
+    "show bgp ipv4 labeled-unicast summary",
+    "show ip route 1.0.101.1/32"
+  ],
+  "optional_active_cmds": []
+}
+```

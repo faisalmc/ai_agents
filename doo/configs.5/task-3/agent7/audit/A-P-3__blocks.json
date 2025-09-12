@@ -1,0 +1,38 @@
+[
+  {
+    "host": "A-P-3",
+    "platform_hint": "cisco-ios-xr",
+    "heading": "show bgp neighbors brief",
+    "echoed": "show bgp neighbors brief",
+    "sanitized_command": "show bgp neighbors brief",
+    "cmd_key": "show_bgp_neighbors_brief",
+    "output_text_sha1": "0ded5c4b11a210844a6ab0eb26891769cc13cf58",
+    "text_path": "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-P-3/001__show_bgp_neighbors_brief.txt",
+    "start_line": 5,
+    "end_line": 19
+  },
+  {
+    "host": "A-P-3",
+    "platform_hint": "cisco-ios-xr",
+    "heading": "show bgp ipv4 labeled-unicast",
+    "echoed": "show bgp ipv4 labeled-unicast",
+    "sanitized_command": "show bgp ipv4 labeled-unicast",
+    "cmd_key": "show_bgp_ipv4_labeled-unicast",
+    "output_text_sha1": "987b4a6581840b27e5a2246e5f7299ab05f837a4",
+    "text_path": "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-P-3/002__show_bgp_ipv4_labeled-unicast.txt",
+    "start_line": 21,
+    "end_line": 63
+  },
+  {
+    "host": "A-P-3",
+    "platform_hint": "cisco-ios-xr",
+    "heading": "show mpls forwarding",
+    "echoed": "show mpls forwarding",
+    "sanitized_command": "show mpls forwarding",
+    "cmd_key": "show_mpls_forwarding",
+    "output_text_sha1": "643049bee08c2cbcd75241f324bf17d58c8b9fa7",
+    "text_path": "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-P-3/003__show_mpls_forwarding.txt",
+    "start_line": 65,
+    "end_line": 125
+  }
+]

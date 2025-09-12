@@ -1,0 +1,515 @@
+{
+  "hostname": "C-PE-3",
+  "platform_hint": "unknown",
+  "signals_seen": [
+    "configured",
+    "enabled",
+    "isis",
+    "locators",
+    "srv6"
+  ],
+  "generated_at": 1757491522,
+  "facts_version": 1,
+  "coverage": {
+    "genie_ok": 0,
+    "genie_err": 0,
+    "llm_ok": 4,
+    "total_cmds": 4,
+    "total_enriched": 4
+  },
+  "commands": {
+    "show_isis_ipv6_route__inc_fc00tag": {
+      "command": "show isis ipv6 route | inc \"fc00|tag\"",
+      "topic": "isis",
+      "platform_hint": "cisco-ios-xr",
+      "source": "llm",
+      "parsed_path": "",
+      "evidence_text_path": "/app/doo/configs.5/taREMOVED7.charlie.srv6/agent7/3-analyze/0-md-index/C-PE-3/004__show_isis_ipv6_route_inc_fc00_tag.txt",
+      "parser_ok": false,
+      "data": {
+        "summary": "The output shows the IS-IS IPv6 routing table with multiple routes and their next hops.",
+        "status": {
+          "name": "isis_database",
+          "value": "unknown",
+          "confidence": "low",
+          "confidence_reason": "No overall state can be determined from the provided output."
+        },
+        "metrics": {
+          "routes_total": 8
+        },
+        "tables": {
+          "routes": [
+            {
+              "Network": "fc00:100:1::/48",
+              "Next Hop": "fe80::5054:ff:fe91:6a26",
+              "Interface": "GigabitEthernet0/0/0/3",
+              "Tag": 300
+            },
+            {
+              "Network": "fc00:100:1::/48",
+              "Next Hop": "fe80::5054:ff:fe56:4116",
+              "Interface": "GigabitEthernet0/0/0/2",
+              "Tag": 300
+            },
+            {
+              "Network": "fc00:100:2::/48",
+              "Next Hop": "fe80::5054:ff:fe56:4116",
+              "Interface": "GigabitEthernet0/0/0/2",
+              "Tag": 300
+            },
+            {
+              "Network": "fc00:100:3::/48",
+              "Next Hop": "",
+              "Interface": "",
+              "Tag": ""
+            },
+            {
+              "Network": "fc00:100:4::/48",
+              "Next Hop": "fe80::5054:ff:fe8b:19b8",
+              "Interface": "GigabitEthernet0/0/0/1",
+              "Tag": 300
+            },
+            {
+              "Network": "fc00:100:5::/48",
+              "Next Hop": "fe80::5054:ff:fe91:6a26",
+              "Interface": "GigabitEthernet0/0/0/3",
+              "Tag": 300
+            },
+            {
+              "Network": "fc00:100:6::/48",
+              "Next Hop": "fe80::5054:ff:fec8:e10c",
+              "Interface": "GigabitEthernet0/0/0/0",
+              "Tag": 300
+            },
+            {
+              "Network": "fc00:100:7::/48",
+              "Next Hop": "fe80::5054:ff:fe91:6a26",
+              "Interface": "GigabitEthernet0/0/0/3",
+              "Tag": 300
+            },
+            {
+              "Network": "fc00:100:8::/48",
+              "Next Hop": "fe80::5054:ff:fec8:e10c",
+              "Interface": "GigabitEthernet0/0/0/0",
+              "Tag": 300
+            }
+          ]
+        },
+        "evidence": [
+          "L2 fc00:100:1::/48 [21/115]",
+          "L2 fc00:100:2::/48 [11/115]",
+          "C  fc00:100:3::/48",
+          "L2 fc00:100:4::/48 [11/115]",
+          "L2 fc00:100:5::/48 [11/115]",
+          "L2 fc00:100:6::/48 [11/115]",
+          "L2 fc00:100:7::/48 [21/115]",
+          "L2 fc00:100:8::/48 [21/115]"
+        ]
+      },
+      "llm_data": {
+        "summary": "The output shows the IS-IS IPv6 routing table with multiple routes and their next hops.",
+        "status": {
+          "name": "isis_database",
+          "value": "unknown",
+          "confidence": "low",
+          "confidence_reason": "No overall state can be determined from the provided output."
+        },
+        "metrics": {
+          "routes_total": 8
+        },
+        "tables": {
+          "routes": [
+            {
+              "Network": "fc00:100:1::/48",
+              "Next Hop": "fe80::5054:ff:fe91:6a26",
+              "Interface": "GigabitEthernet0/0/0/3",
+              "Tag": 300
+            },
+            {
+              "Network": "fc00:100:1::/48",
+              "Next Hop": "fe80::5054:ff:fe56:4116",
+              "Interface": "GigabitEthernet0/0/0/2",
+              "Tag": 300
+            },
+            {
+              "Network": "fc00:100:2::/48",
+              "Next Hop": "fe80::5054:ff:fe56:4116",
+              "Interface": "GigabitEthernet0/0/0/2",
+              "Tag": 300
+            },
+            {
+              "Network": "fc00:100:3::/48",
+              "Next Hop": "",
+              "Interface": "",
+              "Tag": ""
+            },
+            {
+              "Network": "fc00:100:4::/48",
+              "Next Hop": "fe80::5054:ff:fe8b:19b8",
+              "Interface": "GigabitEthernet0/0/0/1",
+              "Tag": 300
+            },
+            {
+              "Network": "fc00:100:5::/48",
+              "Next Hop": "fe80::5054:ff:fe91:6a26",
+              "Interface": "GigabitEthernet0/0/0/3",
+              "Tag": 300
+            },
+            {
+              "Network": "fc00:100:6::/48",
+              "Next Hop": "fe80::5054:ff:fec8:e10c",
+              "Interface": "GigabitEthernet0/0/0/0",
+              "Tag": 300
+            },
+            {
+              "Network": "fc00:100:7::/48",
+              "Next Hop": "fe80::5054:ff:fe91:6a26",
+              "Interface": "GigabitEthernet0/0/0/3",
+              "Tag": 300
+            },
+            {
+              "Network": "fc00:100:8::/48",
+              "Next Hop": "fe80::5054:ff:fec8:e10c",
+              "Interface": "GigabitEthernet0/0/0/0",
+              "Tag": 300
+            }
+          ]
+        },
+        "evidence": [
+          "L2 fc00:100:1::/48 [21/115]",
+          "L2 fc00:100:2::/48 [11/115]",
+          "C  fc00:100:3::/48",
+          "L2 fc00:100:4::/48 [11/115]",
+          "L2 fc00:100:5::/48 [11/115]",
+          "L2 fc00:100:6::/48 [11/115]",
+          "L2 fc00:100:7::/48 [21/115]",
+          "L2 fc00:100:8::/48 [21/115]"
+        ]
+      }
+    },
+    "show_isis_segment-routing_srv6_locators_detail": {
+      "command": "show isis segment-routing srv6 locators detail",
+      "topic": "isis",
+      "platform_hint": "cisco-ios-xr",
+      "source": "llm",
+      "parsed_path": "",
+      "evidence_text_path": "/app/doo/configs.5/taREMOVED7.charlie.srv6/agent7/3-analyze/0-md-index/C-PE-3/003__show_isis_segment-routing_srv6_locators.txt",
+      "parser_ok": false,
+      "data": {
+        "summary": "The output provides details about IS-IS SRv6 locators with one active locator.",
+        "status": {
+          "name": "isis_database",
+          "value": "active",
+          "confidence": "high",
+          "confidence_reason": "The locator is marked as Active."
+        },
+        "metrics": {
+          "locators_total": 1,
+          "active_locators": 1
+        },
+        "tables": {
+          "locators": [
+            {
+              "Name": "CCIE_ALGO_0",
+              "ID": 1,
+              "Algo": 0,
+              "Prefix": "fc00:100:3::/48",
+              "Status": "Active",
+              "Advertised Level": "level-1-2",
+              "Level": "level-2-only",
+              "Metric": 1,
+              "Administrative Tag": 300,
+              "SID behavior": "uN (PSP/USD)",
+              "SID value": "fc00:100:3::",
+              "Block Length": 32,
+              "Node Length": 16,
+              "Func Length": 0,
+              "Args Length": 80
+            }
+          ]
+        },
+        "evidence": [
+          "L5: CCIE_ALGO_0           1        0     fc00:100:3::/48           Active",
+          "L6:   Advertised Level: level-1-2",
+          "L7:   Level: level-2-only Metric: 1        Administrative Tag: 300"
+        ]
+      },
+      "llm_data": {
+        "summary": "The output provides details about IS-IS SRv6 locators with one active locator.",
+        "status": {
+          "name": "isis_database",
+          "value": "active",
+          "confidence": "high",
+          "confidence_reason": "The locator is marked as Active."
+        },
+        "metrics": {
+          "locators_total": 1,
+          "active_locators": 1
+        },
+        "tables": {
+          "locators": [
+            {
+              "Name": "CCIE_ALGO_0",
+              "ID": 1,
+              "Algo": 0,
+              "Prefix": "fc00:100:3::/48",
+              "Status": "Active",
+              "Advertised Level": "level-1-2",
+              "Level": "level-2-only",
+              "Metric": 1,
+              "Administrative Tag": 300,
+              "SID behavior": "uN (PSP/USD)",
+              "SID value": "fc00:100:3::",
+              "Block Length": 32,
+              "Node Length": 16,
+              "Func Length": 0,
+              "Args Length": 80
+            }
+          ]
+        },
+        "evidence": [
+          "L5: CCIE_ALGO_0           1        0     fc00:100:3::/48           Active",
+          "L6:   Advertised Level: level-1-2",
+          "L7:   Level: level-2-only Metric: 1        Administrative Tag: 300"
+        ]
+      }
+    },
+    "show_segment-routing_srv6_manager": {
+      "command": "show segment-routing srv6 manager",
+      "topic": "segment-routing",
+      "platform_hint": "cisco-ios-xr",
+      "source": "llm",
+      "parsed_path": "",
+      "evidence_text_path": "/app/doo/configs.5/taREMOVED7.charlie.srv6/agent7/3-analyze/0-md-index/C-PE-3/001__show_segment-routing_srv6_manager.txt",
+      "parser_ok": false,
+      "data": {
+        "summary": "SRv6 is enabled with operational parameters and resource availability.",
+        "status": {
+          "name": "srv6_manager",
+          "value": "up",
+          "confidence": "high",
+          "confidence_reason": "SRv6 is enabled and operational with available resources."
+        },
+        "metrics": {
+          "number_of_locators": 1,
+          "number_of_sids": 8,
+          "max_sid_resources": 64000,
+          "number_of_free_sid_resources": 63992,
+          "oor_threshold_green": 3200,
+          "oor_threshold_warning": 1920,
+          "max_locators": 16,
+          "sid_holdtime_seconds": 180
+        },
+        "tables": {
+          "parameters": [
+            {
+              "SRv6 Enabled": "Yes",
+              "SRv6 Operational Mode": "Micro-segment",
+              "SID Base Block": "fc00:100::/24",
+              "Source Address Configured": "2620:fc7:3:101::3",
+              "Source Address Default": "2620:fc7:3:101::3",
+              "Hop-Limit": "Default",
+              "Traffic-class": "Default"
+            }
+          ],
+          "oor": [
+            {
+              "Block": "fc00:100::/32",
+              "Number of SIDs free": 7672,
+              "Max SIDs": 7680,
+              "Thresholds Green": 384,
+              "Thresholds Warning": 231,
+              "Status": "Resource Available"
+            },
+            {
+              "Block": "fc00:1ff::/32",
+              "Number of SIDs free": 7680,
+              "Max SIDs": 7680,
+              "Thresholds Green": 384,
+              "Thresholds Warning": 231,
+              "Status": "Resource Available"
+            }
+          ],
+          "platform_capabilities": [
+            {
+              "SRv6": "Yes",
+              "TILFA": "Yes",
+              "Microloop-Avoidance": "Yes"
+            }
+          ],
+          "signaled_parameters": [
+            {
+              "Max-SL": 3,
+              "Max-End-Pop-SRH": 3,
+              "Max-H-Insert": "3 sids",
+              "Max-H-Encap": "3 sids",
+              "Max-End-D": 4
+            }
+          ],
+          "default_parameters": [
+            {
+              "Hop-Limit": "value=0, propagate=No",
+              "Traffic-class": "value=0, propagate=No"
+            }
+          ]
+        },
+        "evidence": [
+          "L3: SRv6 Enabled: Yes",
+          "L4: Number of Locators: 1 (1 operational)",
+          "L5: Number of SIDs: 8 (0 stale)",
+          "L6: Max SID resources: 64000",
+          "L7: Number of free SID resources: 63992"
+        ]
+      },
+      "llm_data": {
+        "summary": "SRv6 is enabled with operational parameters and resource availability.",
+        "status": {
+          "name": "srv6_manager",
+          "value": "up",
+          "confidence": "high",
+          "confidence_reason": "SRv6 is enabled and operational with available resources."
+        },
+        "metrics": {
+          "number_of_locators": 1,
+          "number_of_sids": 8,
+          "max_sid_resources": 64000,
+          "number_of_free_sid_resources": 63992,
+          "oor_threshold_green": 3200,
+          "oor_threshold_warning": 1920,
+          "max_locators": 16,
+          "sid_holdtime_seconds": 180
+        },
+        "tables": {
+          "parameters": [
+            {
+              "SRv6 Enabled": "Yes",
+              "SRv6 Operational Mode": "Micro-segment",
+              "SID Base Block": "fc00:100::/24",
+              "Source Address Configured": "2620:fc7:3:101::3",
+              "Source Address Default": "2620:fc7:3:101::3",
+              "Hop-Limit": "Default",
+              "Traffic-class": "Default"
+            }
+          ],
+          "oor": [
+            {
+              "Block": "fc00:100::/32",
+              "Number of SIDs free": 7672,
+              "Max SIDs": 7680,
+              "Thresholds Green": 384,
+              "Thresholds Warning": 231,
+              "Status": "Resource Available"
+            },
+            {
+              "Block": "fc00:1ff::/32",
+              "Number of SIDs free": 7680,
+              "Max SIDs": 7680,
+              "Thresholds Green": 384,
+              "Thresholds Warning": 231,
+              "Status": "Resource Available"
+            }
+          ],
+          "platform_capabilities": [
+            {
+              "SRv6": "Yes",
+              "TILFA": "Yes",
+              "Microloop-Avoidance": "Yes"
+            }
+          ],
+          "signaled_parameters": [
+            {
+              "Max-SL": 3,
+              "Max-End-Pop-SRH": 3,
+              "Max-H-Insert": "3 sids",
+              "Max-H-Encap": "3 sids",
+              "Max-End-D": 4
+            }
+          ],
+          "default_parameters": [
+            {
+              "Hop-Limit": "value=0, propagate=No",
+              "Traffic-class": "value=0, propagate=No"
+            }
+          ]
+        },
+        "evidence": [
+          "L3: SRv6 Enabled: Yes",
+          "L4: Number of Locators: 1 (1 operational)",
+          "L5: Number of SIDs: 8 (0 stale)",
+          "L6: Max SID resources: 64000",
+          "L7: Number of free SID resources: 63992"
+        ]
+      }
+    },
+    "show_segment-routing_srv6_manager__inc_enabledconfiguredbase": {
+      "command": "show segment-routing srv6 manager | inc \"Enabled|Configured|Base\"",
+      "topic": "segment-routing",
+      "platform_hint": "cisco-ios-xr",
+      "source": "llm",
+      "parsed_path": "",
+      "evidence_text_path": "/app/doo/configs.5/taREMOVED7.charlie.srv6/agent7/3-analyze/0-md-index/C-PE-3/002__show_segment-routing_srv6_manager_inc_en.txt",
+      "parser_ok": false,
+      "data": {
+        "summary": "SRv6 is enabled with a configured SID and a base block.",
+        "status": {
+          "name": "srv6_manager",
+          "value": "enabled",
+          "confidence": "high",
+          "confidence_reason": "The output explicitly states that SRv6 is enabled."
+        },
+        "metrics": {
+          "configured_sids": 1
+        },
+        "tables": {
+          "srv6_parameters": [
+            {
+              "SRv6 Enabled": "Yes",
+              "SID Base Block": "fc00:100::/24",
+              "Configured": "2620:fc7:3:101::3"
+            }
+          ]
+        },
+        "evidence": [
+          "L3: SRv6 Enabled: Yes",
+          "L4: SID Base Block: fc00:100::/24",
+          "L5: Configured: 2620:fc7:3:101::3"
+        ]
+      },
+      "llm_data": {
+        "summary": "SRv6 is enabled with a configured SID and a base block.",
+        "status": {
+          "name": "srv6_manager",
+          "value": "enabled",
+          "confidence": "high",
+          "confidence_reason": "The output explicitly states that SRv6 is enabled."
+        },
+        "metrics": {
+          "configured_sids": 1
+        },
+        "tables": {
+          "srv6_parameters": [
+            {
+              "SRv6 Enabled": "Yes",
+              "SID Base Block": "fc00:100::/24",
+              "Configured": "2620:fc7:3:101::3"
+            }
+          ]
+        },
+        "evidence": [
+          "L3: SRv6 Enabled: Yes",
+          "L4: SID Base Block: fc00:100::/24",
+          "L5: Configured: 2620:fc7:3:101::3"
+        ]
+      }
+    }
+  },
+  "notes": {
+    "gap_fill_permitted": true,
+    "gap_fill_used": true,
+    "providers": [
+      "mcp(if-wired)",
+      "genie",
+      "llm"
+    ]
+  }
+}

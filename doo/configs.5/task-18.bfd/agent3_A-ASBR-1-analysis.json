@@ -1,0 +1,7 @@
+{
+  "issue": "Log not found",
+  "explanation": "Expected at: /app/doo/configs.5/taREMOVED18.bfd/logs/A-ASBR-1.log",
+  "recommendation": "Verify push completed and logs are present.",
+  "confidence": "unknown",
+  "needs_more_context": true
+}

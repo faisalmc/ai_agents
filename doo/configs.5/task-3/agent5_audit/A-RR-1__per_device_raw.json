@@ -1,0 +1,21 @@
+{
+  "hostname": "A-RR-1",
+  "platform": "ios",
+  "signals_seen": ["bgp", "mpls"],
+  "status": "unknown",
+  "findings": [
+    {
+      "signal": "bgp",
+      "severity": "info",
+      "detail": "BGP process is running with AS 100 as a Route Reflector, RR_CLIENT peer-group configured, RR_CLIENT neighbors are set with remote-as 100, Route-Reflector functionality enabled for RR_CLIENT neighbors, Send-label configured for RR_CLIENT neighbors"
+    }
+  ],
+  "recommended_show_cmds": [
+    "show bgp summary",
+    "show run | section ^router bgp",
+    "show bgp neighbors brief",
+    "show bgp ipv4 labeled-unicast",
+    "show mpls forwarding"
+  ],
+  "optional_active_cmds": []
+}

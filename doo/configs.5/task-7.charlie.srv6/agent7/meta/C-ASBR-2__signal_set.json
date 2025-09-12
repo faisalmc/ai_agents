@@ -1,0 +1,31 @@
+{
+  "hostname": "C-ASBR-2",
+  "platform_hint": "unknown",
+  "signals": [
+    "srv6",
+    "isis",
+    "locators",
+    "enabled",
+    "configured"
+  ],
+  "confidence": 0.8,
+  "evidence": {
+    "srv6": [
+      "SRv6 Enabled: Yes",
+      "SID Base Block: fc00:100::/24"
+    ],
+    "isis": [
+      "IS-IS CORE SRv6 Locators"
+    ],
+    "locators": [
+      "Name                  ID       Algo  Prefix                    Status"
+    ],
+    "enabled": [
+      "SRv6 Enabled: Yes"
+    ],
+    "configured": [
+      "Configured: 2620:fc7:3:101::8"
+    ]
+  },
+  "notes": "The signals were derived from the SRv6 and IS-IS related commands and their outputs indicating the configuration and operational status."
+}

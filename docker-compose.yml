@@ -1,0 +1,237 @@
+services:
+  agent_1:
+    build: .
+    container_name: agent-1
+    env_file: .env
+    working_dir: /app
+    volumes:
+      - ./agents:/app/agents
+      - ./shared:/app/shared
+      - ./doo:/app/doo
+    ports: ["8000:8000"]
+    command: python agents/agent-router/agent_router.py
+    restart: unless-stopped
+
+  agent_2:
+    build: .
+    container_name: agent-2
+    env_file: .env
+    working_dir: /app
+    volumes:
+      - ./agents:/app/agents
+      - ./shared:/app/shared
+      - ./doo:/app/doo
+    ports: ["8001:8001"]   # FastAPI /deploy endpoint
+    command: uvicorn agents.agent-router.llm_clients.agent2_api:app --host 0.0.0.0 --port 8001
+    # command: python agents/agent-router/llm_clients/agent_b_push_configs.py
+    restart: unless-stopped
+
+  orchestrator_bot:
+    build: ./orchestrator
+    container_name: orchestrator-bot
+    env_file: .env
+    environment:
+      - ORCH_URL=http://agent-2:8001/deploy   # <-- add this
+      - PYTHONUNBUFFERED=1
+      - ORCHESTRATOR_BOT_NAME=${ORCHESTRATOR_BOT_NAME:-agent}
+    volumes:
+      - ./agents:/app/agents
+      - ./shared:/app/shared
+      - ./doo:/app/doo
+    depends_on:
+      - agent_2
+    command: ["python","-u","slack_bot.py"]
+    restart: unless-stopped
+
+      # - AGENT2_URL=${AGENT2_URL:-http://agent_2:8001}
+
+  agent_3:
+    build: .
+    container_name: agent-3
+    env_file: .env
+    working_dir: /app
+    volumes:
+      - ./agents:/app/agents
+      - ./shared:/app/shared
+      - ./doo:/app/doo
+    ports: ["8002:8002"]   # FastAPI /analyze-host endpoint
+    command: uvicorn agents.agent-router.llm_clients.agent3_api:app --host 0.0.0.0 --port 8002
+    restart: unless-stopped
+
+  agent_4:
+    build:
+      context: ./agents/agent-4
+      dockerfile: Dockerfile
+    container_name: agent-4
+    env_file: .env
+    working_dir: /app/agents/agent-4
+    environment:
+      # Match Agent-7 style so shared utils import cleanly
+      PYTHONPATH: /app:/app/shared
+    volumes:
+      - ./:/app               # dev-friendly whole-repo mount
+      # If you prefer tighter mounts:
+      # - ./agents/agent-4:/app/agents/agent-4
+      # - ./shared:/app/shared
+      # - ./doo:/app/doo
+    ports: ["8003:8003"]
+    command: uvicorn agent4_api:app --host 0.0.0.0 --port 8003
+    restart: unless-stopped
+
+  agent_5:
+    build:
+      context: ./agents/agent-5
+      dockerfile: Dockerfile
+    container_name: agent-5
+    env_file: .env
+    # IMPORTANT: run from inside Agent-5 dir so `from agent5_http import ...` works
+    working_dir: /app/agents/agent-5
+    volumes:
+      - ./:/app             # dev-friendly (mount whole repo)
+      # (If you want tighter mounts instead, use the 3 lines below)
+      # - ./agents/agent-5:/app/agents/agent-5
+      # - ./shared:/app/shared
+      # - ./doo:/app/doo
+    ports: ["8004:8004"]
+    command: uvicorn agent5_api:app --host 0.0.0.0 --port 8004
+    restart: unless-stopped
+  
+  agent_7:
+    build:
+      context: ./agents/agent-7
+      dockerfile: Dockerfile
+    container_name: agent-7
+    env_file: .env
+    working_dir: /app/agents/agent-7
+    environment:
+      PYTHONPATH: /app:/app/shared
+      # Keep Agent-7 paths consistent with your repo: map REPO_ROOT to DOO_DIR
+      REPO_ROOT: ${DOO_DIR}
+      # Bubble through URLs so capture_wrapper can reuse Agent-4 over HTTP
+      AGENT_4_URL: ${AGENT_4_URL}
+    volumes:
+      - ./:/app
+    ports: ["8007:8007"]
+    command: uvicorn http_api:app --host 0.0.0.0 --port 8007   # << import by file, not package
+    restart: unless-stopped
+    # depends_on:
+      # - agent_4     # since we will call Agent-4 for capture of .md files
+
+
+
+  # # working agent_5 under agent-router/llm_clients
+  # agent_4:
+  #   build: .
+  #   container_name: agent-4
+  #   env_file: .env
+  #   working_dir: /app
+  #   volumes:
+  #     - ./agents:/app/agents
+  #     - ./shared:/app/shared
+  #     - ./doo:/app/doo
+  #   ports: ["8003:8003"]   # FastAPI /analyze-host endpoint
+  #   command: uvicorn agents.agent-router.llm_clients.agent4_api:app --host 0.0.0.0 --port 8003
+  #   restart: unless-stopped
+  #
+  # agent_5:
+  #     build: .
+  #     container_name: agent-5
+  #     env_file: .env
+  #     working_dir: /app
+  #     volumes:
+  #       - ./agents:/app/agents
+  #       - ./shared:/app/shared
+  #       - ./doo:/app/doo
+  #     ports: ["8004:8004"]   # FastAPI /analyze-host endpoint
+  #     command: uvicorn agents.agent-router.llm_clients.agent5_api:app --host 0.0.0.0 --port 8004
+  #     restart: unless-stopped
+
+
+# version: "3.9"
+# services:
+#   agent_router:
+#     build: .
+#     container_name: agent-router-dev
+#     env_file: .env
+#     working_dir: /app
+#     volumes:
+#       - ./:/app
+#     ports: ["8000:8000"]
+#     command: python agents/agent-router/agent_router.py
+#     restart: unless-stopped
+
+#   agent_2:
+#     build: .
+#     container_name: agent-2
+#     env_file: .env
+#     working_dir: /app
+#     volumes:
+#       - ./agents:/app/agents          # ← add this (code)
+#       - ./shared:/app/shared
+#       - ./doo:/app/doo        # ← add this
+#       # - ./:/app
+#     ports: ["8001:8001"]
+#     command: python agents/agent-router/llm_clients/agent_b_push_configs.py
+#     restart: unless-stopped
+
+#   agent_3:
+#     build: .
+#     container_name: agent-3
+#     env_file: .env
+#     working_dir: /app
+#     volumes:
+#       - ./:/app
+#     ports: ["8002:8002"]
+#     command: python agents/agent-router/llm_clients/agent_c_analyze_log.py
+#     restart: unless-stopped
+
+#   agent_4:
+#     build: .
+#     container_name: agent-4
+#     env_file: .env
+#     working_dir: /app
+#     volumes:
+#       - ./:/app
+#     ports: ["8003:8003"]
+#     command: python agents/agent-router/llm_clients/agent_d_operational_check.py
+#     restart: unless-stopped
+
+#   agent_5:
+#     build: .
+#     container_name: agent-5
+#     env_file: .env
+#     working_dir: /app
+#     volumes:
+#       - ./:/app
+#     ports: ["8004:8004"]
+#     command: python agents/agent-router/llm_clients/agent5_operational_analyze.py
+#     restart: unless-stopped
+
+#   orchestrator:
+#     build: ./orchestrator
+#     env_file: .env
+#     ports: ["8080:8080"]
+#     volumes:
+#       - ./shared:/app_mount/shared
+#       - ./doo:/app/doo
+#     restart: unless-stopped
+#     healthcheck:
+#       # Option A: if you install curl in the image (see Dockerfile note below)
+#       test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]
+#       interval: 10s
+#       timeout: 3s
+#       retries: 6
+#       start_period: 5s
+
+#   orchestrator_bot:
+#     build: ./orchestrator       # reuse same image
+#     env_file: .env              # provides SLACK_* tokens
+#     environment:
+#       - ORCH_URL=http://orchestrator:8080/deploy
+#       - PYTHONUNBUFFERED=1                # ← add
+#     depends_on:
+#       orchestrator:
+#         condition: service_healthy
+#     command: ["python","-u","slack_bot.py"]  # ← -u = unbuffered
+#     # command: python slack_bot.py
+#     restart: unless-stopped

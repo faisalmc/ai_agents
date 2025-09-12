@@ -1,0 +1,21 @@
+{
+  "hostname": "A-PE-2",
+  "platform_hint": "ios-xr",
+  "signals": [
+    "bgp",
+    "mpls"
+  ],
+  "confidence": 0.9,
+  "evidence": {
+    "bgp": [
+      "1.0.101.5         0   100                                         1d04h Idle",
+      "1.0.101.6         0   100                                         1d06h Established",
+      "BGP router identifier 1.0.101.2, local AS number 100"
+    ],
+    "mpls": [
+      "16001  Pop         SR Pfx (idx 1)     Gi0/0/0/2    1.0.40.1        190016",
+      "24000  Pop         SR Adj (idx 1)     Gi0/0/0/0    1.0.21.2        0"
+    ]
+  },
+  "notes": "The logs show BGP neighbor information and MPLS forwarding entries, indicating BGP and MPLS are configured on this IOS-XR device."
+}

@@ -1,0 +1,22 @@
+{
+  "hostname": "A-PE-3",
+  "platform_hint": "ios-xr",
+  "signals": [
+    "bgp",
+    "mpls"
+  ],
+  "confidence": 0.9,
+  "evidence": {
+    "bgp": [
+      "1.0.101.5         0   100                                         1d04h Idle",
+      "1.0.101.6         0   100                                         1d06h Established",
+      "BGP router identifier 1.0.101.3, local AS number 100",
+      "Processed 9 prefixes, 9 paths"
+    ],
+    "mpls": [
+      "16001  16001       SR Pfx (idx 1)     Gi0/0/0/0    1.0.22.2        0",
+      "24000  Pop         SR Adj (idx 1)     Gi0/0/0/0    1.0.22.2        0"
+    ]
+  },
+  "notes": "The logs show BGP neighbor information and BGP IPv4 labeled-unicast details, along with MPLS forwarding table entries, indicating an IOS-XR platform."
+}

@@ -1,0 +1,98 @@
+```json
+{
+  "summary": "The output shows a list of IPv6 routes in the IS-IS routing table with various metrics.",
+  "status": {
+    "name": "isis_database",
+    "value": "unknown",
+    "confidence": "low",
+    "confidence_reason": "No overall state can be determined from the provided output."
+  },
+  "metrics": {
+    "routes_total": 8
+  },
+  "tables": {
+    "routes": [
+      {
+        "Network": "fc00:100:1::/48",
+        "Metric": "[21/115]",
+        "Next Hop": "fe80::5054:ff:fe50:e7c2",
+        "Interface": "GigabitEthernet0/0/0/2",
+        "Tag": "300",
+        "SRGB Base": "16000",
+        "Weight": "0"
+      },
+      {
+        "Network": "fc00:100:2::/48",
+        "Metric": "[21/115]",
+        "Next Hop": "fe80::5054:ff:fe50:e7c2",
+        "Interface": "GigabitEthernet0/0/0/2",
+        "Tag": "300",
+        "SRGB Base": "16000",
+        "Weight": "0"
+      },
+      {
+        "Network": "fc00:100:3::/48",
+        "Metric": "[21/115]",
+        "Next Hop": "fe80::5054:ff:fe50:e7c2",
+        "Interface": "GigabitEthernet0/0/0/2",
+        "Tag": "300",
+        "SRGB Base": "16000",
+        "Weight": "0"
+      },
+      {
+        "Network": "fc00:100:4::/48",
+        "Metric": "[31/115]",
+        "Next Hop": "fe80::5054:ff:fe50:e7c2",
+        "Interface": "GigabitEthernet0/0/0/2",
+        "Tag": "300",
+        "SRGB Base": "16000",
+        "Weight": "0"
+      },
+      {
+        "Network": "fc00:100:5::/48",
+        "Metric": "[11/115]",
+        "Next Hop": "fe80::5054:ff:fe50:e7c2",
+        "Interface": "GigabitEthernet0/0/0/2",
+        "Tag": "300",
+        "SRGB Base": "16000",
+        "Weight": "0"
+      },
+      {
+        "Network": "fc00:100:6::/48",
+        "Metric": "[21/115]",
+        "Next Hop": "fe80::5054:ff:fe50:e7c2",
+        "Interface": "GigabitEthernet0/0/0/2",
+        "Tag": "300",
+        "SRGB Base": "16000",
+        "Weight": "0"
+      },
+      {
+        "Network": "fc00:100:7::/48",
+        "Metric": "C",
+        "Next Hop": "",
+        "Interface": "",
+        "Tag": "",
+        "SRGB Base": "",
+        "Weight": ""
+      },
+      {
+        "Network": "fc00:100:8::/48",
+        "Metric": "[31/115]",
+        "Next Hop": "fe80::5054:ff:fe50:e7c2",
+        "Interface": "GigabitEthernet0/0/0/2",
+        "Tag": "300",
+        "SRGB Base": "16000",
+        "Weight": "0"
+      }
+    ]
+  },
+  "evidence": [
+    "L2 fc00:100:1::/48 [21/115]",
+    "L2 fc00:100:2::/48 [21/115]",
+    "L2 fc00:100:3::/48 [21/115]",
+    "L2 fc00:100:4::/48 [31/115]",
+    "L2 fc00:100:5::/48 [11/115]",
+    "C  fc00:100:7::/48"
+  ]
+}
+```

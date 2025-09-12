@@ -1,0 +1,123 @@
+{
+  "666d3c83fe28e949": {
+    "ts": 1757426059.6597674,
+    "request": {
+      "q": "bgp troubleshooting cisco-ios-xr commands",
+      "platform": "cisco-ios-xr",
+      "signal": "bgp",
+      "version": null,
+      "limit": 6
+    },
+    "results": []
+  },
+  "6c10e31245e4a2ed": {
+    "ts": 1757426059.6617322,
+    "request": {
+      "q": "mpls troubleshooting cisco-ios-xr commands",
+      "platform": "cisco-ios-xr",
+      "signal": "mpls",
+      "version": null,
+      "limit": 6
+    },
+    "results": []
+  },
+  "afb55288b1efff5d": {
+    "ts": 1757426059.6669502,
+    "request": {
+      "q": "neighbors troubleshooting cisco-ios-xr commands",
+      "platform": "cisco-ios-xr",
+      "signal": "neighbors",
+      "version": null,
+      "limit": 6
+    },
+    "results": []
+  },
+  "2c7f817397cddf4f": {
+    "ts": 1757426059.668637,
+    "request": {
+      "q": "ipv4 troubleshooting cisco-ios-xr commands",
+      "platform": "cisco-ios-xr",
+      "signal": "ipv4",
+      "version": null,
+      "limit": 6
+    },
+    "results": []
+  },
+  "1bee6464c76b2232": {
+    "ts": 1757426059.669288,
+    "request": {
+      "q": "labeled-unicast troubleshooting cisco-ios-xr commands",
+      "platform": "cisco-ios-xr",
+      "signal": "labeled-unicast",
+      "version": null,
+      "limit": 6
+    },
+    "results": []
+  },
+  "21bad0cd9496a7f6": {
+    "ts": 1757426059.6696312,
+    "request": {
+      "q": "forwarding troubleshooting cisco-ios-xr commands",
+      "platform": "cisco-ios-xr",
+      "signal": "forwarding",
+      "version": null,
+      "limit": 6
+    },
+    "results": []
+  },
+  "6aad406eae54f710": {
+    "ts": 1757426059.6703386,
+    "request": {
+      "q": "neighbor troubleshooting cisco-ios-xr commands",
+      "platform": "cisco-ios-xr",
+      "signal": "neighbor",
+      "version": null,
+      "limit": 6
+    },
+    "results": []
+  },
+  "dcf117c37a95df69": {
+    "ts": 1757426059.67216,
+    "request": {
+      "q": "ios-xe troubleshooting unknown commands",
+      "platform": "unknown",
+      "signal": "ios-xe",
+      "version": null,
+      "limit": 6
+    },
+    "results": []
+  },
+  "df521ec1c72e9e18": {
+    "ts": 1757426059.673396,
+    "request": {
+      "q": "version-17.03.08a troubleshooting unknown commands",
+      "platform": "unknown",
+      "signal": "version-17.03.08a",
+      "version": null,
+      "limit": 6
+    },
+    "results": []
+  },
+  "bfd9d90e4e5cd174": {
+    "ts": 1757426059.6746213,
+    "request": {
+      "q": "uptime-5d10h48m troubleshooting unknown commands",
+      "platform": "unknown",
+      "signal": "uptime-5d10h48m",
+      "version": null,
+      "limit": 6
+    },
+    "results": []
+  },
+  "03f4eda51ae1c68c": {
+    "ts": 1757426059.67547,
+    "request": {
+      "q": "smart-license-unregistered troubleshooting unknown commands",
+      "platform": "unknown",
+      "signal": "smart-license-unregistered",
+      "version": null,
+      "limit": 6
+    },
+    "results": []
+  }
+}

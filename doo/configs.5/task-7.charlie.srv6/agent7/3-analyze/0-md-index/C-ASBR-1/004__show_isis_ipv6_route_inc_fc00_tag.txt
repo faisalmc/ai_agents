@@ -1,0 +1,18 @@
+
+Tue Aug  5 08:14:27.766 UTC
+L2 fc00:100:1::/48 [21/115]
+     via fe80::5054:ff:fe50:e7c2, GigabitEthernet0/0/0/2, C-P-1 tag 300, SRGB Base: 16000, Weight: 0
+L2 fc00:100:2::/48 [21/115]
+     via fe80::5054:ff:fe50:e7c2, GigabitEthernet0/0/0/2, C-P-1 tag 300, SRGB Base: 16000, Weight: 0
+L2 fc00:100:3::/48 [21/115]
+     via fe80::5054:ff:fe50:e7c2, GigabitEthernet0/0/0/2, C-P-1 tag 300, SRGB Base: 16000, Weight: 0
+L2 fc00:100:4::/48 [31/115]
+     via fe80::5054:ff:fe50:e7c2, GigabitEthernet0/0/0/2, C-P-1 tag 300, SRGB Base: 16000, Weight: 0
+L2 fc00:100:5::/48 [11/115]
+     via fe80::5054:ff:fe50:e7c2, GigabitEthernet0/0/0/2, C-P-1 tag 300, SRGB Base: 16000, Weight: 0
+L2 fc00:100:6::/48 [21/115]
+     via fe80::5054:ff:fe50:e7c2, GigabitEthernet0/0/0/2, C-P-1 tag 300, SRGB Base: 16000, Weight: 0
+C  fc00:100:7::/48
+L2 fc00:100:8::/48 [31/115]
+     via fe80::5054:ff:fe50:e7c2, GigabitEthernet0/0/0/2, C-P-1 tag 300, SRGB Base: 16000, Weight: 0
+RP/0/RP0/CPU0:C-ASBR-1#

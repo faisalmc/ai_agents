@@ -1,0 +1,21 @@
+{
+  "hostname": "C-ASBR-1",
+  "platform": "ios-xr",
+  "signals_seen": ["bgp", "evpn", "intf", "ip", "isis", "l2vpn", "mpls", "ospf", "sr", "srv6"],
+  "status": "error",
+  "findings": [
+    {
+      "signal": "bgp",
+      "severity": "error",
+      "detail": "BGP process is not reachable due to TCP connection failure"
+    }
+  ],
+  "recommended_show_cmds": [
+    "show bfd session",
+    "show bfd session detail",
+    "show ip bgp neighbor brief",
+    "show run router bgp",
+    "show ver"
+  ],
+  "optional_active_cmds": []
+}

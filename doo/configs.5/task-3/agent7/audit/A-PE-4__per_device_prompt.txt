@@ -1,0 +1,113 @@
+--- SYSTEM ---
+You are a senior Cisco SP NOC engineer.
+You will analyze structured FACTS produced from parsed CLI (pyATS Genie or LLM). You MUST:
+- Use only the provided facts as evidence; do NOT invent information.
+- Return STRICT JSON only (no prose) with this schema:
+{
+  "hostname": "<string>",
+  "platform": "ios-xr" | "ios" | "unknown",
+  "signals_seen": ["bgp","isis","mpls","evpn","l2vpn","sr","srv6","intf","ip","bfd", ...],
+  "status": "healthy" | "degraded" | "error" | "unknown",
+  "status_reason": "<short explanation tied to evidence, not to parsing availability>",
+  "ok": [
+    {
+      "summary": "<what looks healthy (1 line)>",
+      "evidence_ref": { "command_key": "<cmd_key>", "path": "commands.<cmd_key>.<...>" }
+    }
+  ],
+  "suspect": [
+    {
+      "summary": "<what looks off (1 line)>",
+      "evidence_ref": { "command_key": "<cmd_key>", "path": "commands.<cmd_key>.<...>" }
+    }
+  ],
+  "findings": [
+    {
+      "signal": "<one of signals_seen>",
+      "severity": "info" | "warn" | "error",
+      "summary": "<short, evidence-backed>",
+      "evidence_ref": {
+        "command_key": "<cmd_key from facts.commands>",
+        "path": "commands.<cmd_key>.<...>"  // MUST point to a real path in facts
+      }
+    }
+  ],
+  "recommended_show_cmds": ["show ..."],
+  "optional_active_cmds": ["ping ..."]
+}
+Rules:
+- Evidence must reference REAL paths in the provided facts (start with commands.<cmd_key>.).
+- Do NOT mark status as degraded/error just because a parser is unavailable or parser_ok=false.
+  If tables/metrics/evidence_text exist and clearly show healthy behavior, treat that as valid evidence.
+- Prefer listing both positives (ok[]) and negatives (suspect[]) so the operator sees what's working and what's not.
+- status_reason must reflect network state (e.g., "some BGP neighbors Idle while others Established"), NOT "parser not found".
+- Be conservative: if unclear, use severity "info".
+- Never propose config/debug/clear/reload commands.
+
+
+--- USER ---
+### Context
+```json
+{
+  "hostname": "A-PE-4",
+  "platform_hint": "cisco-ios-xr",
+  "signals_seen": [
+    "bgp",
+    "mpls"
+  ],
+  "available_command_keys": [
+    "show_bgp_ipv4_labeled-unicast",
+    "show_bgp_neighbors_brief",
+    "show_mpls_forwarding"
+  ],
+  "agent1_summary": {
+    "hostname": "A-PE-4",
+    "provider": "Alpha",
+    "customer": null,
+    "role": "Provider-Edge",
+    "platform_hint": "cisco-ios-xr",
+    "vendor": "cisco",
+    "config_intents": [
+      "Run BGP AS 100 with IPv4 unicast",
+      "Use Loopback0 as update-source for core neighbors",
+      "Advertise 1.0.101.4/32 with label via route-policy"
+    ],
+    "expected_state": [
+      {
+        "signal": "bgp",
+        "observation_goals": [
+          "BGP process is running",
+          "Core neighbors should be Established",
+          "AFI/SAFI ipv4 unicast active",
+          "Router-ID set"
+        ],
+        "suggested_show": [
+          {
+            "cmd": "show bgp summary",
+            "provenance": "llm",
+            "confidence": "high",
+            "platform": "cisco-ios-xr"
+          },
+          {
+            "cmd": "show bgp ipv4 unicast summary",
+            "provenance": "llm",
+            "confidence": "med",
+            "platform": "cisco-ios-xr"
+          }
+        ],
+        "candidate_show": [
+          {
+            "cmd": "show run | section ^router bgp",
+            "provenance": "llm",
+            "confidence": "low",
+            "platform": "cisco-ios-xr",
+            "note": "IOS-style pipe may not work on XR"
+          }
+        ]
+      }
+    ]
+  },
+  "adk_snippets": [],
+  "facts_json": "{\"hostname\": \"A-PE-4\", \"platform_hint\": \"cisco-ios-xr\", \"signals_seen\": [\"bgp\", \"mpls\"], \"generated_at\": 1757487848, \"facts_version\": 1, \"coverage\": {\"genie_ok\": 1, \"genie_err\": 0, \"llm_ok\": 2, \"total_cmds\": 3, \"total_enriched\": 3}, \"commands\": {\"show_bgp_ipv4_labeled-unicast\": {\"command\": \"show bgp ipv4 labeled-unicast\", \"topic\": \"bgp\", \"platform_hint\": \"cisco-ios-xr\", \"source\": \"llm\", \"parsed_path\": \"\", \"evidence_text_path\": \"/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-PE-4/002__show_bgp_ipv4_labeled-unicast.txt\", \"parser_ok\": false, \"data\": {\"summary\": \"The BGP table for IPv4 labeled-unicast is in an active state with 9 prefixes and 17 paths processed.\", \"status\": {\"name\": \"bgp_table_state\", \"value\": \"active\", \"confidence\": \"high\", \"confidence_reason\": \"The output explicitly states 'BGP table state: Active'.\"}, \"metrics\": {\"prefixes_total\": 9, \"paths_total\": 17, \"rib_state\": \"active\"}, \"tables\": {\"routes\": [{\"Network\": \"i1.0.101.1/32\", \"Next Hop\": \"1.0.101.7\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}, {\"Network\": \"i1.0.101.1/32\", \"Next Hop\": \"1.0.101.8\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}, {\"Network\": \"i1.0.101.2/32\", \"Next Hop\": \"1.0.101.7\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}, {\"Network\": \"i1.0.101.2/32\", \"Next Hop\": \"1.0.101.8\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}, {\"Network\": \"i1.0.101.3/32\", \"Next Hop\": \"1.0.101.7\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}, {\"Network\": \"i1.0.101.3/32\", \"Next Hop\": \"1.0.101.8\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}, {\"Network\": \"1.0.101.4/32\", \"Next Hop\": \"0.0.0.0\", \"Metric\": 0, \"LocPrf\": 32768, \"Weight\": 0, \"Path\": \"\"}, {\"Network\": \"i1.0.101.6/32\", \"Next Hop\": \"1.0.101.7\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}, {\"Network\": \"i1.0.101.6/32\", \"Next Hop\": \"1.0.101.8\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}, {\"Network\": \"i1.0.101.7/32\", \"Next Hop\": \"1.0.101.7\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}, {\"Network\": \"i1.0.101.7/32\", \"Next Hop\": \"1.0.101.8\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}, {\"Network\": \"i1.0.101.8/32\", \"Next Hop\": \"1.0.101.7\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}, {\"Network\": \"i1.0.101.8/32\", \"Next Hop\": \"1.0.101.8\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}, {\"Network\": \"i1.0.101.9/32\", \"Next Hop\": \"1.0.101.7\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}, {\"Network\": \"i1.0.101.9/32\", \"Next Hop\": \"1.0.101.8\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}, {\"Network\": \"i1.0.101.10/32\", \"Next Hop\": \"1.0.101.7\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}, {\"Network\": \"i1.0.101.10/32\", \"Next Hop\": \"1.0.101.8\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}]}, \"evidence\": [\"L5: BGP table state: Active\", \"L12: Processed 9 prefixes, 17 paths\"]}, \"llm_data\": {\"summary\": \"The BGP table for IPv4 labeled-unicast is in an active state with 9 prefixes and 17 paths processed.\", \"status\": {\"name\": \"bgp_table_state\", \"value\": \"active\", \"confidence\": \"high\", \"confidence_reason\": \"The output explicitly states 'BGP table state: Active'.\"}, \"metrics\": {\"prefixes_total\": 9, \"paths_total\": 17, \"rib_state\": \"active\"}, \"tables\": {\"routes\": [{\"Network\": \"i1.0.101.1/32\", \"Next Hop\": \"1.0.101.7\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}, {\"Network\": \"i1.0.101.1/32\", \"Next Hop\": \"1.0.101.8\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}, {\"Network\": \"i1.0.101.2/32\", \"Next Hop\": \"1.0.101.7\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}, {\"Network\": \"i1.0.101.2/32\", \"Next Hop\": \"1.0.101.8\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}, {\"Network\": \"i1.0.101.3/32\", \"Next Hop\": \"1.0.101.7\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}, {\"Network\": \"i1.0.101.3/32\", \"Next Hop\": \"1.0.101.8\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}, {\"Network\": \"1.0.101.4/32\", \"Next Hop\": \"0.0.0.0\", \"Metric\": 0, \"LocPrf\": 32768, \"Weight\": 0, \"Path\": \"\"}, {\"Network\": \"i1.0.101.6/32\", \"Next Hop\": \"1.0.101.7\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}, {\"Network\": \"i1.0.101.6/32\", \"Next Hop\": \"1.0.101.8\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}, {\"Network\": \"i1.0.101.7/32\", \"Next Hop\": \"1.0.101.7\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}, {\"Network\": \"i1.0.101.7/32\", \"Next Hop\": \"1.0.101.8\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}, {\"Network\": \"i1.0.101.8/32\", \"Next Hop\": \"1.0.101.7\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}, {\"Network\": \"i1.0.101.8/32\", \"Next Hop\": \"1.0.101.8\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}, {\"Network\": \"i1.0.101.9/32\", \"Next Hop\": \"1.0.101.7\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}, {\"Network\": \"i1.0.101.9/32\", \"Next Hop\": \"1.0.101.8\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}, {\"Network\": \"i1.0.101.10/32\", \"Next Hop\": \"1.0.101.7\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}, {\"Network\": \"i1.0.101.10/32\", \"Next Hop\": \"1.0.101.8\", \"Metric\": 0, \"LocPrf\": 100, \"Weight\": 0, \"Path\": \"i\"}]}, \"evidence\": [\"L5: BGP table state: Active\", \"L12: Processed 9 prefixes, 17 paths\"]}}, \"show_bgp_neighbors_brief\": {\"command\": \"show bgp neighbors brief\", \"topic\": \"bgp\", \"platform_hint\": \"cisco-ios-xr\", \"source\": \"llm\", \"parsed_path\": \"\", \"evidence_text_path\": \"/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-PE-4/001__show_bgp_neighbors_brief.txt\", \"parser_ok\": false, \"data\": {\"summary\": \"There are two BGP neighbors, both in an established state.\", \"status\": {\"name\": \"bgp_neighbors\", \"value\": \"established\", \"confidence\": \"high\", \"confidence_reason\": \"All neighbors are in the established state.\"}, \"metrics\": {\"bgp_neighbors_total\": 2, \"bgp_neighbors_by_state\": {\"established\": 2}}, \"tables\": {\"bgp_neighbors\": [{\"Neighbor\": \"1.0.101.7\", \"Spk\": 0, \"AS\": 100, \"Description\": \"\", \"Up/Down\": \"1d06h\", \"NBRState\": \"Established\"}, {\"Neighbor\": \"1.0.101.8\", \"Spk\": 0, \"AS\": 100, \"Description\": \"\", \"Up/Down\": \"1d06h\", \"NBRState\": \"Established\"}]}, \"evidence\": [\"L4: 1.0.101.7         0   100                                         1d06h Established\", \"L5: 1.0.101.8         0   100                                         1d06h Established\"]}, \"llm_data\": {\"summary\": \"There are two BGP neighbors, both in an established state.\", \"status\": {\"name\": \"bgp_neighbors\", \"value\": \"established\", \"confidence\": \"high\", \"confidence_reason\": \"All neighbors are in the established state.\"}, \"metrics\": {\"bgp_neighbors_total\": 2, \"bgp_neighbors_by_state\": {\"established\": 2}}, \"tables\": {\"bgp_neighbors\": [{\"Neighbor\": \"1.0.101.7\", \"Spk\": 0, \"AS\": 100, \"Description\": \"\", \"Up/Down\": \"1d06h\", \"NBRState\": \"Established\"}, {\"Neighbor\": \"1.0.101.8\", \"Spk\": 0, \"AS\": 100, \"Description\": \"\", \"Up/Down\": \"1d06h\", \"NBRState\": \"Established\"}]}, \"evidence\": [\"L4: 1.0.101.7         0   100                                         1d06h Established\", \"L5: 1.0.101.8         0   100                                         1d06h Established\"]}}, \"show_mpls_forwarding\": {\"command\": \"show mpls forwarding\", \"topic\": \"mpls\", \"platform_hint\": \"cisco-ios-xr\", \"source\": \"genie\", \"parsed_path\": \"/app/doo/configs.5/taREMOVED3/agent7/3-analyze/1-parsed/A-PE-4/cisco-ios-xr__show_mpls_forwarding.json\", \"evidence_text_path\": \"/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-PE-4/003__show_mpls_forwarding.txt\", \"parser_ok\": true, \"data\": {\"local_label\": {\"16001\": {\"outgoing_label\": {\"16001\": {\"prefix_or_id\": {\"SR Pfx (idx\": {\"outgoing_interface\": {\"1)\": {\"next_hop\": \"1.0.101.8\", \"bytes_switched\": 0}}}}}}}, \"16002\": {\"outgoing_label\": {\"16002\": {\"prefix_or_id\": {\"SR Pfx (idx\": {\"outgoing_interface\": {\"2)\": {\"next_hop\": \"1.0.101.8\", \"bytes_switched\": 0}}}}}}}, \"16003\": {\"outgoing_label\": {\"16003\": {\"prefix_or_id\": {\"SR Pfx (idx\": {\"outgoing_interface\": {\"3)\": {\"next_hop\": \"1.0.101.8\", \"bytes_switched\": 0}}}}}}}, \"16004\": {\"outgoing_label\": {\"Aggregate\": {\"prefix_or_id\": {\"SR Pfx (idx\": {\"outgoing_interface\": {\"4)\": {\"next_hop\": \"default\", \"bytes_switched\": 0}}}}}}}, \"16006\": {\"outgoing_label\": {\"16006\": {\"prefix_or_id\": {\"SR Pfx (idx\": {\"outgoing_interface\": {\"6)\": {\"next_hop\": \"1.0.101.8\", \"bytes_switched\": 0}}}}}}}, \"16007\": {\"outgoing_label\": {\"16007\": {\"prefix_or_id\": {\"SR Pfx (idx 7)\": {\"outgoing_interface\": {\"GigabitEthernet0/0/0/0\": {\"next_hop\": \"1.0.23.2\", \"bytes_switched\": 180299}}}}}}}, \"16008\": {\"outgoing_label\": {\"Pop\": {\"prefix_or_id\": {\"SR Pfx (idx 8)\": {\"outgoing_interface\": {\"GigabitEthernet0/0/0/0\": {\"next_hop\": \"1.0.23.2\", \"bytes_switched\": 180259}}}}}}}, \"16009\": {\"outgoing_label\": {\"16009\": {\"prefix_or_id\": {\"SR Pfx (idx 9)\": {\"outgoing_interface\": {\"GigabitEthernet0/0/0/0\": {\"next_hop\": \"1.0.23.2\", \"bytes_switched\": 0}}}}}}}, \"16010\": {\"outgoing_label\": {\"16010\": {\"prefix_or_id\": {\"SR Pfx (idx 10)\": {\"outgoing_interface\": {\"GigabitEthernet0/0/0/0\": {\"next_hop\": \"1.0.23.2\", \"bytes_switched\": 0}}}}}}}, \"17004\": {\"outgoing_label\": {\"Aggregate\": {\"prefix_or_id\": {\"SR Pfx (idx\": {\"outgoing_interface\": {\"1004)\": {\"next_hop\": \"default\", \"bytes_switched\": 0}}}}}}}, \"17007\": {\"outgoing_label\": {\"17007\": {\"prefix_or_id\": {\"SR Pfx (idx 1007)  Gi0/0/0/0    fe80::5054:ff:fe6c:c8cf\": {\"outgoing_interface\": {\"1004)\": {\"next_hop\": \"default\", \"bytes_switched\": 0}}}}}}}, \"17008\": {\"outgoing_label\": {\"Pop\": {\"prefix_or_id\": {\"SR Pfx (idx 1008)  Gi0/0/0/0    fe80::5054:ff:fe6c:c8cf\": {\"outgoing_interface\": {\"1004)\": {\"next_hop\": \"default\", \"bytes_switched\": 0}}}}}}}, \"17009\": {\"outgoing_label\": {\"17009\": {\"prefix_or_id\": {\"SR Pfx (idx 1009)  Gi0/0/0/0    fe80::5054:ff:fe6c:c8cf\": {\"outgoing_interface\": {\"1004)\": {\"next_hop\": \"default\", \"bytes_switched\": 0}}}}}}}, \"17010\": {\"outgoing_label\": {\"17010\": {\"prefix_or_id\": {\"SR Pfx (idx 1010)  Gi0/0/0/0    fe80::5054:ff:fe6c:c8cf\": {\"outgoing_interface\": {\"1004)\": {\"next_hop\": \"default\", \"bytes_switched\": 0}}}}}}}, \"24000\": {\"outgoing_label\": {\"Pop\": {\"prefix_or_id\": {\"SR Adj (idx 1)\": {\"outgoing_interface\": {\"GigabitEthernet0/0/0/0\": {\"next_hop\": \"1.0.23.2\", \"bytes_switched\": 0}}}}}}}, \"24001\": {\"outgoing_label\": {\"Pop\": {\"prefix_or_id\": {\"SR Adj (idx 3)\": {\"outgoing_interface\": {\"GigabitEthernet0/0/0/0\": {\"next_hop\": \"1.0.23.2\", \"bytes_switched\": 0}}}}}}}, \"24002\": {\"outgoing_label\": {\"Pop\": {\"prefix_or_id\": {\"SR Adj (idx 1)     Gi0/0/0/0    fe80::5054:ff:fe6c:c8cf\": {\"outgoing_interface\": {\"GigabitEthernet0/0/0/0\": {\"next_hop\": \"1.0.23.2\", \"bytes_switched\": 0}}}}}}}, \"24003\": {\"outgoing_label\": {\"Pop\": {\"prefix_or_id\": {\"SR Adj (idx 3)     Gi0/0/0/0    fe80::5054:ff:fe6c:c8cf\": {\"outgoing_interface\": {\"GigabitEthernet0/0/0/0\": {\"next_hop\": \"1.0.23.2\", \"bytes_switched\": 0}}}}}}}}}, \"genie_data\": {\"local_label\": {\"16001\": {\"outgoing_label\": {\"16001\": {\"prefix_or_id\": {\"SR Pfx (idx\": {\"outgoing_interface\": {\"1)\": {\"next_hop\": \"1.0.101.8\", \"bytes_switched\": 0}}}}}}}, \"16002\": {\"outgoing_label\": {\"16002\": {\"prefix_or_id\": {\"SR Pfx (idx\": {\"outgoing_interface\": {\"2)\": {\"next_hop\": \"1.0.101.8\", \"bytes_switched\": 0}}}}}}}, \"16003\": {\"outgoing_label\": {\"16003\": {\"prefix_or_id\": {\"SR Pfx (idx\": {\"outgoing_interface\": {\"3)\": {\"next_hop\": \"1.0.101.8\", \"bytes_switched\": 0}}}}}}}, \"16004\": {\"outgoing_label\": {\"Aggregate\": {\"prefix_or_id\": {\"SR Pfx (idx\": {\"outgoing_interface\": {\"4)\": {\"next_hop\": \"default\", \"bytes_switched\": 0}}}}}}}, \"16006\": {\"outgoing_label\": {\"16006\": {\"prefix_or_id\": {\"SR Pfx (idx\": {\"outgoing_interface\": {\"6)\": {\"next_hop\": \"1.0.101.8\", \"bytes_switched\": 0}}}}}}}, \"16007\": {\"outgoing_label\": {\"16007\": {\"prefix_or_id\": {\"SR Pfx (idx 7)\": {\"outgoing_interface\": {\"GigabitEthernet0/0/0/0\": {\"next_hop\": \"1.0.23.2\", \"bytes_switched\": 180299}}}}}}}, \"16008\": {\"outgoing_label\": {\"Pop\": {\"prefix_or_id\": {\"SR Pfx (idx 8)\": {\"outgoing_interface\": {\"GigabitEthernet0/0/0/0\": {\"next_hop\": \"1.0.23.2\", \"bytes_switched\": 180259}}}}}}}, \"16009\": {\"outgoing_label\": {\"16009\": {\"prefix_or_id\": {\"SR Pfx (idx 9)\": {\"outgoing_interface\": {\"GigabitEthernet0/0/0/0\": {\"next_hop\": \"1.0.23.2\", \"bytes_switched\": 0}}}}}}}, \"16010\": {\"outgoing_label\": {\"16010\": {\"prefix_or_id\": {\"SR Pfx (idx 10)\": {\"outgoing_interface\": {\"GigabitEthernet0/0/0/0\": {\"next_hop\": \"1.0.23.2\", \"bytes_switched\": 0}}}}}}}, \"17004\": {\"outgoing_label\": {\"Aggregate\": {\"prefix_or_id\": {\"SR Pfx (idx\": {\"outgoing_interface\": {\"1004)\": {\"next_hop\": \"default\", \"bytes_switched\": 0}}}}}}}, \"17007\": {\"outgoing_label\": {\"17007\": {\"prefix_or_id\": {\"SR Pfx (idx 1007)  Gi0/0/0/0    fe80::5054:ff:fe6c:c8cf\": {\"outgoing_interface\": {\"1004)\": {\"next_hop\": \"default\", \"bytes_switched\": 0}}}}}}}, \"17008\": {\"outgoing_label\": {\"Pop\": {\"prefix_or_id\": {\"SR Pfx (idx 1008)  Gi0/0/0/0    fe80::5054:ff:fe6c:c8cf\": {\"outgoing_interface\": {\"1004)\": {\"next_hop\": \"default\", \"bytes_switched\": 0}}}}}}}, \"17009\": {\"outgoing_label\": {\"17009\": {\"prefix_or_id\": {\"SR Pfx (idx 1009)  Gi0/0/0/0    fe80::5054:ff:fe6c:c8cf\": {\"outgoing_interface\": {\"1004)\": {\"next_hop\": \"default\", \"bytes_switched\": 0}}}}}}}, \"17010\": {\"outgoing_label\": {\"17010\": {\"prefix_or_id\": {\"SR Pfx (idx 1010)  Gi0/0/0/0    fe80::5054:ff:fe6c:c8cf\": {\"outgoing_interface\": {\"1004)\": {\"next_hop\": \"default\", \"bytes_switched\": 0}}}}}}}, \"24000\": {\"outgoing_label\": {\"Pop\": {\"prefix_or_id\": {\"SR Adj (idx 1)\": {\"outgoing_interface\": {\"GigabitEthernet0/0/0/0\": {\"next_hop\": \"1.0.23.2\", \"bytes_switched\": 0}}}}}}}, \"24001\": {\"outgoing_label\": {\"Pop\": {\"prefix_or_id\": {\"SR Adj (idx 3)\": {\"outgoing_interface\": {\"GigabitEthernet0/0/0/0\": {\"next_hop\": \"1.0.23.2\", \"bytes_switched\": 0}}}}}}}, \"24002\": {\"outgoing_label\": {\"Pop\": {\"prefix_or_id\": {\"SR Adj (idx 1)     Gi0/0/0/0    fe80::5054:ff:fe6c:c8cf\": {\"outgoing_interface\": {\"GigabitEthernet0/0/0/0\": {\"next_hop\": \"1.0.23.2\", \"bytes_switched\": 0}}}}}}}, \"24003\": {\"outgoing_label\": {\"Pop\": {\"prefix_or_id\": {\"SR Adj (idx 3)     Gi0/0/0/0    fe80::5054:ff:fe6c:c8cf\": {\"outgoing_interface\": {\"GigabitEthernet0/0/0/0\": {\"next_hop\": \"1.0.23.2\", \"bytes_switched\": 0}}}}}}}}}}}, \"notes\": {\"gap_fill_permitted\": true, \"gap_fill_used\": true, \"providers\": [\"mcp(if-wired)\", \"genie\", \"llm\"]}}"
+}
+```

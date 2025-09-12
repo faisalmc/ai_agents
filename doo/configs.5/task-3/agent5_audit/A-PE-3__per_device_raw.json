@@ -1,0 +1,21 @@
+```json
+{
+  "hostname": "A-PE-3",
+  "platform": "ios-xr",
+  "signals_seen": ["bgp", "mpls"],
+  "status": "degraded",
+  "findings": [
+    {
+      "signal": "bgp",
+      "severity": "warn",
+      "detail": "BGP neighbor 1.0.101.5 is in Idle state"
+    }
+  ],
+  "recommended_show_cmds": [
+    "show bgp neighbors brief",
+    "show bgp ipv4 labeled-unicast",
+    "show mpls forwarding"
+  ],
+  "optional_active_cmds": []
+}
+```

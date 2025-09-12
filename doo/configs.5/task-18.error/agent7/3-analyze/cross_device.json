@@ -1,0 +1,16 @@
+{
+  "network_summary": "No devices analyzed.",
+  "status_rollup": {
+    "healthy": 0,
+    "degraded": 0,
+    "error": 0,
+    "unknown": 0
+  },
+  "top_incidents": [],
+  "notable_devices": [],
+  "remediation_themes": [],
+  "trusted_followup_cmds": [],
+  "unvalidated_followup_cmds": [],
+  "optional_active_probes": [],
+  "task_status": "unknown"
+}

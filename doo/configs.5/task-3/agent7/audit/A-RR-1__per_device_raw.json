@@ -1,0 +1,28 @@
+```json
+{
+  "hostname": "A-RR-1",
+  "platform": "ios-xe",
+  "signals_seen": ["ios-xe", "smart-license-unregistered", "uptime-5d10h48m", "version-17.03.08a"],
+  "status": "unknown",
+  "status_reason": "No BGP status available to determine health.",
+  "ok": [
+    {
+      "summary": "Router is running IOS-XE version 17.3.8a.",
+      "evidence_ref": { "command_key": "show_version", "path": "commands.show_version.data.version.version" }
+    },
+    {
+      "summary": "Router has been up for 5 days, 10 hours, and 48 minutes.",
+      "evidence_ref": { "command_key": "show_version", "path": "commands.show_version.data.version.uptime" }
+    }
+  ],
+  "suspect": [
+    {
+      "summary": "Smart license is unregistered.",
+      "evidence_ref": { "command_key": "show_version", "path": "commands.show_version.data.version.license_type" }
+    }
+  ],
+  "findings": [],
+  "recommended_show_cmds": ["show bgp summary", "show run | section ^router bgp"],
+  "optional_active_cmds": []
+}
+```

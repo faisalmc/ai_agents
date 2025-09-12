@@ -1,0 +1,5 @@
+{"host": "C-ASBR-1", "platform": "ios-xr", "input_cmd": "show bfd session", "sanitized": "show bfd session", "decision": "UNVALIDATED", "reasons": []}
+{"host": "C-ASBR-1", "platform": "ios-xr", "input_cmd": "show bfd session detail", "sanitized": "show bfd session detail", "decision": "UNVALIDATED", "reasons": []}
+{"host": "C-ASBR-1", "platform": "ios-xr", "input_cmd": "show ip bgp neighbor brief", "sanitized": "show ip bgp neighbor brief", "decision": "UNVALIDATED", "reasons": []}
+{"host": "C-ASBR-1", "platform": "ios-xr", "input_cmd": "show run router bgp", "sanitized": "show running-config router bgp", "decision": "UNVALIDATED", "reasons": []}
+{"host": "C-ASBR-1", "platform": "ios-xr", "input_cmd": "show ver", "sanitized": "show ver", "decision": "UNVALIDATED", "reasons": []}

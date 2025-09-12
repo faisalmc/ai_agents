@@ -1,0 +1,160 @@
+```json
+{
+  "summary": "The BGP table for IPv4 labeled-unicast is in an active state with 9 prefixes and 17 paths processed.",
+  "status": {
+    "name": "bgp_table_state",
+    "value": "active",
+    "confidence": "high",
+    "confidence_reason": "The output explicitly states 'BGP table state: Active'."
+  },
+  "metrics": {
+    "prefixes_total": 9,
+    "paths_total": 17,
+    "rib_state": "active"
+  },
+  "tables": {
+    "routes": [
+      {
+        "Network": "i1.0.101.1/32",
+        "Next Hop": "1.0.101.7",
+        "Metric": 0,
+        "LocPrf": 100,
+        "Weight": 0,
+        "Path": "i"
+      },
+      {
+        "Network": "1.0.101.1/32",
+        "Next Hop": "1.0.101.8",
+        "Metric": 0,
+        "LocPrf": 100,
+        "Weight": 0,
+        "Path": "i"
+      },
+      {
+        "Network": "i1.0.101.2/32",
+        "Next Hop": "1.0.101.7",
+        "Metric": 0,
+        "LocPrf": 100,
+        "Weight": 0,
+        "Path": "i"
+      },
+      {
+        "Network": "1.0.101.2/32",
+        "Next Hop": "1.0.101.8",
+        "Metric": 0,
+        "LocPrf": 100,
+        "Weight": 0,
+        "Path": "i"
+      },
+      {
+        "Network": "i1.0.101.3/32",
+        "Next Hop": "1.0.101.7",
+        "Metric": 0,
+        "LocPrf": 100,
+        "Weight": 0,
+        "Path": "i"
+      },
+      {
+        "Network": "1.0.101.3/32",
+        "Next Hop": "1.0.101.8",
+        "Metric": 0,
+        "LocPrf": 100,
+        "Weight": 0,
+        "Path": "i"
+      },
+      {
+        "Network": "i1.0.101.4/32",
+        "Next Hop": "1.0.101.7",
+        "Metric": 0,
+        "LocPrf": 100,
+        "Weight": 0,
+        "Path": "i"
+      },
+      {
+        "Network": "1.0.101.4/32",
+        "Next Hop": "1.0.101.8",
+        "Metric": 0,
+        "LocPrf": 100,
+        "Weight": 0,
+        "Path": "i"
+      },
+      {
+        "Network": "i1.0.101.6/32",
+        "Next Hop": "1.0.101.7",
+        "Metric": 0,
+        "LocPrf": 100,
+        "Weight": 0,
+        "Path": "i"
+      },
+      {
+        "Network": "1.0.101.6/32",
+        "Next Hop": "1.0.101.8",
+        "Metric": 0,
+        "LocPrf": 100,
+        "Weight": 0,
+        "Path": "i"
+      },
+      {
+        "Network": "i1.0.101.7/32",
+        "Next Hop": "1.0.101.7",
+        "Metric": 0,
+        "LocPrf": 100,
+        "Weight": 0,
+        "Path": "i"
+      },
+      {
+        "Network": "1.0.101.7/32",
+        "Next Hop": "1.0.101.8",
+        "Metric": 0,
+        "LocPrf": 100,
+        "Weight": 0,
+        "Path": "i"
+      },
+      {
+        "Network": "i1.0.101.8/32",
+        "Next Hop": "1.0.101.7",
+        "Metric": 0,
+        "LocPrf": 100,
+        "Weight": 0,
+        "Path": "i"
+      },
+      {
+        "Network": "1.0.101.8/32",
+        "Next Hop": "1.0.101.8",
+        "Metric": 0,
+        "LocPrf": 100,
+        "Weight": 0,
+        "Path": "i"
+      },
+      {
+        "Network": "i1.0.101.9/32",
+        "Next Hop": "1.0.101.7",
+        "Metric": 0,
+        "LocPrf": 100,
+        "Weight": 0,
+        "Path": "i"
+      },
+      {
+        "Network": "1.0.101.9/32",
+        "Next Hop": "1.0.101.8",
+        "Metric": 0,
+        "LocPrf": 100,
+        "Weight": 0,
+        "Path": "i"
+      },
+      {
+        "Network": "1.0.101.10/32",
+        "Next Hop": "0.0.0.0",
+        "Metric": 0,
+        "LocPrf": 32768,
+        "Weight": 0,
+        "Path": "i"
+      }
+    ]
+  },
+  "evidence": [
+    "L5: BGP table state: Active",
+    "L6: Processed 9 prefixes, 17 paths"
+  ]
+}
+```

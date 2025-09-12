@@ -1,0 +1,19 @@
+{
+  "config_dir": "configs.5",
+  "task_dir": "taREMOVED18.error",
+  "generated_at": 1757425513,
+  "hosts": {
+    "B-ASBR-1": {
+      "platform_hint": "unknown",
+      "blocks": 0,
+      "dir": "/app/doo/configs.5/taREMOVED18.error/agent7/3-analyze/0-md-index/B-ASBR-1",
+      "index_path": "/app/doo/configs.5/taREMOVED18.error/agent7/3-analyze/0-md-index/B-ASBR-1__blocks.json"
+    },
+    "C-ASBR-1": {
+      "platform_hint": "unknown",
+      "blocks": 0,
+      "dir": "/app/doo/configs.5/taREMOVED18.error/agent7/3-analyze/0-md-index/C-ASBR-1",
+      "index_path": "/app/doo/configs.5/taREMOVED18.error/agent7/3-analyze/0-md-index/C-ASBR-1__blocks.json"
+    }
+  }
+}

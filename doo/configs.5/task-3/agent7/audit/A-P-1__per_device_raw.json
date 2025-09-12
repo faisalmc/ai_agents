@@ -1,0 +1,50 @@
+```json
+{
+  "hostname": "A-P-1",
+  "platform": "ios-xr",
+  "signals_seen": ["bgp", "mpls"],
+  "status": "degraded",
+  "status_reason": "All BGP neighbors are in an idle state.",
+  "ok": [
+    {
+      "summary": "MPLS forwarding table has entries with outgoing labels.",
+      "evidence_ref": { "command_key": "show_mpls_forwarding", "path": "commands.show_mpls_forwarding.data.local_label" }
+    }
+  ],
+  "suspect": [
+    {
+      "summary": "BGP neighbors are all in an idle state.",
+      "evidence_ref": { "command_key": "show_bgp_neighbors_brief", "path": "commands.show_bgp_neighbors_brief.data.metrics.bgp_neighbors_by_state.idle" }
+    },
+    {
+      "summary": "BGP IPv4 labeled-unicast command output is empty.",
+      "evidence_ref": { "command_key": "show_bgp_ipv4_labeled-unicast", "path": "commands.show_bgp_ipv4_labeled-unicast.data.metrics" }
+    }
+  ],
+  "findings": [
+    {
+      "signal": "bgp",
+      "severity": "error",
+      "summary": "All BGP neighbors are reported as idle.",
+      "evidence_ref": {
+        "command_key": "show_bgp_neighbors_brief",
+        "path": "commands.show_bgp_neighbors_brief.data.metrics.bgp_neighbors_total"
+      }
+    },
+    {
+      "signal": "mpls",
+      "severity": "info",
+      "summary": "MPLS forwarding is operational with multiple labels.",
+      "evidence_ref": {
+        "command_key": "show_mpls_forwarding",
+        "path": "commands.show_mpls_forwarding.data.local_label"
+      }
+    }
+  ],
+  "recommended_show_cmds": [
+    "show bgp summary",
+    "show bgp ipv4 unicast summary"
+  ],
+  "optional_active_cmds": []
+}
+```

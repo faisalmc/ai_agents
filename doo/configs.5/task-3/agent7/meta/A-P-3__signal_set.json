@@ -1,0 +1,27 @@
+{
+  "hostname": "A-P-3",
+  "platform_hint": "ios-xr",
+  "signals": [
+    "bgp",
+    "mpls"
+  ],
+  "confidence": 1.0,
+  "evidence": {
+    "bgp": [
+      "1.0.101.4         0   100                                         1d06h Established",
+      "1.0.101.9         0   100                                         1d06h Established",
+      "1.0.101.10        0   100                                         1d06h Established",
+      "1.0.101.11        0   100                                         1d06h Established",
+      "1.0.101.12        0   100                                         1d06h Established",
+      "BGP router identifier 1.0.101.7, local AS number 100"
+    ],
+    "mpls": [
+      "16001  16001       SR Pfx (idx 1)                  1.0.101.6       800",
+      "16002  16002       SR Pfx (idx 2)                  1.0.101.6       0",
+      "16003  16003       SR Pfx (idx 3)                  1.0.101.6       0",
+      "16004  16004       SR Pfx (idx 4)     Gi0/0/0/0    1.0.50.1        181566",
+      "16006  Pop         SR Pfx (idx 6)     Gi0/0/0/3    1.0.32.1        8496"
+    ]
+  },
+  "notes": "The CLI logs show BGP neighbor information and MPLS forwarding entries, indicating the presence of BGP and MPLS protocols on an IOS-XR device."
+}

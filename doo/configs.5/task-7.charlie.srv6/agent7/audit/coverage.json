@@ -1,0 +1,179 @@
+{
+  "config_dir": "configs.5",
+  "task_dir": "taREMOVED7.charlie.srv6",
+  "generated_at": 1757491210,
+  "summary": {
+    "hosts": 8,
+    "blocks": 32,
+    "ok": 0,
+    "err": 32
+  },
+  "per_platform": {
+    "cisco-ios-xr": {
+      "ok": 0,
+      "err": 32
+    }
+  },
+  "errors": [
+    {
+      "host": "C-ASBR-1",
+      "command": "show segment-routing srv6 manager",
+      "error": "Could not find parser for show segment-routing srv6 manager under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-ASBR-1",
+      "command": "show segment-routing srv6 manager | inc \"Enabled|Configured|Base\"",
+      "error": "Could not find parser for show segment-routing srv6 manager | inc \"Enabled|Configured|Base\" under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-ASBR-1",
+      "command": "show isis segment-routing srv6 locators detail",
+      "error": "Could not find parser for show isis segment-routing srv6 locators detail under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-ASBR-1",
+      "command": "show isis ipv6 route | inc \"fc00|tag\"",
+      "error": "Could not find parser for show isis ipv6 route | inc \"fc00|tag\" under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-ASBR-2",
+      "command": "show segment-routing srv6 manager",
+      "error": "Could not find parser for show segment-routing srv6 manager under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-ASBR-2",
+      "command": "show segment-routing srv6 manager | inc \"Enabled|Configured|Base\"",
+      "error": "Could not find parser for show segment-routing srv6 manager | inc \"Enabled|Configured|Base\" under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-ASBR-2",
+      "command": "show isis segment-routing srv6 locators detail",
+      "error": "Could not find parser for show isis segment-routing srv6 locators detail under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-ASBR-2",
+      "command": "show isis ipv6 route | inc \"fc00|tag\"",
+      "error": "Could not find parser for show isis ipv6 route | inc \"fc00|tag\" under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-P-1",
+      "command": "show segment-routing srv6 manager",
+      "error": "Could not find parser for show segment-routing srv6 manager under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-P-1",
+      "command": "show segment-routing srv6 manager | inc \"Enabled|Configured|Base\"",
+      "error": "Could not find parser for show segment-routing srv6 manager | inc \"Enabled|Configured|Base\" under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-P-1",
+      "command": "show isis segment-routing srv6 locators detail",
+      "error": "Could not find parser for show isis segment-routing srv6 locators detail under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-P-1",
+      "command": "show isis ipv6 route | inc \"fc00|tag\"",
+      "error": "Could not find parser for show isis ipv6 route | inc \"fc00|tag\" under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-P-2",
+      "command": "show segment-routing srv6 manager",
+      "error": "Could not find parser for show segment-routing srv6 manager under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-P-2",
+      "command": "show segment-routing srv6 manager | inc \"Enabled|Configured|Base\"",
+      "error": "Could not find parser for show segment-routing srv6 manager | inc \"Enabled|Configured|Base\" under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-P-2",
+      "command": "show isis segment-routing srv6 locators detail",
+      "error": "Could not find parser for show isis segment-routing srv6 locators detail under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-P-2",
+      "command": "show isis ipv6 route | inc \"fc00|tag\"",
+      "error": "Could not find parser for show isis ipv6 route | inc \"fc00|tag\" under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-PE-1",
+      "command": "show segment-routing srv6 manager",
+      "error": "Could not find parser for show segment-routing srv6 manager under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-PE-1",
+      "command": "show segment-routing srv6 manager | inc \"Enabled|Configured|Base\"",
+      "error": "Could not find parser for show segment-routing srv6 manager | inc \"Enabled|Configured|Base\" under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-PE-1",
+      "command": "show isis segment-routing srv6 locators detail",
+      "error": "Could not find parser for show isis segment-routing srv6 locators detail under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-PE-1",
+      "command": "show isis ipv6 route | inc \"fc00|tag\"",
+      "error": "Could not find parser for show isis ipv6 route | inc \"fc00|tag\" under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-PE-2",
+      "command": "show segment-routing srv6 manager",
+      "error": "Could not find parser for show segment-routing srv6 manager under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-PE-2",
+      "command": "show segment-routing srv6 manager | inc \"Enabled|Configured|Base\"",
+      "error": "Could not find parser for show segment-routing srv6 manager | inc \"Enabled|Configured|Base\" under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-PE-2",
+      "command": "show isis segment-routing srv6 locators detail",
+      "error": "Could not find parser for show isis segment-routing srv6 locators detail under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-PE-2",
+      "command": "show isis ipv6 route | inc \"fc00|tag\"",
+      "error": "Could not find parser for show isis ipv6 route | inc \"fc00|tag\" under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-PE-3",
+      "command": "show segment-routing srv6 manager",
+      "error": "Could not find parser for show segment-routing srv6 manager under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-PE-3",
+      "command": "show segment-routing srv6 manager | inc \"Enabled|Configured|Base\"",
+      "error": "Could not find parser for show segment-routing srv6 manager | inc \"Enabled|Configured|Base\" under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-PE-3",
+      "command": "show isis segment-routing srv6 locators detail",
+      "error": "Could not find parser for show isis segment-routing srv6 locators detail under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-PE-3",
+      "command": "show isis ipv6 route | inc \"fc00|tag\"",
+      "error": "Could not find parser for show isis ipv6 route | inc \"fc00|tag\" under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-PE-4",
+      "command": "show segment-routing srv6 manager",
+      "error": "Could not find parser for show segment-routing srv6 manager under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-PE-4",
+      "command": "show segment-routing srv6 manager | inc \"Enabled|Configured|Base\"",
+      "error": "Could not find parser for show segment-routing srv6 manager | inc \"Enabled|Configured|Base\" under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-PE-4",
+      "command": "show isis segment-routing srv6 locators detail",
+      "error": "Could not find parser for show isis segment-routing srv6 locators detail under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-PE-4",
+      "command": "show isis ipv6 route | inc \"fc00|tag\"",
+      "error": "Could not find parser for show isis ipv6 route | inc \"fc00|tag\" under ('iosxr', 'router', None)"
+    }
+  ]
+}

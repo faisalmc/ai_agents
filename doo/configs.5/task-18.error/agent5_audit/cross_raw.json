@@ -1,0 +1,21 @@
+{
+  "task_status": "degraded",
+  "top_incidents": [
+    {
+      "scope": "global",
+      "summary": "BGP process is not reachable due to TCP connection failure",
+      "impact": "Critical for routing and reachability",
+      "devices": ["B-ASBR-1", "C-ASBR-1"]
+    }
+  ],
+  "remediation_themes": [ "Investigate TCP connectivity between devices", "Check BGP configurations" ],
+  "trusted_followup_cmds": [],
+  "unvalidated_followup_cmds": [
+    "show bfd session",
+    "show bfd session detail",
+    "show ip bgp neighbor brief",
+    "show run router bgp",
+    "show ver"
+  ],
+  "optional_active_probes": []
+}

@@ -1,0 +1,100 @@
+```json
+{
+  "summary": "The output shows the IS-IS IPv6 routing table with multiple routes and their next hops.",
+  "status": {
+    "name": "isis_database",
+    "value": "unknown",
+    "confidence": "low",
+    "confidence_reason": "No overall state can be determined from the provided routes."
+  },
+  "metrics": {
+    "routes_total": 8
+  },
+  "tables": {
+    "routes": [
+      {
+        "Network": "fc00:100:1::/48",
+        "Next Hop": "fe80::5054:ff:fe17:1019",
+        "Interface": "GigabitEthernet0/0/0/0",
+        "Tag": "300"
+      },
+      {
+        "Network": "fc00:100:1::/48",
+        "Next Hop": "fe80::5054:ff:fe8e:608a",
+        "Interface": "GigabitEthernet0/0/0/1",
+        "Tag": "300"
+      },
+      {
+        "Network": "fc00:100:2::/48",
+        "Next Hop": "fe80::5054:ff:fe17:1019",
+        "Interface": "GigabitEthernet0/0/0/0",
+        "Tag": "300"
+      },
+      {
+        "Network": "fc00:100:2::/48",
+        "Next Hop": "fe80::5054:ff:fe8e:608a",
+        "Interface": "GigabitEthernet0/0/0/1",
+        "Tag": "300"
+      },
+      {
+        "Network": "fc00:100:3::/48",
+        "Next Hop": "fe80::5054:ff:fe8e:608a",
+        "Interface": "GigabitEthernet0/0/0/1",
+        "Tag": "300"
+      },
+      {
+        "Network": "fc00:100:4::/48",
+        "Next Hop": "C",
+        "Interface": "",
+        "Tag": ""
+      },
+      {
+        "Network": "fc00:100:5::/48",
+        "Next Hop": "fe80::5054:ff:fe17:1019",
+        "Interface": "GigabitEthernet0/0/0/0",
+        "Tag": "300"
+      },
+      {
+        "Network": "fc00:100:5::/48",
+        "Next Hop": "fe80::5054:ff:fe8e:608a",
+        "Interface": "GigabitEthernet0/0/0/1",
+        "Tag": "300"
+      },
+      {
+        "Network": "fc00:100:6::/48",
+        "Next Hop": "fe80::5054:ff:fe17:1019",
+        "Interface": "GigabitEthernet0/0/0/0",
+        "Tag": "300"
+      },
+      {
+        "Network": "fc00:100:7::/48",
+        "Next Hop": "fe80::5054:ff:fe17:1019",
+        "Interface": "GigabitEthernet0/0/0/0",
+        "Tag": "300"
+      },
+      {
+        "Network": "fc00:100:7::/48",
+        "Next Hop": "fe80::5054:ff:fe8e:608a",
+        "Interface": "GigabitEthernet0/0/0/1",
+        "Tag": "300"
+      },
+      {
+        "Network": "fc00:100:8::/48",
+        "Next Hop": "fe80::5054:ff:fe17:1019",
+        "Interface": "GigabitEthernet0/0/0/0",
+        "Tag": "300"
+      }
+    ]
+  },
+  "evidence": [
+    "L2 fc00:100:1::/48 [31/115]",
+    "L2 fc00:100:2::/48 [21/115]",
+    "L2 fc00:100:3::/48 [11/115]",
+    "C  fc00:100:4::/48",
+    "L2 fc00:100:5::/48 [21/115]",
+    "L2 fc00:100:6::/48 [11/115]",
+    "L2 fc00:100:7::/48 [31/115]",
+    "L2 fc00:100:8::/48 [21/115]"
+  ]
+}
+```

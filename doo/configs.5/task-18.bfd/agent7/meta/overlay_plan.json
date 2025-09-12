@@ -1,0 +1,35 @@
+{
+  "config_dir": "configs.5",
+  "task_dir": "taREMOVED18.bfd",
+  "generated_at": 1757265484,
+  "per_signal_limit": 3,
+  "hosts": {
+    "B-ASBR-1": {
+      "platform": "cisco-ios-xr",
+      "signals": [
+        "cisco_xr",
+        "connection",
+        "failed",
+        "firewall",
+        "hostname",
+        "ip",
+        "port",
+        "tcp"
+      ],
+      "added": [],
+      "present_count": 6,
+      "reasons": {}
+    },
+    "C-ASBR-1": {
+      "platform": "cisco-ios-xr",
+      "signals": [
+        "connection",
+        "failed",
+        "tcp"
+      ],
+      "added": [],
+      "present_count": 6,
+      "reasons": {}
+    }
+  }
+}

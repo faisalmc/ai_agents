@@ -1,0 +1,24 @@
+{
+  "hostname": "A-P-2",
+  "platform": "ios-xr",
+  "signals_seen": ["bgp", "mpls"],
+  "status": "healthy",
+  "findings": [
+    {
+      "signal": "bgp",
+      "severity": "info",
+      "detail": "BGP process is running and core neighbors are Established. AFI/SAFI ipv4 labeled-unicast is active. Router-ID is set."
+    },
+    {
+      "signal": "mpls",
+      "severity": "info",
+      "detail": "MPLS forwarding is operational with multiple labels being used for SR prefixes and adjacencies."
+    }
+  ],
+  "recommended_show_cmds": [
+    "show bgp summary",
+    "show bgp ipv4 labeled-unicast summary",
+    "show run interface Loopback0"
+  ],
+  "optional_active_cmds": []
+}

@@ -1,0 +1,66 @@
+{
+  "summary": "The BGP neighbors are all in an idle state.",
+  "status": {
+    "name": "bgp_neighbors",
+    "value": "idle",
+    "confidence": "high",
+    "confidence_reason": "All neighbors are reported as idle."
+  },
+  "metrics": {
+    "bgp_neighbors_total": 5,
+    "bgp_neighbors_by_state": {
+      "idle": 5
+    }
+  },
+  "tables": {
+    "bgp_neighbors": [
+      {
+        "Neighbor": "1.0.101.1",
+        "Spk": 0,
+        "AS": 100,
+        "Description": "",
+        "Up/Down": "1d04h",
+        "NBRState": "Idle"
+      },
+      {
+        "Neighbor": "1.0.101.2",
+        "Spk": 0,
+        "AS": 100,
+        "Description": "",
+        "Up/Down": "1d04h",
+        "NBRState": "Idle"
+      },
+      {
+        "Neighbor": "1.0.101.3",
+        "Spk": 0,
+        "AS": 100,
+        "Description": "",
+        "Up/Down": "1d04h",
+        "NBRState": "Idle"
+      },
+      {
+        "Neighbor": "1.0.101.11",
+        "Spk": 0,
+        "AS": 100,
+        "Description": "",
+        "Up/Down": "1d04h",
+        "NBRState": "Idle"
+      },
+      {
+        "Neighbor": "1.0.101.12",
+        "Spk": 0,
+        "AS": 100,
+        "Description": "",
+        "Up/Down": "1d04h",
+        "NBRState": "Idle"
+      }
+    ]
+  },
+  "evidence": [
+    "L4: 1.0.101.1         0   100                                         1d04h Idle",
+    "L5: 1.0.101.2         0   100                                         1d04h Idle",
+    "L6: 1.0.101.3         0   100                                         1d04h Idle",
+    "L7: 1.0.101.11        0   100                                         1d04h Idle",
+    "L8: 1.0.101.12        0   100                                         1d04h Idle"
+  ]
+}

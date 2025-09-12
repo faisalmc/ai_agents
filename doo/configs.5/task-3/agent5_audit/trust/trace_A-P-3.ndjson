@@ -1,0 +1,3 @@
+{"host": "A-P-3", "platform": "ios-xr", "input_cmd": "show bgp summary", "sanitized": "show bgp summary", "decision": "UNVALIDATED", "reasons": []}
+{"host": "A-P-3", "platform": "ios-xr", "input_cmd": "show bgp ipv4 unicast summary", "sanitized": "show bgp ipv4 unicast summary", "decision": "UNVALIDATED", "reasons": []}
+{"host": "A-P-3", "platform": "ios-xr", "input_cmd": "show run | section ^router bgp", "sanitized": "show running-config", "decision": "UNVALIDATED", "reasons": []}

@@ -1,0 +1,112 @@
+{
+  "7ac8cfb8cc9f23a1": {
+    "ts": 1757265484.1163287,
+    "request": {
+      "q": "cisco_xr troubleshooting cisco-ios-xr commands",
+      "platform": "cisco-ios-xr",
+      "signal": "cisco_xr",
+      "version": null,
+      "limit": 6
+    },
+    "results": []
+  },
+  "d824f9312141c5df": {
+    "ts": 1757265484.1172953,
+    "request": {
+      "q": "connection troubleshooting cisco-ios-xr commands",
+      "platform": "cisco-ios-xr",
+      "signal": "connection",
+      "version": null,
+      "limit": 6
+    },
+    "results": []
+  },
+  "4af0692d98c64646": {
+    "ts": 1757265484.1181316,
+    "request": {
+      "q": "failed troubleshooting cisco-ios-xr commands",
+      "platform": "cisco-ios-xr",
+      "signal": "failed",
+      "version": null,
+      "limit": 6
+    },
+    "results": []
+  },
+  "95b672e4e3839fd3": {
+    "ts": 1757265484.1185207,
+    "request": {
+      "q": "firewall troubleshooting cisco-ios-xr commands",
+      "platform": "cisco-ios-xr",
+      "signal": "firewall",
+      "version": null,
+      "limit": 6
+    },
+    "results": []
+  },
+  "5a7e2a43595e8ed0": {
+    "ts": 1757265484.1189463,
+    "request": {
+      "q": "hostname troubleshooting cisco-ios-xr commands",
+      "platform": "cisco-ios-xr",
+      "signal": "hostname",
+      "version": null,
+      "limit": 6
+    },
+    "results": []
+  },
+  "5deedf9266ddef0a": {
+    "ts": 1757265484.1193616,
+    "request": {
+      "q": "ip troubleshooting cisco-ios-xr commands",
+      "platform": "cisco-ios-xr",
+      "signal": "ip",
+      "version": null,
+      "limit": 6
+    },
+    "results": []
+  },
+  "98aa1ec87f6e66fb": {
+    "ts": 1757265484.119899,
+    "request": {
+      "q": "port troubleshooting cisco-ios-xr commands",
+      "platform": "cisco-ios-xr",
+      "signal": "port",
+      "version": null,
+      "limit": 6
+    },
+    "results": []
+  },
+  "cc5c98da8620f669": {
+    "ts": 1757265484.1208894,
+    "request": {
+      "q": "tcp troubleshooting cisco-ios-xr commands",
+      "platform": "cisco-ios-xr",
+      "signal": "tcp",
+      "version": null,
+      "limit": 6
+    },
+    "results": []
+  },
+  "666d3c83fe28e949": {
+    "ts": 1757339728.400998,
+    "request": {
+      "q": "bgp troubleshooting cisco-ios-xr commands",
+      "platform": "cisco-ios-xr",
+      "signal": "bgp",
+      "version": null,
+      "limit": 6
+    },
+    "results": []
+  },
+  "515b9405056a2789": {
+    "ts": 1757339728.404265,
+    "request": {
+      "q": "bfd troubleshooting cisco-ios-xr commands",
+      "platform": "cisco-ios-xr",
+      "signal": "bfd",
+      "version": null,
+      "limit": 6
+    },
+    "results": []
+  }
+}

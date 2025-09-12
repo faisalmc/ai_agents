@@ -1,0 +1,6 @@
+
+Tue Aug  5 08:14:11.365 UTC
+  SRv6 Enabled: Yes
+      SID Base Block: fc00:100::/24
+      Configured: 2620:fc7:3:101::1
+RP/0/RP0/CPU0:C-PE-1#

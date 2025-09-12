@@ -1,0 +1,21 @@
+# Web/API
+fastapi==0.95.2
+uvicorn[standard]==0.22.0
+python-dotenv==1.0.0
+httpx==0.27.2
+pydantic==1.10.13
+
+# LLM + search (same family as Agent-5 for consistency)
+openai==0.27.4
+google-adk
+
+# Cisco Genie/pyATS (local parsing; deterministic)
+pyats[full]==23.10
+genie.libs.parser==23.10
+genie.libs.conf==23.10
+genie.libs.sdk==23.10
+
+# Quality of life
+rich==13.7.1       # pretty logging / trace output
+tenacity==8.2.3    # robust retries with backoff (for LLM/doc lookups)
+

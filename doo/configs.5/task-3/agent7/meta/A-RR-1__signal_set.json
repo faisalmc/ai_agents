@@ -1,0 +1,26 @@
+{
+  "hostname": "A-RR-1",
+  "platform_hint": "ios-xe",
+  "signals": [
+    "ios-xe",
+    "version-17.03.08a",
+    "uptime-5d10h48m",
+    "smart-license-unregistered"
+  ],
+  "confidence": 0.9,
+  "evidence": {
+    "ios-xe": [
+      "Cisco IOS XE Software, Version 17.03.08a"
+    ],
+    "version-17.03.08a": [
+      "Cisco IOS XE Software, Version 17.03.08a"
+    ],
+    "uptime-5d10h48m": [
+      "A-RR-1 uptime is 5 days, 10 hours, 48 minutes"
+    ],
+    "smart-license-unregistered": [
+      "Smart Licensing Status: UNREGISTERED/No Licenses in Use"
+    ]
+  },
+  "notes": "The CLI log provides clear evidence of the IOS XE platform, version 17.03.08a, 5 days and 10 hours of uptime, and the smart license status as unregistered."
+}

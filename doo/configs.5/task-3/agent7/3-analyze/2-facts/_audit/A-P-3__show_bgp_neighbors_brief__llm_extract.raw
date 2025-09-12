@@ -1,0 +1,66 @@
+{
+  "summary": "The BGP neighbors are all established.",
+  "status": {
+    "name": "bgp_neighbors",
+    "value": "established",
+    "confidence": "high",
+    "confidence_reason": "All neighbors are in the Established state."
+  },
+  "metrics": {
+    "bgp_neighbors_total": 5,
+    "bgp_neighbors_by_state": {
+      "established": 5
+    }
+  },
+  "tables": {
+    "bgp_neighbors": [
+      {
+        "Neighbor": "1.0.101.4",
+        "Spk": 0,
+        "AS": 100,
+        "Description": "",
+        "Up/Down": "1d06h",
+        "NBRState": "Established"
+      },
+      {
+        "Neighbor": "1.0.101.9",
+        "Spk": 0,
+        "AS": 100,
+        "Description": "",
+        "Up/Down": "1d06h",
+        "NBRState": "Established"
+      },
+      {
+        "Neighbor": "1.0.101.10",
+        "Spk": 0,
+        "AS": 100,
+        "Description": "",
+        "Up/Down": "1d06h",
+        "NBRState": "Established"
+      },
+      {
+        "Neighbor": "1.0.101.11",
+        "Spk": 0,
+        "AS": 100,
+        "Description": "",
+        "Up/Down": "1d06h",
+        "NBRState": "Established"
+      },
+      {
+        "Neighbor": "1.0.101.12",
+        "Spk": 0,
+        "AS": 100,
+        "Description": "",
+        "Up/Down": "1d06h",
+        "NBRState": "Established"
+      }
+    ]
+  },
+  "evidence": [
+    "L3: 1.0.101.4         0   100                                         1d06h Established",
+    "L4: 1.0.101.9         0   100                                         1d06h Established",
+    "L5: 1.0.101.10        0   100                                         1d06h Established",
+    "L6: 1.0.101.11        0   100                                         1d06h Established",
+    "L7: 1.0.101.12        0   100                                         1d06h Established"
+  ]
+}

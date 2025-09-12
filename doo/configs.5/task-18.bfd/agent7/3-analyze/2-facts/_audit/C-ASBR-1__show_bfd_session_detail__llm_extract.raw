@@ -1,0 +1,91 @@
+{
+  "summary": "The BFD session is currently up with a state of UP.",
+  "status": {
+    "name": "bfd_session",
+    "value": "up",
+    "confidence": "high",
+    "confidence_reason": "The output explicitly states the session state as UP."
+  },
+  "metrics": {
+    "desired_tx_interval_seconds": 2,
+    "required_rx_interval_seconds": 2,
+    "required_echo_rx_interval_ms": 1,
+    "multiplier": 5,
+    "echo_detection_time_ms": 2500,
+    "async_detection_time_seconds": 10,
+    "local_negotiated_async_tx_interval_seconds": 2,
+    "remote_negotiated_async_tx_interval_seconds": 2,
+    "desired_echo_tx_interval_ms": 500,
+    "local_negotiated_echo_tx_interval_ms": 500,
+    "last_packet_transmitted_ms_ago": 1562,
+    "last_packet_received_ms_ago": 1671
+  },
+  "tables": {
+    "parameters": [
+      {
+        "Version": "1",
+        "desired_tx_interval": "2 s",
+        "required_rx_interval": "2 s",
+        "required_echo_rx_interval": "1 ms",
+        "multiplier": "5",
+        "diag": "None",
+        "my_discr": "2148532226",
+        "your_discr": "2148532226",
+        "state": "UP",
+        "D/F/P/C/A": "0/0/0/1/0"
+      }
+    ],
+    "timers": [
+      {
+        "local_negotiated_async_tx_interval": "2 s",
+        "remote_negotiated_async_tx_interval": "2 s",
+        "desired_echo_tx_interval": "500 ms",
+        "local_negotiated_echo_tx_interval": "500 ms"
+      }
+    ],
+    "local_stats": [
+      {
+        "async_tx_intervals": {
+          "number_of_intervals": 17,
+          "min": "2 ms",
+          "max": "1956 ms",
+          "avg": "1719 ms"
+        },
+        "last_packet_transmitted": "1562 ms ago",
+        "async_rx_intervals": {
+          "number_of_intervals": 17,
+          "min": "3 ms",
+          "max": "1959 ms",
+          "avg": "1712 ms"
+        },
+        "last_packet_received": "1671 ms ago",
+        "echo_tx_intervals": {
+          "number_of_intervals": 0,
+          "min": "0 s",
+          "max": "0 s",
+          "avg": "0 s"
+        },
+        "last_echo_packet_transmitted": "279 ms ago",
+        "echo_rx_intervals": {
+          "number_of_intervals": 0,
+          "min": "0 s",
+          "max": "0 s",
+          "avg": "0 s"
+        },
+        "latency_of_echo_packets": {
+          "number_of_packets": 0,
+          "min": "0 ms",
+          "max": "0 ms",
+          "avg": "0 ms"
+        }
+      }
+    ]
+  },
+  "evidence": [
+    "L5: State: UP for 0d:0h:0m:30s, number of times UP: 1",
+    "L6: Session type: PR/V4/SH",
+    "L7: my discr: 2148532226, your discr: 2148532226, state UP",
+    "L8: Local negotiated async tx interval: 2 s",
+    "L9: Remote negotiated async tx interval: 2 s"
+  ]
+}

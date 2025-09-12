@@ -1,0 +1,133 @@
+{
+  "config_dir": "configs.5",
+  "task_dir": "taREMOVED3",
+  "generated_at": 1757487584,
+  "summary": {
+    "hosts": 11,
+    "blocks": 33,
+    "ok": 11,
+    "err": 22
+  },
+  "per_platform": {
+    "cisco-ios-xr": {
+      "ok": 10,
+      "err": 22
+    },
+    "unknown": {
+      "ok": 1,
+      "err": 0
+    }
+  },
+  "errors": [
+    {
+      "host": "A-ASBR-1",
+      "command": "show bgp neighbors brief",
+      "error": "Parser Output is empty"
+    },
+    {
+      "host": "A-ASBR-1",
+      "command": "show bgp ipv4 labeled-unicast",
+      "error": "Could not find parser for show bgp ipv4 labeled-unicast under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "A-ASBR-2",
+      "command": "show bgp neighbors brief",
+      "error": "Parser Output is empty"
+    },
+    {
+      "host": "A-ASBR-2",
+      "command": "show bgp ipv4 labeled-unicast",
+      "error": "Could not find parser for show bgp ipv4 labeled-unicast under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "A-P-1",
+      "command": "show bgp neighbors brief",
+      "error": "Parser Output is empty"
+    },
+    {
+      "host": "A-P-1",
+      "command": "show bgp ipv4 labeled-unicast",
+      "error": "Could not find parser for show bgp ipv4 labeled-unicast under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "A-P-2",
+      "command": "show bgp neighbors brief",
+      "error": "Parser Output is empty"
+    },
+    {
+      "host": "A-P-2",
+      "command": "show bgp ipv4 labeled-unicast",
+      "error": "Could not find parser for show bgp ipv4 labeled-unicast under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "A-P-3",
+      "command": "show bgp neighbors brief",
+      "error": "Parser Output is empty"
+    },
+    {
+      "host": "A-P-3",
+      "command": "show bgp ipv4 labeled-unicast",
+      "error": "Could not find parser for show bgp ipv4 labeled-unicast under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "A-P-4",
+      "command": "show bgp neighbors brief",
+      "error": "Parser Output is empty"
+    },
+    {
+      "host": "A-P-4",
+      "command": "show bgp ipv4 labeled-unicast",
+      "error": "Could not find parser for show bgp ipv4 labeled-unicast under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "A-PE-1",
+      "command": "show bgp neighbors brief",
+      "error": "Parser Output is empty"
+    },
+    {
+      "host": "A-PE-1",
+      "command": "show bgp ipv4 labeled-unicast",
+      "error": "Could not find parser for show bgp ipv4 labeled-unicast under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "A-PE-1",
+      "command": "show bgp ipv4 labeled-unicast 1.0.101.7",
+      "error": "Could not find parser for show bgp ipv4 labeled-unicast 1.0.101.7 under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "A-PE-1",
+      "command": "show bgp ipv4 labeled-unicast 1.0.101.9",
+      "error": "Could not find parser for show bgp ipv4 labeled-unicast 1.0.101.9 under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "A-PE-2",
+      "command": "show bgp neighbors brief",
+      "error": "Parser Output is empty"
+    },
+    {
+      "host": "A-PE-2",
+      "command": "show bgp ipv4 labeled-unicast",
+      "error": "Could not find parser for show bgp ipv4 labeled-unicast under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "A-PE-3",
+      "command": "show bgp neighbors brief",
+      "error": "Parser Output is empty"
+    },
+    {
+      "host": "A-PE-3",
+      "command": "show bgp ipv4 labeled-unicast",
+      "error": "Could not find parser for show bgp ipv4 labeled-unicast under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "A-PE-4",
+      "command": "show bgp neighbors brief",
+      "error": "Parser Output is empty"
+    },
+    {
+      "host": "A-PE-4",
+      "command": "show bgp ipv4 labeled-unicast",
+      "error": "Could not find parser for show bgp ipv4 labeled-unicast under ('iosxr', 'router', None)"
+    }
+  ]
+}

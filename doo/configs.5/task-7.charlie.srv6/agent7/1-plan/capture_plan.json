@@ -1,0 +1,123 @@
+{
+  "config_dir": "configs.5",
+  "task_dir": "taREMOVED7.charlie.srv6",
+  "generated_at": 1757489727,
+  "per_signal_limit": 3,
+  "hosts": {
+    "C-ASBR-1": {
+      "platform": "cisco-ios-xr",
+      "signals": [
+        "srv6",
+        "isis",
+        "locators",
+        "enabled",
+        "configured"
+      ],
+      "added": [],
+      "present_count": 6,
+      "reasons": {}
+    },
+    "C-ASBR-2": {
+      "platform": "cisco-ios-xr",
+      "signals": [
+        "srv6",
+        "isis",
+        "locators",
+        "enabled",
+        "configured"
+      ],
+      "added": [],
+      "present_count": 6,
+      "reasons": {}
+    },
+    "C-P-1": {
+      "platform": "cisco-ios-xr",
+      "signals": [
+        "srv6",
+        "isis",
+        "locators",
+        "enabled",
+        "configured"
+      ],
+      "added": [],
+      "present_count": 6,
+      "reasons": {}
+    },
+    "C-P-2": {
+      "platform": "cisco-ios-xr",
+      "signals": [
+        "srv6",
+        "isis",
+        "locators",
+        "enabled",
+        "configured"
+      ],
+      "added": [],
+      "present_count": 6,
+      "reasons": {}
+    },
+    "C-PE-1": {
+      "platform": "cisco-ios-xr",
+      "signals": [
+        "srv6",
+        "isis",
+        "locators",
+        "enabled",
+        "configured"
+      ],
+      "added": [],
+      "present_count": 6,
+      "reasons": {}
+    },
+    "C-PE-2": {
+      "platform": "cisco-ios-xr",
+      "signals": [
+        "srv6",
+        "isis",
+        "locators",
+        "enabled",
+        "configured"
+      ],
+      "added": [],
+      "present_count": 6,
+      "reasons": {}
+    },
+    "C-PE-3": {
+      "platform": "cisco-ios-xr",
+      "signals": [
+        "srv6",
+        "isis",
+        "locators",
+        "enabled",
+        "configured"
+      ],
+      "added": [],
+      "present_count": 6,
+      "reasons": {}
+    },
+    "C-PE-4": {
+      "platform": "cisco-ios-xr",
+      "signals": [
+        "srv6",
+        "isis",
+        "locators",
+        "enabled",
+        "configured"
+      ],
+      "added": [],
+      "present_count": 6,
+      "reasons": {}
+    }
+  },
+  "ini_path": "/app/doo/configs.5/taREMOVED7.charlie.srv6/agent7/1-plan/show_cmds.plan.ini",
+  "selected_hosts": [
+    "C-ASBR-1",
+    "C-ASBR-2",
+    "C-P-1",
+    "C-P-2",
+    "C-PE-1",
+    "C-PE-2",
+    "C-PE-3",
+    "C-PE-4"
+  ]
+}

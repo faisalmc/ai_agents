@@ -1,0 +1,30 @@
+```json
+{
+  "hostname": "A-ASBR-1",
+  "platform": "ios-xr",
+  "signals_seen": ["bgp", "mpls"],
+  "status": "healthy",
+  "status_reason": "BGP neighbors are established and BGP table is active.",
+  "ok": [
+    {
+      "summary": "BGP neighbors are both in an established state.",
+      "evidence_ref": { "command_key": "show_bgp_neighbors_brief", "path": "commands.show_bgp_neighbors_brief.data.summary" }
+    },
+    {
+      "summary": "BGP table for IPv4 labeled-unicast is active with 9 prefixes.",
+      "evidence_ref": { "command_key": "show_bgp_ipv4_labeled-unicast", "path": "commands.show_bgp_ipv4_labeled-unicast.data.summary" }
+    },
+    {
+      "summary": "MPLS forwarding is operational with multiple labels.",
+      "evidence_ref": { "command_key": "show_mpls_forwarding", "path": "commands.show_mpls_forwarding.data.local_label" }
+    }
+  ],
+  "suspect": [],
+  "findings": [],
+  "recommended_show_cmds": [
+    "show bgp summary",
+    "show bgp ipv4 labeled-unicast summary"
+  ],
+  "optional_active_cmds": []
+}
+```

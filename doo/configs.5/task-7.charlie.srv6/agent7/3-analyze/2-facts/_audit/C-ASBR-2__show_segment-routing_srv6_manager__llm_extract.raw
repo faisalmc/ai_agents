@@ -1,0 +1,76 @@
+```json
+{
+  "summary": "SRv6 is enabled with operational parameters and resource availability.",
+  "status": {
+    "name": "srv6_manager",
+    "value": "up",
+    "confidence": "high",
+    "confidence_reason": "SRv6 is enabled and operational with available resources."
+  },
+  "metrics": {
+    "number_of_locators": 1,
+    "number_of_sids": 2,
+    "max_sid_resources": 64000,
+    "number_of_free_sid_resources": 63998,
+    "oor_threshold_green": 3200,
+    "oor_threshold_warning": 1920,
+    "max_locators": 16,
+    "sid_holdtime_seconds": 180
+  },
+  "tables": {
+    "parameters": [
+      {
+        "SRv6 Enabled": "Yes",
+        "SRv6 Operational Mode": "Micro-segment",
+        "SID Base Block": "fc00:100::/24",
+        "Source Address Configured": "2620:fc7:3:101::8",
+        "Source Address Default": "2620:fc7:3:101::8",
+        "Hop-Limit": "Default",
+        "Traffic-class": "Default"
+      }
+    ],
+    "sid_resources": [
+      {
+        "Block": "fc00:100::/32",
+        "Number of SIDs free": 7678,
+        "Max SIDs": 7680,
+        "Thresholds Green": 384,
+        "Thresholds Warning": 231,
+        "Status": "Resource Available"
+      },
+      {
+        "Block": "fc00:1ff::/32",
+        "Number of SIDs free": 7680,
+        "Max SIDs": 7680,
+        "Thresholds Green": 384,
+        "Thresholds Warning": 231,
+        "Status": "Resource Available"
+      }
+    ],
+    "platform_capabilities": [
+      {
+        "SRv6": "Yes",
+        "TILFA": "Yes",
+        "Microloop-Avoidance": "Yes"
+      }
+    ],
+    "signaled_parameters": [
+      {
+        "Max-SL": 3,
+        "Max-End-Pop-SRH": 3,
+        "Max-H-Insert": "3 sids",
+        "Max-H-Encap": "3 sids",
+        "Max-End-D": 4
+      }
+    ]
+  },
+  "evidence": [
+    "L3: SRv6 Enabled: Yes",
+    "L4: Number of Locators: 1 (1 operational)",
+    "L5: Number of SIDs: 2 (0 stale)",
+    "L6: Max SID resources: 64000",
+    "L7: Number of free SID resources: 63998",
+    "L8: Status: Resource Available"
+  ]
+}
+```

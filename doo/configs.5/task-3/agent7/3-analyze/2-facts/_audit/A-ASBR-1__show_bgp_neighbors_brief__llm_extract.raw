@@ -1,0 +1,39 @@
+{
+  "summary": "There are two BGP neighbors, both in an established state.",
+  "status": {
+    "name": "bgp_neighbors",
+    "value": "established",
+    "confidence": "high",
+    "confidence_reason": "All neighbors are in the established state."
+  },
+  "metrics": {
+    "bgp_neighbors_total": 2,
+    "bgp_neighbors_by_state": {
+      "established": 2
+    }
+  },
+  "tables": {
+    "bgp_neighbors": [
+      {
+        "Neighbor": "1.0.101.7",
+        "Spk": 0,
+        "AS": 100,
+        "Description": "",
+        "Up/Down": "1d06h",
+        "NBRState": "Established"
+      },
+      {
+        "Neighbor": "1.0.101.8",
+        "Spk": 0,
+        "AS": 100,
+        "Description": "",
+        "Up/Down": "1d06h",
+        "NBRState": "Established"
+      }
+    ]
+  },
+  "evidence": [
+    "L4: 1.0.101.7         0   100                                         1d06h Established",
+    "L5: 1.0.101.8         0   100                                         1d06h Established"
+  ]
+}

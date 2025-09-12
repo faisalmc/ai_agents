@@ -1,0 +1,31 @@
+{
+  "hostname": "C-ASBR-1",
+  "platform": "cisco-ios-xr",
+  "signals_seen": [
+    "bfd",
+    "bgp",
+    "evpn",
+    "intf",
+    "ip",
+    "isis",
+    "l2vpn",
+    "mpls",
+    "ospf",
+    "sr",
+    "srv6"
+  ],
+  "status": "unknown",
+  "findings": [],
+  "trusted_commands": [
+    "show bfd session",
+    "show bfd session detail",
+    "show ip bgp neighbor brief",
+    "show running-config router bgp",
+    "show ver"
+  ],
+  "unvalidated_cmds": [
+    "show bgp summary",
+    "show bfd neighbors"
+  ],
+  "optional_active_cmds": [],
+}

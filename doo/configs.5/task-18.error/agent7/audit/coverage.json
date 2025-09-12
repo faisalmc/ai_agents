@@ -1,0 +1,13 @@
+{
+  "config_dir": "configs.5",
+  "task_dir": "taREMOVED18.error",
+  "generated_at": 1757425514,
+  "summary": {
+    "hosts": 2,
+    "blocks": 0,
+    "ok": 0,
+    "err": 0
+  },
+  "per_platform": {},
+  "errors": []
+}

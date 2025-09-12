@@ -1,0 +1,179 @@
+--- SYSTEM ---
+You are a senior Cisco SP NOC engineer.
+You will receive:
+  • Optional JSON from Agent‑1 summarizing intended configuration for this host
+  • CLI show-output captured in a Markdown (.md) file for this host (IOS or IOS‑XR)
+Your tasks:
+  1) Determine platform ("ios-xr" or "ios") if possible from the log, else "unknown".
+  2) From the log ONLY, assess health for protocols/features that appear (BGP, EVPN/L2VPN,
+     ISIS/OSPF, SR/SRv6, MPLS, interface/port-channel, reachability).
+  3) If intent JSON is provided, use it as context for *expected* state, but do NOT invent facts
+     not visible in the log.
+  4) Return a single JSON object with fields:
+     {
+       "hostname": "<string>",
+       "platform": "ios-xr" | "ios" | "unknown",
+       "signals_seen": ["bgp","evpn","isis","mpls","sr","l2vpn","intf","ip", ...],
+       "status": "healthy" | "degraded" | "error" | "unknown",
+       "findings": [ {"signal":"bgp","severity":"warn|error|info","detail":"..."} , ... ],
+       "recommended_show_cmds": [ "show ...", ... ],   // safe, read-only
+       "optional_active_cmds": [ "ping ...", "traceroute ..." ]  // optional probes only
+     }
+  5) NEVER include config/clear/reload/debug commands in either list.
+  6) Be conservative: if signal is unclear, mark severity "info" and explain.
+  7) Only report signals that are evidenced by the provided log text, agent‑1 intents, or show_cmds.ini. Do not infer protocols that are not visible.
+  8) If `ground_evidence_facts` contains a condition (e.g., interface CLNS=Down, BGP neighbor=Idle/Active), you MUST surface a corresponding finding with the evidence reference.
+
+Output ONLY the JSON object.
+Prefer recommending follow-up 'show' commands that are already present in show_cmds.ini; add at most 3 new 'show' commands only if clearly warranted by the findings. Never suggest config/debug/clear.
+Do not mention devices other than the current hostname. If a signal is not evidenced in the log/context, exclude it.
+
+
+--- USER ---
+### Context (JSON)
+```json
+{
+  "hostname": "B-ASBR-1",
+  "platform_hint": "unknown",
+  "focus_signals": [
+    "bgp",
+    "ip",
+    "mpls"
+  ],
+  "allow_active_probes": false,
+  "agent1_summary": {
+    "hostname": "B-ASBR-1",
+    "provider": "Beta",
+    "customer": null,
+    "role": "ASBR",
+    "platform_hint": "cisco-ios-xr",
+    "vendor": "cisco",
+    "config_intents": [
+      "Establish BGP AS 200 with IPv4 and IPv6 unicast address families",
+      "Configure BFD with minimum-interval 500, multiplier 5, and fast-detect for neighbor-group TO_C_ASBR"
+    ],
+    "expected_state": [
+      {
+        "signal": "bgp",
+        "observation_goals": [
+          "BGP process is running",
+          "Neighbor AS 300 configured with IPv4 and IPv6 unicast address families"
+        ],
+        "suggested_show": [
+          {
+            "cmd": "show bgp summary",
+            "provenance": "llm",
+            "confidence": "high",
+            "platform": "cisco-ios-xr"
+          },
+          {
+            "cmd": "show run | section ^router bgp",
+            "provenance": "llm",
+            "confidence": "med",
+            "platform": "cisco-ios-xr"
+          }
+        ],
+        "candidate_show": []
+      },
+      {
+        "signal": "bfd",
+        "observation_goals": [
+          "BFD configured with minimum-interval 500, multiplier 5, and fast-detect for neighbor-group TO_C_ASBR"
+        ],
+        "suggested_show": [
+          {
+            "cmd": "show bfd neighbors",
+            "provenance": "llm",
+            "confidence": "high",
+            "platform": "cisco-ios-xr"
+          }
+        ],
+        "candidate_show": []
+      }
+    ]
+  },
+  "show_cmds_ini": [
+    "show run router bgp",
+    "show ip bgp neighbor brief",
+    "show bfd session",
+    "show bfd session detail",
+    "show ver"
+  ],
+  "ground_evidence_facts": {
+    "hostname": "B-ASBR-1",
+    "platform_hint": "unknown",
+    "signals_seen": [
+      "bgp",
+      "evpn",
+      "intf",
+      "ip",
+      "isis",
+      "l2vpn",
+      "mpls",
+      "ospf",
+      "sr",
+      "srv6"
+    ],
+    "trusted_from_observed": [
+      "show bfd session",
+      "show bfd session detail",
+      "show ip bgp neighbor brief",
+      "show run router bgp",
+      "show ver"
+    ],
+    "trusted_from_agent1": [],
+    "trusted_all": [
+      "show bfd session",
+      "show bfd session detail",
+      "show ip bgp neighbor brief",
+      "show run router bgp",
+      "show ver"
+    ],
+    "candidates_from_agent1": [
+      "show bgp summary",
+      "show run | section ^router bgp",
+      "show bfd neighbors"
+    ],
+    "ideas_from_lexicon": [],
+    "candidates_all": [
+      "show bgp summary",
+      "show run | section ^router bgp",
+      "show bfd neighbors"
+    ],
+    "source_counts": {
+      "observed": 5,
+      "agent1_suggested": 0,
+      "agent1_candidates": 3,
+      "lexicon_candidates": 0,
+      "trusted_total": 5,
+      "candidates_total": 3
+    },
+    "md_len": 279,
+    "facts": {
+      "bgp_neighbors": [],
+      "evpn_xconnects": [],
+      "lacp_bundles": [],
+      "reachability": []
+    }
+  }
+}
+```
+
+### Device Log (Markdown)
+```md
+# ERROR for B-ASBR-1
+_Time: 2025-09-03 10:54:10.057320_
+
+```
+TCP connection to device failed.
+
+Common causes of this problem are:
+1. Incorrect hostname or IP address.
+2. Wrong TCP port.
+3. Intermediate firewall blocking access.
+
+Device settings: cisco_xr 192.168.100.124:22
+
+
+```
+```

@@ -1,0 +1,38 @@
+{
+  "task_status": "mixed",
+  "top_incidents": [
+    {
+      "scope": "global",
+      "summary": "BGP neighbors in 'Idle' state on A-P-1",
+      "impact": "Potential routing issues and traffic disruption",
+      "devices": [
+        "A-P-1"
+      ]
+    },
+    {
+      "scope": "global",
+      "summary": "BGP neighbor 1.0.101.5 in Idle state on multiple PE routers",
+      "impact": "Potential routing issues and traffic disruption",
+      "devices": [
+        "A-PE-1",
+        "A-PE-2",
+        "A-PE-3"
+      ]
+    }
+  ],
+  "remediation_themes": [
+    "Investigate BGP neighbor 1.0.101.5 connectivity issues",
+    "Troubleshoot BGP neighbors in 'Idle' state on A-P-1"
+  ],
+  "trusted_followup_cmds": [
+    "show bgp neighbors brief",
+    "show bgp ipv4 labeled-unicast",
+    "show mpls forwarding"
+  ],
+  "unvalidated_followup_cmds": [
+    "show bgp summary",
+    "show bgp ipv4 unicast summary",
+    "show run | section ^router bgp"
+  ],
+  "optional_active_probes": []
+}

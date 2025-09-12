@@ -1,0 +1,15 @@
+{
+  "config_dir": "configs.5",
+  "task_dir": "taREMOVED7.charlie.srv6",
+  "hosts": 8,
+  "facts_written": [
+    "/app/doo/configs.5/taREMOVED7.charlie.srv6/agent7/3-analyze/2-facts/C-ASBR-1.json",
+    "/app/doo/configs.5/taREMOVED7.charlie.srv6/agent7/3-analyze/2-facts/C-ASBR-2.json",
+    "/app/doo/configs.5/taREMOVED7.charlie.srv6/agent7/3-analyze/2-facts/C-P-1.json",
+    "/app/doo/configs.5/taREMOVED7.charlie.srv6/agent7/3-analyze/2-facts/C-P-2.json",
+    "/app/doo/configs.5/taREMOVED7.charlie.srv6/agent7/3-analyze/2-facts/C-PE-1.json",
+    "/app/doo/configs.5/taREMOVED7.charlie.srv6/agent7/3-analyze/2-facts/C-PE-2.json",
+    "/app/doo/configs.5/taREMOVED7.charlie.srv6/agent7/3-analyze/2-facts/C-PE-3.json",
+    "/app/doo/configs.5/taREMOVED7.charlie.srv6/agent7/3-analyze/2-facts/C-PE-4.json"
+  ]
+}

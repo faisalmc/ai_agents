@@ -1,0 +1,40 @@
+{
+  "summary": "The BGP neighbors show one established and one idle neighbor.",
+  "status": {
+    "name": "bgp_neighbors",
+    "value": "mixed",
+    "confidence": "high",
+    "confidence_reason": "There are both established and idle states present."
+  },
+  "metrics": {
+    "bgp_neighbors_total": 2,
+    "bgp_neighbors_by_state": {
+      "idle": 1,
+      "established": 1
+    }
+  },
+  "tables": {
+    "bgp_neighbors": [
+      {
+        "Neighbor": "1.0.101.5",
+        "Spk": 0,
+        "AS": 100,
+        "Description": "",
+        "Up/Down": "1d04h",
+        "NBRState": "Idle"
+      },
+      {
+        "Neighbor": "1.0.101.6",
+        "Spk": 0,
+        "AS": 100,
+        "Description": "",
+        "Up/Down": "1d06h",
+        "NBRState": "Established"
+      }
+    ]
+  },
+  "evidence": [
+    "L5: 1.0.101.5         0   100                                         1d04h Idle",
+    "L6: 1.0.101.6         0   100                                         1d06h Established"
+  ]
+}

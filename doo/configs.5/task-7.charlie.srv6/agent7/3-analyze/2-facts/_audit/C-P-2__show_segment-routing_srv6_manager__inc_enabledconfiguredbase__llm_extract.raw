@@ -1,0 +1,27 @@
+{
+  "summary": "SRv6 is enabled with a configured SID and a base block.",
+  "status": {
+    "name": "srv6_manager",
+    "value": "up",
+    "confidence": "high",
+    "confidence_reason": "SRv6 is explicitly stated as enabled."
+  },
+  "metrics": {
+    "sid_base_block": "fc00:100::/24",
+    "configured_sid": "2620:fc7:3:101::6"
+  },
+  "tables": {
+    "parameters": [
+      {
+        "srv6_enabled": "Yes",
+        "sid_base_block": "fc00:100::/24",
+        "configured": "2620:fc7:3:101::6"
+      }
+    ]
+  },
+  "evidence": [
+    "L3: SRv6 Enabled: Yes",
+    "L4: SID Base Block: fc00:100::/24",
+    "L5: Configured: 2620:fc7:3:101::6"
+  ]
+}

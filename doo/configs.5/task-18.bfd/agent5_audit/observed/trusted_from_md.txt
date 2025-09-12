@@ -1,0 +1,3 @@
+show bfd session
+show bfd session detail
+show ip bgp neighbor brief

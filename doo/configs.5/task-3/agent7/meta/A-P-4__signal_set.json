@@ -1,0 +1,68 @@
+{
+  "hostname": "A-P-4",
+  "platform_hint": "ios-xr",
+  "signals": [
+    "bgp",
+    "neighbors",
+    "ipv4",
+    "labeled-unicast",
+    "mpls",
+    "forwarding"
+  ],
+  "confidence": 0.9,
+  "evidence": {
+    "bgp": [
+      "show bgp neighbors brief",
+      "show bgp ipv4 labeled-unicast"
+    ],
+    "neighbors": [
+      "1.0.101.4",
+      "1.0.101.9",
+      "1.0.101.10",
+      "1.0.101.11",
+      "1.0.101.12"
+    ],
+    "ipv4": [
+      "1.0.101.1/32",
+      "1.0.101.2/32",
+      "1.0.101.3/32",
+      "1.0.101.4/32",
+      "1.0.101.6/32",
+      "1.0.101.7/32",
+      "1.0.101.8/32",
+      "1.0.101.9/32",
+      "1.0.101.10/32"
+    ],
+    "labeled-unicast": [
+      "BGP router identifier 1.0.101.8, local AS number 100"
+    ],
+    "mpls": [
+      "Local",
+      "Outgoing",
+      "Prefix",
+      "Label",
+      "SR Pfx (idx 1)",
+      "SR Pfx (idx 2)",
+      "SR Pfx (idx 3)",
+      "SR Pfx (idx 4)",
+      "Pop",
+      "Gi0/0/0/4",
+      "Gi0/0/0/1",
+      "Gi0/0/0/2",
+      "Aggregate",
+      "SR Adj (idx 1)",
+      "SR Adj (idx 3)"
+    ],
+    "forwarding": [
+      "1.0.23.1",
+      "1.0.31.1",
+      "1.0.34.1",
+      "1.0.51.1",
+      "fe80::5054:ff:fe7f:ac62",
+      "fe80::5054:ff:feca:8b79",
+      "fe80::5054:ff:fe05:dda7",
+      "fe80::5054:ff:fe57:46ea"
+    ]
+  },
+  "notes": "The CLI logs show BGP neighbor information, IPv4 prefixes, and MPLS forwarding details, indicating an IOS-XR platform."
+}

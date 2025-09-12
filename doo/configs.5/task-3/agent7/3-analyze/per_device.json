@@ -1,0 +1,567 @@
+[
+  {
+    "hostname": "A-ASBR-1",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "mpls"
+    ],
+    "status": "healthy",
+    "status_reason": "BGP neighbors are established and BGP table is active.",
+    "ok": [
+      {
+        "summary": "BGP neighbors are both in an established state.",
+        "evidence_ref": {
+          "command_key": "show_bgp_neighbors_brief",
+          "path": "commands.show_bgp_neighbors_brief.data.summary"
+        }
+      },
+      {
+        "summary": "BGP table for IPv4 labeled-unicast is active with 9 prefixes.",
+        "evidence_ref": {
+          "command_key": "show_bgp_ipv4_labeled-unicast",
+          "path": "commands.show_bgp_ipv4_labeled-unicast.data.summary"
+        }
+      },
+      {
+        "summary": "MPLS forwarding is operational with multiple labels.",
+        "evidence_ref": {
+          "command_key": "show_mpls_forwarding",
+          "path": "commands.show_mpls_forwarding.data.local_label"
+        }
+      }
+    ],
+    "suspect": [],
+    "findings": [],
+    "recommended_show_cmds": [
+      "show bgp summary",
+      "show bgp ipv4 labeled-unicast summary"
+    ],
+    "optional_active_cmds": []
+  },
+  {
+    "hostname": "A-ASBR-2",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "mpls"
+    ],
+    "status": "healthy",
+    "status_reason": "BGP neighbors are established and BGP table is active with multiple prefixes.",
+    "ok": [
+      {
+        "summary": "BGP neighbors are both in an established state.",
+        "evidence_ref": {
+          "command_key": "show_bgp_neighbors_brief",
+          "path": "commands.show_bgp_neighbors_brief.data.summary"
+        }
+      },
+      {
+        "summary": "BGP table for IPv4 labeled-unicast is active with 9 prefixes.",
+        "evidence_ref": {
+          "command_key": "show_bgp_ipv4_labeled-unicast",
+          "path": "commands.show_bgp_ipv4_labeled-unicast.data.summary"
+        }
+      },
+      {
+        "summary": "MPLS forwarding is operational with multiple outgoing labels.",
+        "evidence_ref": {
+          "command_key": "show_mpls_forwarding",
+          "path": "commands.show_mpls_forwarding.data.local_label"
+        }
+      }
+    ],
+    "suspect": [],
+    "findings": [
+      {
+        "signal": "bgp",
+        "severity": "info",
+        "summary": "BGP process is running with established neighbors.",
+        "evidence_ref": {
+          "command_key": "show_bgp_neighbors_brief",
+          "path": "commands.show_bgp_neighbors_brief.data.metrics.bgp_neighbors_total"
+        }
+      },
+      {
+        "signal": "mpls",
+        "severity": "info",
+        "summary": "MPLS labels are configured and operational.",
+        "evidence_ref": {
+          "command_key": "show_mpls_forwarding",
+          "path": "commands.show_mpls_forwarding.data.local_label"
+        }
+      }
+    ],
+    "recommended_show_cmds": [
+      "show bgp summary",
+      "show bgp ipv4 labeled-unicast summary"
+    ],
+    "optional_active_cmds": []
+  },
+  {
+    "hostname": "A-P-1",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "mpls"
+    ],
+    "status": "degraded",
+    "status_reason": "All BGP neighbors are in an idle state.",
+    "ok": [
+      {
+        "summary": "MPLS forwarding table has entries with outgoing labels.",
+        "evidence_ref": {
+          "command_key": "show_mpls_forwarding",
+          "path": "commands.show_mpls_forwarding.data.local_label"
+        }
+      }
+    ],
+    "suspect": [
+      {
+        "summary": "BGP neighbors are all in an idle state.",
+        "evidence_ref": {
+          "command_key": "show_bgp_neighbors_brief",
+          "path": "commands.show_bgp_neighbors_brief.data.metrics.bgp_neighbors_by_state.idle"
+        }
+      },
+      {
+        "summary": "BGP IPv4 labeled-unicast command output is empty.",
+        "evidence_ref": {
+          "command_key": "show_bgp_ipv4_labeled-unicast",
+          "path": "commands.show_bgp_ipv4_labeled-unicast.data.metrics"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "signal": "bgp",
+        "severity": "error",
+        "summary": "All BGP neighbors are reported as idle.",
+        "evidence_ref": {
+          "command_key": "show_bgp_neighbors_brief",
+          "path": "commands.show_bgp_neighbors_brief.data.metrics.bgp_neighbors_total"
+        }
+      },
+      {
+        "signal": "mpls",
+        "severity": "info",
+        "summary": "MPLS forwarding is operational with multiple labels.",
+        "evidence_ref": {
+          "command_key": "show_mpls_forwarding",
+          "path": "commands.show_mpls_forwarding.data.local_label"
+        }
+      }
+    ],
+    "recommended_show_cmds": [
+      "show bgp summary",
+      "show bgp ipv4 unicast summary"
+    ],
+    "optional_active_cmds": []
+  },
+  {
+    "hostname": "A-P-2",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "mpls"
+    ],
+    "status": "healthy",
+    "status_reason": "BGP process is running with all neighbors in Established state and BGP table is active.",
+    "ok": [
+      {
+        "summary": "BGP table for IPv4 labeled-unicast is active with 9 prefixes.",
+        "evidence_ref": {
+          "command_key": "show_bgp_ipv4_labeled-unicast",
+          "path": "commands.show_bgp_ipv4_labeled-unicast.data.summary"
+        }
+      },
+      {
+        "summary": "All five BGP neighbors are in Established state.",
+        "evidence_ref": {
+          "command_key": "show_bgp_neighbors_brief",
+          "path": "commands.show_bgp_neighbors_brief.data.summary"
+        }
+      }
+    ],
+    "suspect": [],
+    "findings": [],
+    "recommended_show_cmds": [
+      "show bgp summary",
+      "show bgp ipv4 labeled-unicast summary"
+    ],
+    "optional_active_cmds": []
+  },
+  {
+    "hostname": "A-P-3",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "mpls"
+    ],
+    "status": "healthy",
+    "status_reason": "BGP neighbors are all established and BGP table is active.",
+    "ok": [
+      {
+        "summary": "All BGP neighbors are in the Established state.",
+        "evidence_ref": {
+          "command_key": "show_bgp_neighbors_brief",
+          "path": "commands.show_bgp_neighbors_brief.data.summary"
+        }
+      },
+      {
+        "summary": "BGP table for IPv4 labeled-unicast is active with 9 prefixes.",
+        "evidence_ref": {
+          "command_key": "show_bgp_ipv4_labeled-unicast",
+          "path": "commands.show_bgp_ipv4_labeled-unicast.data.summary"
+        }
+      },
+      {
+        "summary": "MPLS forwarding table shows active labels.",
+        "evidence_ref": {
+          "command_key": "show_mpls_forwarding",
+          "path": "commands.show_mpls_forwarding.data.local_label"
+        }
+      }
+    ],
+    "suspect": [],
+    "findings": [],
+    "recommended_show_cmds": [
+      "show bgp summary",
+      "show bgp ipv4 unicast summary",
+      "show run | section ^router bgp"
+    ],
+    "optional_active_cmds": []
+  },
+  {
+    "hostname": "A-P-4",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "forwarding",
+      "ipv4",
+      "labeled-unicast",
+      "mpls",
+      "neighbors"
+    ],
+    "status": "healthy",
+    "status_reason": "All BGP neighbors are in an Established state and the BGP table for IPv4 labeled-unicast is active.",
+    "ok": [
+      {
+        "summary": "All BGP neighbors are in an Established state.",
+        "evidence_ref": {
+          "command_key": "show_bgp_neighbors_brief",
+          "path": "commands.show_bgp_neighbors_brief.data.summary"
+        }
+      },
+      {
+        "summary": "The BGP table for IPv4 labeled-unicast is in an active state with 9 prefixes processed.",
+        "evidence_ref": {
+          "command_key": "show_bgp_ipv4_labeled-unicast",
+          "path": "commands.show_bgp_ipv4_labeled-unicast.data.summary"
+        }
+      }
+    ],
+    "suspect": [],
+    "findings": [
+      {
+        "signal": "bgp",
+        "severity": "info",
+        "summary": "BGP neighbors are all established.",
+        "evidence_ref": {
+          "command_key": "show_bgp_neighbors_brief",
+          "path": "commands.show_bgp_neighbors_brief.data.metrics.bgp_neighbors_by_state.established"
+        }
+      },
+      {
+        "signal": "bgp",
+        "severity": "info",
+        "summary": "BGP table state is active with 9 prefixes.",
+        "evidence_ref": {
+          "command_key": "show_bgp_ipv4_labeled-unicast",
+          "path": "commands.show_bgp_ipv4_labeled-unicast.data.metrics.prefixes_total"
+        }
+      }
+    ],
+    "recommended_show_cmds": [
+      "show bgp summary",
+      "show bgp ipv4 labeled-unicast summary"
+    ],
+    "optional_active_cmds": []
+  },
+  {
+    "hostname": "A-PE-1",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "ipv4",
+      "labeled-unicast",
+      "mpls",
+      "neighbor"
+    ],
+    "status": "degraded",
+    "status_reason": "One BGP neighbor is Idle while another is Established.",
+    "ok": [
+      {
+        "summary": "BGP table for IPv4 labeled-unicast is active with 9 prefixes processed.",
+        "evidence_ref": {
+          "command_key": "show_bgp_ipv4_labeled-unicast",
+          "path": "commands.show_bgp_ipv4_labeled-unicast.data.summary"
+        }
+      },
+      {
+        "summary": "BGP routing table entry for 1.0.101.7/32 shows one available path.",
+        "evidence_ref": {
+          "command_key": "show_bgp_ipv4_labeled-unicast_1.0.101.7",
+          "path": "commands.show_bgp_ipv4_labeled-unicast_1.0.101.7.data.summary"
+        }
+      },
+      {
+        "summary": "BGP routing table entry for 1.0.101.9/32 shows one available path.",
+        "evidence_ref": {
+          "command_key": "show_bgp_ipv4_labeled-unicast_1.0.101.9",
+          "path": "commands.show_bgp_ipv4_labeled-unicast_1.0.101.9.data.summary"
+        }
+      },
+      {
+        "summary": "MPLS forwarding table shows multiple outgoing labels.",
+        "evidence_ref": {
+          "command_key": "show_mpls_forwarding",
+          "path": "commands.show_mpls_forwarding.data.local_label"
+        }
+      }
+    ],
+    "suspect": [
+      {
+        "summary": "BGP neighbors show one established and one idle neighbor.",
+        "evidence_ref": {
+          "command_key": "show_bgp_neighbors_brief",
+          "path": "commands.show_bgp_neighbors_brief.data.summary"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "signal": "bgp",
+        "severity": "warn",
+        "summary": "One BGP neighbor is Idle while another is Established.",
+        "evidence_ref": {
+          "command_key": "show_bgp_neighbors_brief",
+          "path": "commands.show_bgp_neighbors_brief.data.metrics.bgp_neighbors_by_state"
+        }
+      }
+    ],
+    "recommended_show_cmds": [
+      "show bgp summary",
+      "show bgp ipv4 labeled-unicast summary",
+      "show ip route 1.0.101.1/32"
+    ],
+    "optional_active_cmds": []
+  },
+  {
+    "hostname": "A-PE-2",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "mpls"
+    ],
+    "status": "degraded",
+    "status_reason": "One BGP neighbor is Idle while another is Established.",
+    "ok": [
+      {
+        "summary": "BGP table for IPv4 labeled-unicast is active with 9 prefixes processed.",
+        "evidence_ref": {
+          "command_key": "show_bgp_ipv4_labeled-unicast",
+          "path": "commands.show_bgp_ipv4_labeled-unicast.data.summary"
+        }
+      },
+      {
+        "summary": "MPLS forwarding is operational with multiple labels configured.",
+        "evidence_ref": {
+          "command_key": "show_mpls_forwarding",
+          "path": "commands.show_mpls_forwarding.data.local_label"
+        }
+      }
+    ],
+    "suspect": [
+      {
+        "summary": "BGP neighbor status shows one established and one idle neighbor.",
+        "evidence_ref": {
+          "command_key": "show_bgp_neighbors_brief",
+          "path": "commands.show_bgp_neighbors_brief.data.summary"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "signal": "bgp",
+        "severity": "warn",
+        "summary": "BGP neighbor states are mixed with one Idle neighbor.",
+        "evidence_ref": {
+          "command_key": "show_bgp_neighbors_brief",
+          "path": "commands.show_bgp_neighbors_brief.data.metrics.bgp_neighbors_by_state"
+        }
+      }
+    ],
+    "recommended_show_cmds": [
+      "show bgp summary",
+      "show run | section ^router bgp"
+    ],
+    "optional_active_cmds": [
+      "ping 1.0.101.5",
+      "ping 1.0.101.6"
+    ]
+  },
+  {
+    "hostname": "A-PE-3",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "mpls"
+    ],
+    "status": "degraded",
+    "status_reason": "One BGP neighbor is Idle while another is Established.",
+    "ok": [
+      {
+        "summary": "BGP table for IPv4 labeled-unicast is active with 9 processed prefixes.",
+        "evidence_ref": {
+          "command_key": "show_bgp_ipv4_labeled-unicast",
+          "path": "commands.show_bgp_ipv4_labeled-unicast.data.summary"
+        }
+      },
+      {
+        "summary": "MPLS forwarding table shows multiple outgoing labels.",
+        "evidence_ref": {
+          "command_key": "show_mpls_forwarding",
+          "path": "commands.show_mpls_forwarding.data.local_label"
+        }
+      }
+    ],
+    "suspect": [
+      {
+        "summary": "BGP neighbor status shows one established and one idle neighbor.",
+        "evidence_ref": {
+          "command_key": "show_bgp_neighbors_brief",
+          "path": "commands.show_bgp_neighbors_brief.data.summary"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "signal": "bgp",
+        "severity": "warn",
+        "summary": "BGP neighbor state is mixed with one Idle neighbor.",
+        "evidence_ref": {
+          "command_key": "show_bgp_neighbors_brief",
+          "path": "commands.show_bgp_neighbors_brief.data.metrics.bgp_neighbors_by_state"
+        }
+      }
+    ],
+    "recommended_show_cmds": [
+      "show bgp summary",
+      "show bgp ipv4 unicast summary"
+    ],
+    "optional_active_cmds": []
+  },
+  {
+    "hostname": "A-PE-4",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "mpls"
+    ],
+    "status": "healthy",
+    "status_reason": "BGP neighbors are established and BGP table is active with multiple prefixes.",
+    "ok": [
+      {
+        "summary": "BGP neighbors are both in an established state.",
+        "evidence_ref": {
+          "command_key": "show_bgp_neighbors_brief",
+          "path": "commands.show_bgp_neighbors_brief.data.summary"
+        }
+      },
+      {
+        "summary": "BGP table for IPv4 labeled-unicast is active with 9 prefixes.",
+        "evidence_ref": {
+          "command_key": "show_bgp_ipv4_labeled-unicast",
+          "path": "commands.show_bgp_ipv4_labeled-unicast.data.summary"
+        }
+      },
+      {
+        "summary": "MPLS forwarding is operational with multiple outgoing labels.",
+        "evidence_ref": {
+          "command_key": "show_mpls_forwarding",
+          "path": "commands.show_mpls_forwarding.data.local_label"
+        }
+      }
+    ],
+    "suspect": [],
+    "findings": [
+      {
+        "signal": "bgp",
+        "severity": "info",
+        "summary": "BGP process is running with established neighbors.",
+        "evidence_ref": {
+          "command_key": "show_bgp_neighbors_brief",
+          "path": "commands.show_bgp_neighbors_brief.data.metrics"
+        }
+      },
+      {
+        "signal": "mpls",
+        "severity": "info",
+        "summary": "MPLS labels are configured and operational.",
+        "evidence_ref": {
+          "command_key": "show_mpls_forwarding",
+          "path": "commands.show_mpls_forwarding.data.local_label"
+        }
+      }
+    ],
+    "recommended_show_cmds": [
+      "show bgp summary",
+      "show bgp ipv4 unicast summary"
+    ],
+    "optional_active_cmds": []
+  },
+  {
+    "hostname": "A-RR-1",
+    "platform": "ios-xe",
+    "signals_seen": [
+      "ios-xe",
+      "smart-license-unregistered",
+      "uptime-5d10h48m",
+      "version-17.03.08a"
+    ],
+    "status": "healthy",
+    "status_reason": "No BGP status available to determine health.",
+    "ok": [
+      {
+        "summary": "Router is running IOS-XE version 17.3.8a.",
+        "evidence_ref": {
+          "command_key": "show_version",
+          "path": "commands.show_version.data.version.version"
+        }
+      },
+      {
+        "summary": "Router has been up for 5 days, 10 hours, and 48 minutes.",
+        "evidence_ref": {
+          "command_key": "show_version",
+          "path": "commands.show_version.data.version.uptime"
+        }
+      }
+    ],
+    "suspect": [
+      {
+        "summary": "Smart license is unregistered.",
+        "evidence_ref": {
+          "command_key": "show_version",
+          "path": "commands.show_version.data.version.license_type"
+        }
+      }
+    ],
+    "findings": [],
+    "recommended_show_cmds": [
+      "show bgp summary",
+      "show run | section ^router bgp"
+    ],
+    "optional_active_cmds": []
+  }
+]

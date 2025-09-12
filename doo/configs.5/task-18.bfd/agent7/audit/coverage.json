@@ -1,0 +1,39 @@
+{
+  "config_dir": "configs.5",
+  "task_dir": "taREMOVED18.bfd",
+  "generated_at": 1757488161,
+  "summary": {
+    "hosts": 2,
+    "blocks": 6,
+    "ok": 2,
+    "err": 4
+  },
+  "per_platform": {
+    "cisco-ios-xr": {
+      "ok": 2,
+      "err": 4
+    }
+  },
+  "errors": [
+    {
+      "host": "B-ASBR-1",
+      "command": "show ip bgp neighbor brief",
+      "error": "Parser Output is empty"
+    },
+    {
+      "host": "B-ASBR-1",
+      "command": "show bfd session detail",
+      "error": "Could not find parser for show bfd session detail under ('iosxr', 'router', None)"
+    },
+    {
+      "host": "C-ASBR-1",
+      "command": "show ip bgp neighbor brief",
+      "error": "Parser Output is empty"
+    },
+    {
+      "host": "C-ASBR-1",
+      "command": "show bfd session detail",
+      "error": "Could not find parser for show bfd session detail under ('iosxr', 'router', None)"
+    }
+  ]
+}

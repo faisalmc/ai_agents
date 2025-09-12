@@ -1,0 +1,372 @@
+{
+  "A-ASBR-1": {
+    "hostname": "A-ASBR-1",
+    "platform_hint": "ios-xr",
+    "signals": [
+      "bgp",
+      "mpls"
+    ],
+    "confidence": 1.0,
+    "evidence": {
+      "bgp": [
+        "1.0.101.7         0   100                                         1d06h Established",
+        "1.0.101.8         0   100                                         1d06h Established",
+        "BGP router identifier 1.0.101.9, local AS number 100"
+      ],
+      "mpls": [
+        "16001  16001       SR Pfx (idx 1)                  1.0.101.7       400",
+        "16002  16002       SR Pfx (idx 2)                  1.0.101.7       0",
+        "16003  16003       SR Pfx (idx 3)                  1.0.101.7       0",
+        "16004  16004       SR Pfx (idx 4)     Gi0/0/0/2    1.0.60.2        181566",
+        "16006  16006       SR Pfx (idx 6)                  1.0.101.7       0",
+        "16007  Pop         SR Pfx (idx 7)     Gi0/0/0/1    1.0.50.2        363918",
+        "16008  16008       SR Pfx (idx 8)     Gi0/0/0/2    1.0.60.2        180195",
+        "16009  Aggregate   SR Pfx (idx 9)     default                      0",
+        "16010  Pop         SR Pfx (idx 10)    Gi0/0/0/2    1.0.60.2        177638",
+        "17004  17004       SR Pfx (idx 1004)  Gi0/0/0/2    fe80::5054:ff:fea0:38db   0",
+        "17007  Pop         SR Pfx (idx 1007)  Gi0/0/0/1    fe80::5054:ff:fe1f:6393   0",
+        "17008  17008       SR Pfx (idx 1008)  Gi0/0/0/2    fe80::5054:ff:fea0:38db   0",
+        "17009  Aggregate   SR Pfx (idx 1009)  default                      0",
+        "17010  Pop         SR Pfx (idx 1010)  Gi0/0/0/2    fe80::5054:ff:fea0:38db   0",
+        "24000  Pop         SR Adj (idx 1)     Gi0/0/0/1    1.0.50.2        0",
+        "24001  Pop         SR Adj (idx 3)     Gi0/0/0/1    1.0.50.2        0",
+        "24002  Pop         SR Adj (idx 1)     Gi0/0/0/2    1.0.60.2        0",
+        "24003  Pop         SR Adj (idx 3)     Gi0/0/0/2    1.0.60.2        0",
+        "24004  Pop         SR Adj (idx 1)     Gi0/0/0/1    fe80::5054:ff:fe1f:6393   0",
+        "24005  Pop         SR Adj (idx 3)     Gi0/0/0/1    fe80::5054:ff:fe1f:6393   0",
+        "24006  Pop         SR Adj (idx 1)     Gi0/0/0/2    fe80::5054:ff:fea0:38db   0",
+        "24007  Pop         SR Adj (idx 3)     Gi0/0/0/2    fe80::5054:ff:fea0:38db   0"
+      ]
+    },
+    "notes": "The logs show BGP neighbor information and MPLS forwarding entries, indicating the presence of BGP and MPLS protocols on an IOS-XR device."
+  },
+  "A-ASBR-2": {
+    "hostname": "A-ASBR-2",
+    "platform_hint": "ios-xr",
+    "signals": [
+      "bgp",
+      "mpls"
+    ],
+    "confidence": 0.9,
+    "evidence": {
+      "bgp": [
+        "1.0.101.7         0   100                                         1d06h Established",
+        "1.0.101.8         0   100                                         1d06h Established",
+        "BGP router identifier 1.0.101.10, local AS number 100"
+      ],
+      "mpls": [
+        "16001  16001       SR Pfx (idx 1)                  1.0.101.8       0",
+        "16002  16002       SR Pfx (idx 2)                  1.0.101.8       0",
+        "16004  16004       SR Pfx (idx 4)     Gi0/0/0/1    1.0.51.2        181566",
+        "16007  16007       SR Pfx (idx 7)     Gi0/0/0/2    1.0.60.1        180283"
+      ]
+    },
+    "notes": "The logs show BGP neighbor information and MPLS forwarding entries, indicating the presence of BGP and MPLS on an IOS-XR device."
+  },
+  "A-P-1": {
+    "hostname": "A-P-1",
+    "platform_hint": "ios-xr",
+    "signals": [
+      "bgp",
+      "mpls"
+    ],
+    "confidence": 0.9,
+    "evidence": {
+      "bgp": [
+        "show bgp neighbors brief",
+        "1.0.101.1         0   100                                         1d04h Idle",
+        "1.0.101.2         0   100                                         1d04h Idle",
+        "1.0.101.3         0   100                                         1d04h Idle",
+        "1.0.101.11        0   100                                         1d04h Idle",
+        "1.0.101.12        0   100                                         1d04h Idle"
+      ],
+      "mpls": [
+        "show mpls forwarding",
+        "16001  Pop         SR Pfx (idx 1)     Gi0/0/0/1    1.0.20.1        12529",
+        "16002  16002       SR Pfx (idx 2)     Gi0/0/0/1    1.0.20.1        12737",
+        "16003  16003       SR Pfx (idx 3)     Gi0/0/0/1    1.0.20.1        13175",
+        "16006  Pop         SR Pfx (idx 6)     Gi0/0/0/2    1.0.33.2        0",
+        "16007  Pop         SR Pfx (idx 7)     Gi0/0/0/0    1.0.30.2        0",
+        "16008  Pop         SR Pfx (idx 8)     Gi0/0/0/3    1.0.35.2        0",
+        "17001  Pop         SR Pfx (idx 1001)  Gi0/0/0/1    fe80::5054:ff:feb9:879a   0",
+        "17002  17002       SR Pfx (idx 1002)  Gi0/0/0/1    fe80::5054:ff:feb9:879a   0",
+        "17003  17003       SR Pfx (idx 1003)  Gi0/0/0/1    fe80::5054:ff:feb9:879a   0",
+        "17006  Pop         SR Pfx (idx 1006)  Gi0/0/0/2    fe80::5054:ff:fe98:155c   0",
+        "17007  Pop         SR Pfx (idx 1007)  Gi0/0/0/0    fe80::5054:ff:fee9:ff49   0",
+        "17008  Pop         SR Pfx (idx 1008)  Gi0/0/0/3    fe80::5054:ff:fe04:f4e0   0",
+        "24000  Pop         SR Adj (idx 1)     Gi0/0/0/1    1.0.20.1        0",
+        "24001  Pop         SR Adj (idx 3)     Gi0/0/0/1    1.0.20.1        0",
+        "24002  Pop         SR Adj (idx 1)     Gi0/0/0/1    fe80::5054:ff:feb9:879a   0",
+        "24003  Pop         SR Adj (idx 3)     Gi0/0/0/1    fe80::5054:ff:feb9:879a   0",
+        "24004  Pop         SR Adj (idx 1)     Gi0/0/0/2    1.0.33.2        0",
+        "24005  Pop         SR Adj (idx 3)     Gi0/0/0/2    1.0.33.2        0",
+        "24006  Pop         SR Adj (idx 1)     Gi0/0/0/0    1.0.30.2        0",
+        "24007  Pop         SR Adj (idx 3)     Gi0/0/0/0    1.0.30.2        0",
+        "24008  Pop         SR Adj (idx 1)     Gi0/0/0/3    1.0.35.2        0",
+        "24009  Pop         SR Adj (idx 3)     Gi0/0/0/3    1.0.35.2        0",
+        "24010  Pop         SR Adj (idx 1)     Gi0/0/0/4    1.0.70.1        0",
+        "24011  Pop         SR Adj (idx 3)     Gi0/0/0/4    1.0.70.1        0",
+        "24012  Pop         SR Adj (idx 1)     Gi0/0/0/2    fe80::5054:ff:fe98:155c   0",
+        "24013  Pop         SR Adj (idx 3)     Gi0/0/0/2    fe80::5054:ff:fe98:155c   0",
+        "24014  Pop         SR Adj (idx 1)     Gi0/0/0/0    fe80::5054:ff:fee9:ff49   0",
+        "24015  Pop         SR Adj (idx 3)     Gi0/0/0/0    fe80::5054:ff:fee9:ff49   0",
+        "24016  Pop         SR Adj (idx 1)     Gi0/0/0/3    fe80::5054:ff:fe04:f4e0   0",
+        "24017  Pop         SR Adj (idx 3)     Gi0/0/0/3    fe80::5054:ff:fe04:f4e0   0",
+        "24018  Pop         SR Adj (idx 1)     Gi0/0/0/4    fe80::5054:ff:fe02:994c   0",
+        "24019  Pop         SR Adj (idx 3)     Gi0/0/0/4    fe80::5054:ff:fe02:994c   0"
+      ]
+    },
+    "notes": "The CLI logs show BGP neighbor information and MPLS forwarding table entries, indicating an IOS-XR platform."
+  },
+  "A-P-2": {
+    "hostname": "A-P-2",
+    "platform_hint": "ios-xr",
+    "signals": [
+      "bgp",
+      "mpls"
+    ],
+    "confidence": 0.9,
+    "evidence": {
+      "bgp": [
+        "1.0.101.1         0   100                                         1d06h Established",
+        "1.0.101.2         0   100                                         1d06h Established",
+        "1.0.101.3         0   100                                         1d06h Established",
+        "1.0.101.11        0   100                                         1d06h Established",
+        "1.0.101.12        0   100                                         1d06h Established",
+        "BGP router identifier 1.0.101.6, local AS number 100"
+      ],
+      "mpls": [
+        "16001  16001       SR Pfx (idx 1)     Gi0/0/0/1    1.0.21.1        190016",
+        "16002  Pop         SR Pfx (idx 2)     Gi0/0/0/1    1.0.21.1        181429",
+        "16003  Pop         SR Pfx (idx 3)     Gi0/0/0/4    1.0.22.1        194564",
+        "16004  16004       SR Pfx (idx 4)                  1.0.101.8       0",
+        "16007  Pop         SR Pfx (idx 7)     Gi0/0/0/3    1.0.32.2        6888",
+        "16009  16009       SR Pfx (idx 9)                  1.0.101.7       1224",
+        "16010  16010       SR Pfx (idx 10)                 1.0.101.8       0"
+      ]
+    },
+    "notes": "The logs show BGP neighbor information and MPLS forwarding entries, indicating an IOS-XR platform."
+  },
+  "A-P-3": {
+    "hostname": "A-P-3",
+    "platform_hint": "ios-xr",
+    "signals": [
+      "bgp",
+      "mpls"
+    ],
+    "confidence": 1.0,
+    "evidence": {
+      "bgp": [
+        "1.0.101.4         0   100                                         1d06h Established",
+        "1.0.101.9         0   100                                         1d06h Established",
+        "1.0.101.10        0   100                                         1d06h Established",
+        "1.0.101.11        0   100                                         1d06h Established",
+        "1.0.101.12        0   100                                         1d06h Established",
+        "BGP router identifier 1.0.101.7, local AS number 100"
+      ],
+      "mpls": [
+        "16001  16001       SR Pfx (idx 1)                  1.0.101.6       800",
+        "16002  16002       SR Pfx (idx 2)                  1.0.101.6       0",
+        "16003  16003       SR Pfx (idx 3)                  1.0.101.6       0",
+        "16004  16004       SR Pfx (idx 4)     Gi0/0/0/0    1.0.50.1        181566",
+        "16006  Pop         SR Pfx (idx 6)     Gi0/0/0/3    1.0.32.1        8496"
+      ]
+    },
+    "notes": "The CLI logs show BGP neighbor information and MPLS forwarding entries, indicating the presence of BGP and MPLS protocols on an IOS-XR device."
+  },
+  "A-P-4": {
+    "hostname": "A-P-4",
+    "platform_hint": "ios-xr",
+    "signals": [
+      "bgp",
+      "neighbors",
+      "ipv4",
+      "labeled-unicast",
+      "mpls",
+      "forwarding"
+    ],
+    "confidence": 0.9,
+    "evidence": {
+      "bgp": [
+        "show bgp neighbors brief",
+        "show bgp ipv4 labeled-unicast"
+      ],
+      "neighbors": [
+        "1.0.101.4",
+        "1.0.101.9",
+        "1.0.101.10",
+        "1.0.101.11",
+        "1.0.101.12"
+      ],
+      "ipv4": [
+        "1.0.101.1/32",
+        "1.0.101.2/32",
+        "1.0.101.3/32",
+        "1.0.101.4/32",
+        "1.0.101.6/32",
+        "1.0.101.7/32",
+        "1.0.101.8/32",
+        "1.0.101.9/32",
+        "1.0.101.10/32"
+      ],
+      "labeled-unicast": [
+        "BGP router identifier 1.0.101.8, local AS number 100"
+      ],
+      "mpls": [
+        "Local",
+        "Outgoing",
+        "Prefix",
+        "Label",
+        "SR Pfx (idx 1)",
+        "SR Pfx (idx 2)",
+        "SR Pfx (idx 3)",
+        "SR Pfx (idx 4)",
+        "Pop",
+        "Gi0/0/0/4",
+        "Gi0/0/0/1",
+        "Gi0/0/0/2",
+        "Aggregate",
+        "SR Adj (idx 1)",
+        "SR Adj (idx 3)"
+      ],
+      "forwarding": [
+        "1.0.23.1",
+        "1.0.31.1",
+        "1.0.34.1",
+        "1.0.51.1",
+        "fe80::5054:ff:fe7f:ac62",
+        "fe80::5054:ff:feca:8b79",
+        "fe80::5054:ff:fe05:dda7",
+        "fe80::5054:ff:fe57:46ea"
+      ]
+    },
+    "notes": "The CLI logs show BGP neighbor information, IPv4 prefixes, and MPLS forwarding details, indicating an IOS-XR platform."
+  },
+  "A-PE-1": {
+    "hostname": "A-PE-1",
+    "platform_hint": "ios-xr",
+    "signals": [
+      "bgp",
+      "ipv4",
+      "labeled-unicast",
+      "mpls",
+      "neighbor"
+    ],
+    "confidence": 0.9,
+    "evidence": {
+      "bgp": [
+        "## show bgp neighbors brief",
+        "## show bgp ipv4 labeled-unicast 1.0.101.7",
+        "## show bgp ipv4 labeled-unicast 1.0.101.9"
+      ],
+      "ipv4": [
+        "## show bgp ipv4 labeled-unicast",
+        "## show bgp ipv4 labeled-unicast 1.0.101.7",
+        "## show bgp ipv4 labeled-unicast 1.0.101.9"
+      ],
+      "labeled-unicast": [
+        "## show bgp ipv4 labeled-unicast",
+        "## show bgp ipv4 labeled-unicast 1.0.101.7",
+        "## show bgp ipv4 labeled-unicast 1.0.101.9"
+      ],
+      "mpls": [
+        "## show mpls forwarding"
+      ],
+      "neighbor": [
+        "## show bgp neighbors brief"
+      ]
+    },
+    "notes": "The logs contain information about BGP neighbors, IPv4 labeled-unicast routes, MPLS forwarding, and BGP neighbor summary, indicating an IOS-XR platform."
+  },
+  "A-PE-2": {
+    "hostname": "A-PE-2",
+    "platform_hint": "ios-xr",
+    "signals": [
+      "bgp",
+      "mpls"
+    ],
+    "confidence": 0.9,
+    "evidence": {
+      "bgp": [
+        "1.0.101.5         0   100                                         1d04h Idle",
+        "1.0.101.6         0   100                                         1d06h Established",
+        "BGP router identifier 1.0.101.2, local AS number 100"
+      ],
+      "mpls": [
+        "16001  Pop         SR Pfx (idx 1)     Gi0/0/0/2    1.0.40.1        190016",
+        "24000  Pop         SR Adj (idx 1)     Gi0/0/0/0    1.0.21.2        0"
+      ]
+    },
+    "notes": "The logs show BGP neighbor information and MPLS forwarding entries, indicating BGP and MPLS are configured on this IOS-XR device."
+  },
+  "A-PE-3": {
+    "hostname": "A-PE-3",
+    "platform_hint": "ios-xr",
+    "signals": [
+      "bgp",
+      "mpls"
+    ],
+    "confidence": 0.9,
+    "evidence": {
+      "bgp": [
+        "1.0.101.5         0   100                                         1d04h Idle",
+        "1.0.101.6         0   100                                         1d06h Established",
+        "BGP router identifier 1.0.101.3, local AS number 100",
+        "Processed 9 prefixes, 9 paths"
+      ],
+      "mpls": [
+        "16001  16001       SR Pfx (idx 1)     Gi0/0/0/0    1.0.22.2        0",
+        "24000  Pop         SR Adj (idx 1)     Gi0/0/0/0    1.0.22.2        0"
+      ]
+    },
+    "notes": "The logs show BGP neighbor information and BGP IPv4 labeled-unicast details, along with MPLS forwarding table entries, indicating an IOS-XR platform."
+  },
+  "A-PE-4": {
+    "hostname": "A-PE-4",
+    "platform_hint": "ios-xr",
+    "signals": [
+      "bgp",
+      "mpls"
+    ],
+    "confidence": 0.9,
+    "evidence": {
+      "bgp": [
+        "1.0.101.7         0   100                                         1d06h Established",
+        "1.0.101.8         0   100                                         1d06h Established",
+        "BGP router identifier 1.0.101.4, local AS number 100"
+      ],
+      "mpls": [
+        "16001  16001       SR Pfx (idx 1)                  1.0.101.8       0",
+        "16002  16002       SR Pfx (idx 2)                  1.0.101.8       0",
+        "16003  16003       SR Pfx (idx 3)                  1.0.101.8       0"
+      ]
+    },
+    "notes": "The logs show BGP neighbor information and MPLS forwarding entries, indicating BGP and MPLS are configured on an IOS-XR device."
+  },
+  "A-RR-1": {
+    "hostname": "A-RR-1",
+    "platform_hint": "ios-xe",
+    "signals": [
+      "ios-xe",
+      "version-17.03.08a",
+      "uptime-5d10h48m",
+      "smart-license-unregistered"
+    ],
+    "confidence": 0.9,
+    "evidence": {
+      "ios-xe": [
+        "Cisco IOS XE Software, Version 17.03.08a"
+      ],
+      "version-17.03.08a": [
+        "Cisco IOS XE Software, Version 17.03.08a"
+      ],
+      "uptime-5d10h48m": [
+        "A-RR-1 uptime is 5 days, 10 hours, 48 minutes"
+      ],
+      "smart-license-unregistered": [
+        "Smart Licensing Status: UNREGISTERED/No Licenses in Use"
+      ]
+    },
+    "notes": "The CLI log provides clear evidence of the IOS XE platform, version 17.03.08a, 5 days and 10 hours of uptime, and the smart license status as unregistered."
+  }
+}

@@ -1,0 +1,93 @@
+```json
+{
+  "summary": "The output shows IPv6 routes in the IS-IS routing table with specific tags.",
+  "status": {
+    "name": "isis_database",
+    "value": "unknown",
+    "confidence": "low",
+    "confidence_reason": "No overall state can be determined from the provided output."
+  },
+  "metrics": {
+    "prefixes_total": 8,
+    "paths_total": 8
+  },
+  "tables": {
+    "routes": [
+      {
+        "Network": "fc00:100:1::/48",
+        "Next Hop": "fe80::5054:ff:feef:75a9",
+        "Interface": "GigabitEthernet0/0/0/2",
+        "Tag": 300,
+        "SRGB Base": 16000,
+        "Weight": 0
+      },
+      {
+        "Network": "fc00:100:2::/48",
+        "Next Hop": "fe80::5054:ff:feef:75a9",
+        "Interface": "GigabitEthernet0/0/0/2",
+        "Tag": 300,
+        "SRGB Base": 16000,
+        "Weight": 0
+      },
+      {
+        "Network": "fc00:100:3::/48",
+        "Next Hop": "fe80::5054:ff:feef:75a9",
+        "Interface": "GigabitEthernet0/0/0/2",
+        "Tag": 300,
+        "SRGB Base": 16000,
+        "Weight": 0
+      },
+      {
+        "Network": "fc00:100:4::/48",
+        "Next Hop": "fe80::5054:ff:feef:75a9",
+        "Interface": "GigabitEthernet0/0/0/2",
+        "Tag": 300,
+        "SRGB Base": 16000,
+        "Weight": 0
+      },
+      {
+        "Network": "fc00:100:5::/48",
+        "Next Hop": "fe80::5054:ff:feef:75a9",
+        "Interface": "GigabitEthernet0/0/0/2",
+        "Tag": 300,
+        "SRGB Base": 16000,
+        "Weight": 0
+      },
+      {
+        "Network": "fc00:100:6::/48",
+        "Next Hop": "fe80::5054:ff:feef:75a9",
+        "Interface": "GigabitEthernet0/0/0/2",
+        "Tag": 300,
+        "SRGB Base": 16000,
+        "Weight": 0
+      },
+      {
+        "Network": "fc00:100:7::/48",
+        "Next Hop": "fe80::5054:ff:feef:75a9",
+        "Interface": "GigabitEthernet0/0/0/2",
+        "Tag": 300,
+        "SRGB Base": 16000,
+        "Weight": 0
+      },
+      {
+        "Network": "fc00:100:8::/48",
+        "Next Hop": "",
+        "Interface": "",
+        "Tag": "",
+        "SRGB Base": "",
+        "Weight": ""
+      }
+    ]
+  },
+  "evidence": [
+    "L2 fc00:100:1::/48 [31/115]",
+    "L2 fc00:100:2::/48 [21/115]",
+    "L2 fc00:100:3::/48 [21/115]",
+    "L2 fc00:100:4::/48 [21/115]",
+    "L2 fc00:100:5::/48 [21/115]",
+    "L2 fc00:100:6::/48 [11/115]",
+    "L2 fc00:100:7::/48 [31/115]",
+    "C  fc00:100:8::/48"
+  ]
+}
+```

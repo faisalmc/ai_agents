@@ -1,0 +1,39 @@
+{
+  "summary": "BGP routing table entry for 1.0.101.9/32 shows one available path.",
+  "status": {
+    "name": "bgp_table_state",
+    "value": "active",
+    "confidence": "high",
+    "confidence_reason": "The output indicates an available path and the best path is selected."
+  },
+  "metrics": {
+    "prefixes_total": 1,
+    "paths_total": 1,
+    "best_paths": 1,
+    "rib_state": "active"
+  },
+  "tables": {
+    "routes": [
+      {
+        "Network": "1.0.101.9/32",
+        "Next Hop": "1.0.101.6",
+        "Metric": 300,
+        "Local Label": 16009,
+        "Origin": "IGP",
+        "Local Preference": 100,
+        "Valid": "true",
+        "Internal": "true",
+        "Best": "true",
+        "Group Best": "true",
+        "Address Family": "labeled-unicast"
+      }
+    ]
+  },
+  "evidence": [
+    "L5: BGP routing table entry for 1.0.101.9/32",
+    "L8: Paths: (1 available, best #1)",
+    "L9: Not advertised to any peer",
+    "L10: Local 1.0.101.6 (metric 300) from 1.0.101.6 (1.0.101.9)",
+    "L11: Origin IGP, metric 0, localpref 100, valid, internal, best, group-best, labeled-unicast"
+  ]
+}

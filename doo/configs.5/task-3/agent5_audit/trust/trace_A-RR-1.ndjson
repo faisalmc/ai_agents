@@ -1,0 +1,5 @@
+{"host": "A-RR-1", "platform": "ios", "input_cmd": "show bgp summary", "sanitized": "show bgp summary", "decision": "UNVALIDATED", "reasons": []}
+{"host": "A-RR-1", "platform": "ios", "input_cmd": "show run | section ^router bgp", "sanitized": "show run | section ^router bgp", "decision": "UNVALIDATED", "reasons": []}
+{"host": "A-RR-1", "platform": "ios", "input_cmd": "show bgp neighbors brief", "sanitized": "show bgp neighbors brief", "decision": "UNVALIDATED", "reasons": []}
+{"host": "A-RR-1", "platform": "ios", "input_cmd": "show bgp ipv4 labeled-unicast", "sanitized": "show bgp ipv4 labeled-unicast", "decision": "UNVALIDATED", "reasons": []}
+{"host": "A-RR-1", "platform": "ios", "input_cmd": "show mpls forwarding", "sanitized": "show mpls forwarding", "decision": "UNVALIDATED", "reasons": []}

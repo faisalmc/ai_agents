@@ -1,0 +1,33 @@
+{
+  "config_dir": "configs.5",
+  "task_dir": "taREMOVED18.bfd",
+  "generated_at": 1757339728,
+  "per_signal_limit": 3,
+  "hosts": {
+    "B-ASBR-1": {
+      "platform": "cisco-ios-xr",
+      "signals": [
+        "bgp",
+        "bfd"
+      ],
+      "added": [],
+      "present_count": 6,
+      "reasons": {}
+    },
+    "C-ASBR-1": {
+      "platform": "cisco-ios-xr",
+      "signals": [
+        "bgp",
+        "bfd"
+      ],
+      "added": [],
+      "present_count": 6,
+      "reasons": {}
+    }
+  },
+  "ini_path": "/app/doo/configs.5/taREMOVED18.bfd/agent7/1-plan/show_cmds.plan.ini",
+  "selected_hosts": [
+    "B-ASBR-1",
+    "C-ASBR-1"
+  ]
+}

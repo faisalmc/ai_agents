@@ -1,0 +1,29 @@
+! SRv6 Configuration for {{ name }}
+segment-routing
+ srv6
+  logging locator status
+  encapsulation
+{%- for iface in interfaces if iface.name == 'Loopback0' %}
+   source-address {{ iface.ipv6 }}
+{%- endfor %}
+  !
+  locators
+   locator CCIE_ALGO_0
+   micro-segment behavior unode psp-usd
+{%- set locator = locator_map[name] %}
+    prefix {{ locator }}::/48
+
+
+{#
+segment-routing
+srv6
+ logging locator status
+ encapsulation
+  source-address 2620:fc7:3:0101::5
+ !
+ locators
+  locator CCIE_ALGO_0
+  micro-segment behavior unode psp-usd
+   prefix fc00:0100:1::/48
+#}
+

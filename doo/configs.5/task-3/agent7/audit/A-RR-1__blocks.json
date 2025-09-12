@@ -1,0 +1,14 @@
+[
+  {
+    "host": "A-RR-1",
+    "platform_hint": "unknown",
+    "heading": "show version",
+    "echoed": "show version",
+    "sanitized_command": "show version",
+    "cmd_key": "show_version",
+    "output_text_sha1": "75b652cc3db71f1745d3eaae9920aa0fb69882dd",
+    "text_path": "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-RR-1/001__show_version.txt",
+    "start_line": 5,
+    "end_line": 72
+  }
+]

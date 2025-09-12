@@ -1,0 +1,875 @@
+{
+  "hostname": "A-PE-3",
+  "platform_hint": "cisco-ios-xr",
+  "signals_seen": [
+    "bgp",
+    "mpls"
+  ],
+  "generated_at": 1757487818,
+  "facts_version": 1,
+  "coverage": {
+    "genie_ok": 1,
+    "genie_err": 0,
+    "llm_ok": 2,
+    "total_cmds": 3,
+    "total_enriched": 3
+  },
+  "commands": {
+    "show_bgp_ipv4_labeled-unicast": {
+      "command": "show bgp ipv4 labeled-unicast",
+      "topic": "bgp",
+      "platform_hint": "cisco-ios-xr",
+      "source": "llm",
+      "parsed_path": "",
+      "evidence_text_path": "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-PE-3/002__show_bgp_ipv4_labeled-unicast.txt",
+      "parser_ok": false,
+      "data": {
+        "summary": "The BGP table for IPv4 labeled-unicast is in an active state with 9 processed prefixes.",
+        "status": {
+          "name": "bgp_table_state",
+          "value": "active",
+          "confidence": "high",
+          "confidence_reason": "The output explicitly states 'BGP table state: Active'."
+        },
+        "metrics": {
+          "prefixes_total": 9,
+          "paths_total": 9,
+          "rib_state": "active"
+        },
+        "tables": {
+          "routes": [
+            {
+              "Network": "1.0.101.1/32",
+              "Next Hop": "1.0.101.6",
+              "Metric": 0,
+              "LocPrf": 100,
+              "Weight": 0,
+              "Path": "i"
+            },
+            {
+              "Network": "1.0.101.2/32",
+              "Next Hop": "1.0.101.6",
+              "Metric": 0,
+              "LocPrf": 100,
+              "Weight": 0,
+              "Path": "i"
+            },
+            {
+              "Network": "1.0.101.3/32",
+              "Next Hop": "0.0.0.0",
+              "Metric": 0,
+              "LocPrf": 32768,
+              "Weight": 0,
+              "Path": "i"
+            },
+            {
+              "Network": "1.0.101.4/32",
+              "Next Hop": "1.0.101.6",
+              "Metric": 0,
+              "LocPrf": 100,
+              "Weight": 0,
+              "Path": "i"
+            },
+            {
+              "Network": "1.0.101.6/32",
+              "Next Hop": "1.0.101.6",
+              "Metric": 0,
+              "LocPrf": 100,
+              "Weight": 0,
+              "Path": "i"
+            },
+            {
+              "Network": "1.0.101.7/32",
+              "Next Hop": "1.0.101.6",
+              "Metric": 0,
+              "LocPrf": 100,
+              "Weight": 0,
+              "Path": "i"
+            },
+            {
+              "Network": "1.0.101.8/32",
+              "Next Hop": "1.0.101.6",
+              "Metric": 0,
+              "LocPrf": 100,
+              "Weight": 0,
+              "Path": "i"
+            },
+            {
+              "Network": "1.0.101.9/32",
+              "Next Hop": "1.0.101.6",
+              "Metric": 0,
+              "LocPrf": 100,
+              "Weight": 0,
+              "Path": "i"
+            },
+            {
+              "Network": "1.0.101.10/32",
+              "Next Hop": "1.0.101.6",
+              "Metric": 0,
+              "LocPrf": 100,
+              "Weight": 0,
+              "Path": "i"
+            }
+          ]
+        },
+        "evidence": [
+          "L5: BGP table state: Active",
+          "L24: Processed 9 prefixes, 9 paths"
+        ]
+      },
+      "llm_data": {
+        "summary": "The BGP table for IPv4 labeled-unicast is in an active state with 9 processed prefixes.",
+        "status": {
+          "name": "bgp_table_state",
+          "value": "active",
+          "confidence": "high",
+          "confidence_reason": "The output explicitly states 'BGP table state: Active'."
+        },
+        "metrics": {
+          "prefixes_total": 9,
+          "paths_total": 9,
+          "rib_state": "active"
+        },
+        "tables": {
+          "routes": [
+            {
+              "Network": "1.0.101.1/32",
+              "Next Hop": "1.0.101.6",
+              "Metric": 0,
+              "LocPrf": 100,
+              "Weight": 0,
+              "Path": "i"
+            },
+            {
+              "Network": "1.0.101.2/32",
+              "Next Hop": "1.0.101.6",
+              "Metric": 0,
+              "LocPrf": 100,
+              "Weight": 0,
+              "Path": "i"
+            },
+            {
+              "Network": "1.0.101.3/32",
+              "Next Hop": "0.0.0.0",
+              "Metric": 0,
+              "LocPrf": 32768,
+              "Weight": 0,
+              "Path": "i"
+            },
+            {
+              "Network": "1.0.101.4/32",
+              "Next Hop": "1.0.101.6",
+              "Metric": 0,
+              "LocPrf": 100,
+              "Weight": 0,
+              "Path": "i"
+            },
+            {
+              "Network": "1.0.101.6/32",
+              "Next Hop": "1.0.101.6",
+              "Metric": 0,
+              "LocPrf": 100,
+              "Weight": 0,
+              "Path": "i"
+            },
+            {
+              "Network": "1.0.101.7/32",
+              "Next Hop": "1.0.101.6",
+              "Metric": 0,
+              "LocPrf": 100,
+              "Weight": 0,
+              "Path": "i"
+            },
+            {
+              "Network": "1.0.101.8/32",
+              "Next Hop": "1.0.101.6",
+              "Metric": 0,
+              "LocPrf": 100,
+              "Weight": 0,
+              "Path": "i"
+            },
+            {
+              "Network": "1.0.101.9/32",
+              "Next Hop": "1.0.101.6",
+              "Metric": 0,
+              "LocPrf": 100,
+              "Weight": 0,
+              "Path": "i"
+            },
+            {
+              "Network": "1.0.101.10/32",
+              "Next Hop": "1.0.101.6",
+              "Metric": 0,
+              "LocPrf": 100,
+              "Weight": 0,
+              "Path": "i"
+            }
+          ]
+        },
+        "evidence": [
+          "L5: BGP table state: Active",
+          "L24: Processed 9 prefixes, 9 paths"
+        ]
+      }
+    },
+    "show_bgp_neighbors_brief": {
+      "command": "show bgp neighbors brief",
+      "topic": "bgp",
+      "platform_hint": "cisco-ios-xr",
+      "source": "llm",
+      "parsed_path": "",
+      "evidence_text_path": "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-PE-3/001__show_bgp_neighbors_brief.txt",
+      "parser_ok": false,
+      "data": {
+        "summary": "The BGP neighbor status shows one established and one idle neighbor.",
+        "status": {
+          "name": "bgp_neighbors",
+          "value": "mixed",
+          "confidence": "high",
+          "confidence_reason": "There are both established and idle states present."
+        },
+        "metrics": {
+          "bgp_neighbors_total": 2,
+          "bgp_neighbors_by_state": {
+            "idle": 1,
+            "established": 1
+          }
+        },
+        "tables": {
+          "bgp_neighbors": [
+            {
+              "Neighbor": "1.0.101.5",
+              "Spk": 0,
+              "AS": 100,
+              "Description": "",
+              "Up/Down": "1d04h",
+              "NBRState": "Idle"
+            },
+            {
+              "Neighbor": "1.0.101.6",
+              "Spk": 0,
+              "AS": 100,
+              "Description": "",
+              "Up/Down": "1d06h",
+              "NBRState": "Established"
+            }
+          ]
+        },
+        "evidence": [
+          "L4: 1.0.101.5         0   100                                         1d04h Idle",
+          "L5: 1.0.101.6         0   100                                         1d06h Established"
+        ]
+      },
+      "llm_data": {
+        "summary": "The BGP neighbor status shows one established and one idle neighbor.",
+        "status": {
+          "name": "bgp_neighbors",
+          "value": "mixed",
+          "confidence": "high",
+          "confidence_reason": "There are both established and idle states present."
+        },
+        "metrics": {
+          "bgp_neighbors_total": 2,
+          "bgp_neighbors_by_state": {
+            "idle": 1,
+            "established": 1
+          }
+        },
+        "tables": {
+          "bgp_neighbors": [
+            {
+              "Neighbor": "1.0.101.5",
+              "Spk": 0,
+              "AS": 100,
+              "Description": "",
+              "Up/Down": "1d04h",
+              "NBRState": "Idle"
+            },
+            {
+              "Neighbor": "1.0.101.6",
+              "Spk": 0,
+              "AS": 100,
+              "Description": "",
+              "Up/Down": "1d06h",
+              "NBRState": "Established"
+            }
+          ]
+        },
+        "evidence": [
+          "L4: 1.0.101.5         0   100                                         1d04h Idle",
+          "L5: 1.0.101.6         0   100                                         1d06h Established"
+        ]
+      }
+    },
+    "show_mpls_forwarding": {
+      "command": "show mpls forwarding",
+      "topic": "mpls",
+      "platform_hint": "cisco-ios-xr",
+      "source": "genie",
+      "parsed_path": "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/1-parsed/A-PE-3/cisco-ios-xr__show_mpls_forwarding.json",
+      "evidence_text_path": "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-PE-3/003__show_mpls_forwarding.txt",
+      "parser_ok": true,
+      "data": {
+        "local_label": {
+          "16001": {
+            "outgoing_label": {
+              "16001": {
+                "prefix_or_id": {
+                  "SR Pfx (idx 1)": {
+                    "outgoing_interface": {
+                      "GigabitEthernet0/0/0/0": {
+                        "next_hop": "1.0.22.2",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "16002": {
+            "outgoing_label": {
+              "16002": {
+                "prefix_or_id": {
+                  "SR Pfx (idx 2)": {
+                    "outgoing_interface": {
+                      "GigabitEthernet0/0/0/0": {
+                        "next_hop": "1.0.22.2",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "16003": {
+            "outgoing_label": {
+              "Aggregate": {
+                "prefix_or_id": {
+                  "SR Pfx (idx": {
+                    "outgoing_interface": {
+                      "3)": {
+                        "next_hop": "default",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "16004": {
+            "outgoing_label": {
+              "16004": {
+                "prefix_or_id": {
+                  "SR Pfx (idx": {
+                    "outgoing_interface": {
+                      "4)": {
+                        "next_hop": "1.0.101.6",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "16006": {
+            "outgoing_label": {
+              "Pop": {
+                "prefix_or_id": {
+                  "SR Pfx (idx 6)": {
+                    "outgoing_interface": {
+                      "GigabitEthernet0/0/0/0": {
+                        "next_hop": "1.0.22.2",
+                        "bytes_switched": 180339
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "16007": {
+            "outgoing_label": {
+              "16007": {
+                "prefix_or_id": {
+                  "SR Pfx (idx": {
+                    "outgoing_interface": {
+                      "7)": {
+                        "next_hop": "1.0.101.6",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "16008": {
+            "outgoing_label": {
+              "16008": {
+                "prefix_or_id": {
+                  "SR Pfx (idx": {
+                    "outgoing_interface": {
+                      "8)": {
+                        "next_hop": "1.0.101.6",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "16009": {
+            "outgoing_label": {
+              "16009": {
+                "prefix_or_id": {
+                  "SR Pfx (idx": {
+                    "outgoing_interface": {
+                      "9)": {
+                        "next_hop": "1.0.101.6",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "16010": {
+            "outgoing_label": {
+              "16010": {
+                "prefix_or_id": {
+                  "SR Pfx (idx": {
+                    "outgoing_interface": {
+                      "10)": {
+                        "next_hop": "1.0.101.6",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "17001": {
+            "outgoing_label": {
+              "17001": {
+                "prefix_or_id": {
+                  "SR Pfx (idx 1001)  Gi0/0/0/0    fe80::5054:ff:fe99:b62d": {
+                    "outgoing_interface": {
+                      "10)": {
+                        "next_hop": "1.0.101.6",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "17002": {
+            "outgoing_label": {
+              "17002": {
+                "prefix_or_id": {
+                  "SR Pfx (idx 1002)  Gi0/0/0/0    fe80::5054:ff:fe99:b62d": {
+                    "outgoing_interface": {
+                      "10)": {
+                        "next_hop": "1.0.101.6",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "17003": {
+            "outgoing_label": {
+              "Aggregate": {
+                "prefix_or_id": {
+                  "SR Pfx (idx": {
+                    "outgoing_interface": {
+                      "1003)": {
+                        "next_hop": "default",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "17006": {
+            "outgoing_label": {
+              "Pop": {
+                "prefix_or_id": {
+                  "SR Pfx (idx 1006)  Gi0/0/0/0    fe80::5054:ff:fe99:b62d": {
+                    "outgoing_interface": {
+                      "1003)": {
+                        "next_hop": "default",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "24000": {
+            "outgoing_label": {
+              "Pop": {
+                "prefix_or_id": {
+                  "SR Adj (idx 1)": {
+                    "outgoing_interface": {
+                      "GigabitEthernet0/0/0/0": {
+                        "next_hop": "1.0.22.2",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "24001": {
+            "outgoing_label": {
+              "Pop": {
+                "prefix_or_id": {
+                  "SR Adj (idx 3)": {
+                    "outgoing_interface": {
+                      "GigabitEthernet0/0/0/0": {
+                        "next_hop": "1.0.22.2",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "24002": {
+            "outgoing_label": {
+              "Pop": {
+                "prefix_or_id": {
+                  "SR Adj (idx 1)     Gi0/0/0/0    fe80::5054:ff:fe99:b62d": {
+                    "outgoing_interface": {
+                      "GigabitEthernet0/0/0/0": {
+                        "next_hop": "1.0.22.2",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "24003": {
+            "outgoing_label": {
+              "Pop": {
+                "prefix_or_id": {
+                  "SR Adj (idx 3)     Gi0/0/0/0    fe80::5054:ff:fe99:b62d": {
+                    "outgoing_interface": {
+                      "GigabitEthernet0/0/0/0": {
+                        "next_hop": "1.0.22.2",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "genie_data": {
+        "local_label": {
+          "16001": {
+            "outgoing_label": {
+              "16001": {
+                "prefix_or_id": {
+                  "SR Pfx (idx 1)": {
+                    "outgoing_interface": {
+                      "GigabitEthernet0/0/0/0": {
+                        "next_hop": "1.0.22.2",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "16002": {
+            "outgoing_label": {
+              "16002": {
+                "prefix_or_id": {
+                  "SR Pfx (idx 2)": {
+                    "outgoing_interface": {
+                      "GigabitEthernet0/0/0/0": {
+                        "next_hop": "1.0.22.2",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "16003": {
+            "outgoing_label": {
+              "Aggregate": {
+                "prefix_or_id": {
+                  "SR Pfx (idx": {
+                    "outgoing_interface": {
+                      "3)": {
+                        "next_hop": "default",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "16004": {
+            "outgoing_label": {
+              "16004": {
+                "prefix_or_id": {
+                  "SR Pfx (idx": {
+                    "outgoing_interface": {
+                      "4)": {
+                        "next_hop": "1.0.101.6",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "16006": {
+            "outgoing_label": {
+              "Pop": {
+                "prefix_or_id": {
+                  "SR Pfx (idx 6)": {
+                    "outgoing_interface": {
+                      "GigabitEthernet0/0/0/0": {
+                        "next_hop": "1.0.22.2",
+                        "bytes_switched": 180339
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "16007": {
+            "outgoing_label": {
+              "16007": {
+                "prefix_or_id": {
+                  "SR Pfx (idx": {
+                    "outgoing_interface": {
+                      "7)": {
+                        "next_hop": "1.0.101.6",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "16008": {
+            "outgoing_label": {
+              "16008": {
+                "prefix_or_id": {
+                  "SR Pfx (idx": {
+                    "outgoing_interface": {
+                      "8)": {
+                        "next_hop": "1.0.101.6",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "16009": {
+            "outgoing_label": {
+              "16009": {
+                "prefix_or_id": {
+                  "SR Pfx (idx": {
+                    "outgoing_interface": {
+                      "9)": {
+                        "next_hop": "1.0.101.6",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "16010": {
+            "outgoing_label": {
+              "16010": {
+                "prefix_or_id": {
+                  "SR Pfx (idx": {
+                    "outgoing_interface": {
+                      "10)": {
+                        "next_hop": "1.0.101.6",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "17001": {
+            "outgoing_label": {
+              "17001": {
+                "prefix_or_id": {
+                  "SR Pfx (idx 1001)  Gi0/0/0/0    fe80::5054:ff:fe99:b62d": {
+                    "outgoing_interface": {
+                      "10)": {
+                        "next_hop": "1.0.101.6",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "17002": {
+            "outgoing_label": {
+              "17002": {
+                "prefix_or_id": {
+                  "SR Pfx (idx 1002)  Gi0/0/0/0    fe80::5054:ff:fe99:b62d": {
+                    "outgoing_interface": {
+                      "10)": {
+                        "next_hop": "1.0.101.6",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "17003": {
+            "outgoing_label": {
+              "Aggregate": {
+                "prefix_or_id": {
+                  "SR Pfx (idx": {
+                    "outgoing_interface": {
+                      "1003)": {
+                        "next_hop": "default",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "17006": {
+            "outgoing_label": {
+              "Pop": {
+                "prefix_or_id": {
+                  "SR Pfx (idx 1006)  Gi0/0/0/0    fe80::5054:ff:fe99:b62d": {
+                    "outgoing_interface": {
+                      "1003)": {
+                        "next_hop": "default",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "24000": {
+            "outgoing_label": {
+              "Pop": {
+                "prefix_or_id": {
+                  "SR Adj (idx 1)": {
+                    "outgoing_interface": {
+                      "GigabitEthernet0/0/0/0": {
+                        "next_hop": "1.0.22.2",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "24001": {
+            "outgoing_label": {
+              "Pop": {
+                "prefix_or_id": {
+                  "SR Adj (idx 3)": {
+                    "outgoing_interface": {
+                      "GigabitEthernet0/0/0/0": {
+                        "next_hop": "1.0.22.2",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "24002": {
+            "outgoing_label": {
+              "Pop": {
+                "prefix_or_id": {
+                  "SR Adj (idx 1)     Gi0/0/0/0    fe80::5054:ff:fe99:b62d": {
+                    "outgoing_interface": {
+                      "GigabitEthernet0/0/0/0": {
+                        "next_hop": "1.0.22.2",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "24003": {
+            "outgoing_label": {
+              "Pop": {
+                "prefix_or_id": {
+                  "SR Adj (idx 3)     Gi0/0/0/0    fe80::5054:ff:fe99:b62d": {
+                    "outgoing_interface": {
+                      "GigabitEthernet0/0/0/0": {
+                        "next_hop": "1.0.22.2",
+                        "bytes_switched": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "notes": {
+    "gap_fill_permitted": true,
+    "gap_fill_used": true,
+    "providers": [
+      "mcp(if-wired)",
+      "genie",
+      "llm"
+    ]
+  }
+}

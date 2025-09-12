@@ -1,0 +1,19 @@
+{
+  "interface": {
+    "GigabitEthernet0/0/0/1": {
+      "dest_ip_address": {
+        "100.64.231.1": {
+          "echo_total_msec": 2500,
+          "echo_msec": 500,
+          "echo_multiplier": 5,
+          "async_total_msec": 10000,
+          "async_msec": 2000,
+          "async_multiplier": 5,
+          "state": "UP",
+          "hardware": "No",
+          "npu": "n/a"
+        }
+      }
+    }
+  }
+}

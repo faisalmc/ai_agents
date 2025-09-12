@@ -1,0 +1,67 @@
+{
+  "network_summary": "All 8 devices are healthy. SRv6 is operational across all devices, but IS-IS database status is unknown on several devices.",
+  "status_rollup": {
+    "healthy": 8,
+    "degraded": 0,
+    "error": 0,
+    "unknown": 0
+  },
+  "top_incidents": [],
+  "notable_devices": [
+    {
+      "host": "C-ASBR-1",
+      "status": "healthy",
+      "note": "SRv6 is operational with active resources.",
+      "evidence": {
+        "host": "C-ASBR-1",
+        "path": "commands.show_segment-routing_srv6_manager.data.summary"
+      }
+    },
+    {
+      "host": "C-ASBR-2",
+      "status": "healthy",
+      "note": "SRv6 is enabled with operational parameters.",
+      "evidence": {
+        "host": "C-ASBR-2",
+        "path": "commands.show_segment-routing_srv6_manager.data.summary"
+      }
+    },
+    {
+      "host": "C-P-1",
+      "status": "healthy",
+      "note": "IS-IS SRv6 locators are active.",
+      "evidence": {
+        "host": "C-P-1",
+        "path": "commands.show_isis_segment-routing_srv6_locators_detail.data.summary"
+      }
+    },
+    {
+      "host": "C-PE-1",
+      "status": "healthy",
+      "note": "One active IS-IS locator is configured.",
+      "evidence": {
+        "host": "C-PE-1",
+        "path": "commands.show_isis_segment-routing_srv6_locators_detail.data.summary"
+      }
+    },
+    {
+      "host": "C-PE-4",
+      "status": "healthy",
+      "note": "SRv6 is operational with available resources.",
+      "evidence": {
+        "host": "C-PE-4",
+        "path": "commands.show_segment-routing_srv6_manager.data.summary"
+      }
+    }
+  ],
+  "remediation_themes": [],
+  "trusted_followup_cmds": [
+    "show isis ipv6 route",
+    "show segment-routing srv6 manager"
+  ],
+  "unvalidated_followup_cmds": [],
+  "optional_active_probes": [
+    "ping ..."
+  ],
+  "task_status": "healthy"
+}

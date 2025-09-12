@@ -1,0 +1,5 @@
+config_dir=configs.5
+task_dir=taREMOVED18.bfd.bravo_charlie
+agent1_summary_present=True items=4
+md_pairs_count=2
+md_files=B-ASBR-1, C-ASBR-1

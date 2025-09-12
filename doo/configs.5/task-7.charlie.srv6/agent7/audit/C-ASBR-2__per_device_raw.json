@@ -1,0 +1,47 @@
+```json
+{
+  "hostname": "C-ASBR-2",
+  "platform": "ios-xr",
+  "signals_seen": ["configured", "enabled", "isis", "locators", "srv6"],
+  "status": "healthy",
+  "status_reason": "SRv6 is enabled and operational with available resources.",
+  "ok": [
+    {
+      "summary": "SRv6 is enabled with operational parameters and resource availability.",
+      "evidence_ref": { "command_key": "show_segment-routing_srv6_manager", "path": "commands.show_segment-routing_srv6_manager.data.summary" }
+    },
+    {
+      "summary": "One active IS-IS locator is present.",
+      "evidence_ref": { "command_key": "show_isis_segment-routing_srv6_locators_detail", "path": "commands.show_isis_segment-routing_srv6_locators_detail.data.summary" }
+    }
+  ],
+  "suspect": [
+    {
+      "summary": "IS-IS routing table status is unknown despite having routes.",
+      "evidence_ref": { "command_key": "show_isis_ipv6_route__inc_fc00tag", "path": "commands.show_isis_ipv6_route__inc_fc00tag.data.status.value" }
+    }
+  ],
+  "findings": [
+    {
+      "signal": "isis",
+      "severity": "warn",
+      "summary": "IS-IS database status is unknown, which may indicate potential issues.",
+      "evidence_ref": {
+        "command_key": "show_isis_ipv6_route__inc_fc00tag",
+        "path": "commands.show_isis_ipv6_route__inc_fc00tag.data.status.value"
+      }
+    },
+    {
+      "signal": "srv6",
+      "severity": "info",
+      "summary": "SRv6 is operational with sufficient resources available.",
+      "evidence_ref": {
+        "command_key": "show_segment-routing_srv6_manager",
+        "path": "commands.show_segment-routing_srv6_manager.data.status.value"
+      }
+    }
+  ],
+  "recommended_show_cmds": ["show isis ipv6 route", "show segment-routing srv6 manager"],
+  "optional_active_cmds": ["ping fc00:100:8::1"]
+}
+```

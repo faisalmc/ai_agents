@@ -1,0 +1,31 @@
+{
+  "hostname": "C-PE-3",
+  "platform_hint": "unknown",
+  "signals": [
+    "srv6",
+    "isis",
+    "locators",
+    "enabled",
+    "configured"
+  ],
+  "confidence": 0.8,
+  "evidence": {
+    "srv6": [
+      "SRv6 Enabled: Yes",
+      "SID Base Block: fc00:100::/24"
+    ],
+    "isis": [
+      "IS-IS CORE SRv6 Locators"
+    ],
+    "locators": [
+      "Name                  ID       Algo  Prefix                    Status"
+    ],
+    "enabled": [
+      "SRv6 Enabled: Yes"
+    ],
+    "configured": [
+      "Configured: 2620:fc7:3:101::3"
+    ]
+  },
+  "notes": "The log contains multiple references to SRv6 and IS-IS segment routing, indicating the device is configured for these protocols. The confidence is high due to the presence of specific parameters and operational details."
+}

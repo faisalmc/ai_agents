@@ -1,0 +1,73 @@
+{
+  "config_dir": "configs.5",
+  "task_dir": "taREMOVED3",
+  "generated_at": 1757487573,
+  "hosts": {
+    "A-ASBR-1": {
+      "platform_hint": "cisco-ios-xr",
+      "blocks": 3,
+      "dir": "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-ASBR-1",
+      "index_path": "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-ASBR-1__blocks.json"
+    },
+    "A-ASBR-2": {
+      "platform_hint": "cisco-ios-xr",
+      "blocks": 3,
+      "dir": "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-ASBR-2",
+      "index_path": "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-ASBR-2__blocks.json"
+    },
+    "A-P-1": {
+      "platform_hint": "cisco-ios-xr",
+      "blocks": 3,
+      "dir": "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-P-1",
+      "index_path": "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-P-1__blocks.json"
+    },
+    "A-P-2": {
+      "platform_hint": "cisco-ios-xr",
+      "blocks": 3,
+      "dir": "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-P-2",
+      "index_path": "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-P-2__blocks.json"
+    },
+    "A-P-3": {
+      "platform_hint": "cisco-ios-xr",
+      "blocks": 3,
+      "dir": "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-P-3",
+      "index_path": "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-P-3__blocks.json"
+    },
+    "A-P-4": {
+      "platform_hint": "cisco-ios-xr",
+      "blocks": 3,
+      "dir": "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-P-4",
+      "index_path": "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-P-4__blocks.json"
+    },
+    "A-PE-1": {
+      "platform_hint": "cisco-ios-xr",
+      "blocks": 5,
+      "dir": "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-PE-1",
+      "index_path": "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-PE-1__blocks.json"
+    },
+    "A-PE-2": {
+      "platform_hint": "cisco-ios-xr",
+      "blocks": 3,
+      "dir": "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-PE-2",
+      "index_path": "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-PE-2__blocks.json"
+    },
+    "A-PE-3": {
+      "platform_hint": "cisco-ios-xr",
+      "blocks": 3,
+      "dir": "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-PE-3",
+      "index_path": "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-PE-3__blocks.json"
+    },
+    "A-PE-4": {
+      "platform_hint": "cisco-ios-xr",
+      "blocks": 3,
+      "dir": "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-PE-4",
+      "index_path": "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-PE-4__blocks.json"
+    },
+    "A-RR-1": {
+      "platform_hint": "unknown",
+      "blocks": 1,
+      "dir": "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-RR-1",
+      "index_path": "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/0-md-index/A-RR-1__blocks.json"
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "task_id": "taREMOVED18.error",
+  "config_dir": "configs.5",
+  "totals": {
+    "devices": 2,
+    "success": 0,
+    "failed": 2,
+    "analysis_unavailable": 0
+  },
+  "hosts": [
+    {
+      "host": "B-ASBR-1",
+      "status": "failure",
+      "issue": "SSH connection failed",
+      "recommendation": "Check the hostname, IP address, and TCP port settings. Ensure that SSH is enabled on the device and there are no firewall rules blocking the connection.",
+      "confidence": "high"
+    },
+    {
+      "host": "C-ASBR-1",
+      "status": "failure",
+      "issue": "SSH connection failed",
+      "recommendation": "Check the hostname or IP address, ensure the correct TCP port is used, and verify if there are any intermediate firewalls blocking the access.",
+      "confidence": "high"
+    }
+  ]
+}

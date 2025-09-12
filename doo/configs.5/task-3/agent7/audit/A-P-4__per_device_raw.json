@@ -1,0 +1,45 @@
+```json
+{
+  "hostname": "A-P-4",
+  "platform": "ios-xr",
+  "signals_seen": ["bgp", "forwarding", "ipv4", "labeled-unicast", "mpls", "neighbors"],
+  "status": "healthy",
+  "status_reason": "All BGP neighbors are in an Established state and the BGP table for IPv4 labeled-unicast is active.",
+  "ok": [
+    {
+      "summary": "All BGP neighbors are in an Established state.",
+      "evidence_ref": { "command_key": "show_bgp_neighbors_brief", "path": "commands.show_bgp_neighbors_brief.data.summary" }
+    },
+    {
+      "summary": "The BGP table for IPv4 labeled-unicast is in an active state with 9 prefixes processed.",
+      "evidence_ref": { "command_key": "show_bgp_ipv4_labeled-unicast", "path": "commands.show_bgp_ipv4_labeled-unicast.data.summary" }
+    }
+  ],
+  "suspect": [],
+  "findings": [
+    {
+      "signal": "bgp",
+      "severity": "info",
+      "summary": "BGP neighbors are all established.",
+      "evidence_ref": {
+        "command_key": "show_bgp_neighbors_brief",
+        "path": "commands.show_bgp_neighbors_brief.data.metrics.bgp_neighbors_by_state.established"
+      }
+    },
+    {
+      "signal": "bgp",
+      "severity": "info",
+      "summary": "BGP table state is active with 9 prefixes.",
+      "evidence_ref": {
+        "command_key": "show_bgp_ipv4_labeled-unicast",
+        "path": "commands.show_bgp_ipv4_labeled-unicast.data.metrics.prefixes_total"
+      }
+    }
+  ],
+  "recommended_show_cmds": [
+    "show bgp summary",
+    "show bgp ipv4 labeled-unicast summary"
+  ],
+  "optional_active_cmds": []
+}
+```

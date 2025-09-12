@@ -1,0 +1,116 @@
+{
+  "network_summary": "There are 12 healthy devices, 6 degraded, and 1 error. A-ASBR-1 and A-ASBR-2 are healthy, while A-P-1 is degraded with all BGP neighbors idle.",
+  "status_rollup": {
+    "healthy": 12,
+    "degraded": 6,
+    "error": 1,
+    "unknown": 0
+  },
+  "top_incidents": [
+    {
+      "scope": "pair",
+      "summary": "All BGP neighbors are idle.",
+      "impact": "A-P-1",
+      "devices": [
+        "A-P-1"
+      ],
+      "evidence": [
+        {
+          "host": "A-P-1",
+          "path": "commands.show_bgp_neighbors_brief.data.metrics.bgp_neighbors_by_state.idle"
+        },
+        {
+          "host": "A-P-1",
+          "path": "commands.show_bgp_ipv4_labeled-unicast.data.metrics"
+        }
+      ]
+    },
+    {
+      "scope": "pair",
+      "summary": "One BGP neighbor is idle while another is established.",
+      "impact": "A-PE-1, A-PE-2, A-PE-3",
+      "devices": [
+        "A-PE-1",
+        "A-PE-2",
+        "A-PE-3"
+      ],
+      "evidence": [
+        {
+          "host": "A-PE-1",
+          "path": "commands.show_bgp_neighbors_brief.data.metrics.bgp_neighbors_by_state"
+        },
+        {
+          "host": "A-PE-2",
+          "path": "commands.show_bgp_neighbors_brief.data.metrics.bgp_neighbors_by_state"
+        },
+        {
+          "host": "A-PE-3",
+          "path": "commands.show_bgp_neighbors_brief.data.metrics.bgp_neighbors_by_state"
+        }
+      ]
+    }
+  ],
+  "notable_devices": [
+    {
+      "host": "A-ASBR-1",
+      "status": "healthy",
+      "note": "BGP neighbors established with active table.",
+      "evidence": {
+        "host": "A-ASBR-1",
+        "path": "commands.show_bgp_neighbors_brief.data.summary"
+      }
+    },
+    {
+      "host": "A-P-1",
+      "status": "degraded",
+      "note": "All BGP neighbors are idle.",
+      "evidence": {
+        "host": "A-P-1",
+        "path": "commands.show_bgp_neighbors_brief.data.metrics.bgp_neighbors_by_state.idle"
+      }
+    },
+    {
+      "host": "A-PE-1",
+      "status": "degraded",
+      "note": "One BGP neighbor idle, one established.",
+      "evidence": {
+        "host": "A-PE-1",
+        "path": "commands.show_bgp_neighbors_brief.data.metrics.bgp_neighbors_by_state"
+      }
+    },
+    {
+      "host": "A-P-2",
+      "status": "healthy",
+      "note": "All BGP neighbors established.",
+      "evidence": {
+        "host": "A-P-2",
+        "path": "commands.show_bgp_neighbors_brief.data.summary"
+      }
+    },
+    {
+      "host": "A-RR-1",
+      "status": "healthy",
+      "note": "Router is running IOS-XE version 17.3.8a.",
+      "evidence": {
+        "host": "A-RR-1",
+        "path": "commands.show_version.data.version.version"
+      }
+    }
+  ],
+  "remediation_themes": [
+    "Investigate BGP configuration on A-P-1.",
+    "Check connectivity issues for idle neighbors on A-PE-1, A-PE-2, and A-PE-3."
+  ],
+  "trusted_followup_cmds": [
+    "show bgp summary",
+    "show bgp ipv4 labeled-unicast summary"
+  ],
+  "unvalidated_followup_cmds": [
+    "show run | section ^router bgp"
+  ],
+  "optional_active_probes": [
+    "ping 1.0.101.5",
+    "ping 1.0.101.6"
+  ],
+  "task_status": "mixed"
+}

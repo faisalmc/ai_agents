@@ -1,0 +1,141 @@
+{
+  "config_dir": "configs.5",
+  "task_dir": "taREMOVED3",
+  "generated_at": 1757426059,
+  "per_signal_limit": 3,
+  "hosts": {
+    "A-ASBR-1": {
+      "platform": "cisco-ios-xr",
+      "signals": [
+        "bgp",
+        "mpls"
+      ],
+      "added": [],
+      "present_count": 9,
+      "reasons": {}
+    },
+    "A-ASBR-2": {
+      "platform": "cisco-ios-xr",
+      "signals": [
+        "bgp",
+        "mpls"
+      ],
+      "added": [],
+      "present_count": 9,
+      "reasons": {}
+    },
+    "A-P-1": {
+      "platform": "cisco-ios-xr",
+      "signals": [
+        "bgp",
+        "mpls"
+      ],
+      "added": [],
+      "present_count": 9,
+      "reasons": {}
+    },
+    "A-P-2": {
+      "platform": "cisco-ios-xr",
+      "signals": [
+        "bgp",
+        "mpls"
+      ],
+      "added": [],
+      "present_count": 9,
+      "reasons": {}
+    },
+    "A-P-3": {
+      "platform": "cisco-ios-xr",
+      "signals": [
+        "bgp",
+        "mpls"
+      ],
+      "added": [],
+      "present_count": 9,
+      "reasons": {}
+    },
+    "A-P-4": {
+      "platform": "cisco-ios-xr",
+      "signals": [
+        "bgp",
+        "neighbors",
+        "ipv4",
+        "labeled-unicast",
+        "mpls",
+        "forwarding"
+      ],
+      "added": [],
+      "present_count": 9,
+      "reasons": {}
+    },
+    "A-PE-1": {
+      "platform": "cisco-ios-xr",
+      "signals": [
+        "bgp",
+        "ipv4",
+        "labeled-unicast",
+        "mpls",
+        "neighbor"
+      ],
+      "added": [],
+      "present_count": 9,
+      "reasons": {}
+    },
+    "A-PE-2": {
+      "platform": "cisco-ios-xr",
+      "signals": [
+        "bgp",
+        "mpls"
+      ],
+      "added": [],
+      "present_count": 9,
+      "reasons": {}
+    },
+    "A-PE-3": {
+      "platform": "cisco-ios-xr",
+      "signals": [
+        "bgp",
+        "mpls"
+      ],
+      "added": [],
+      "present_count": 9,
+      "reasons": {}
+    },
+    "A-PE-4": {
+      "platform": "cisco-ios-xr",
+      "signals": [
+        "bgp",
+        "mpls"
+      ],
+      "added": [],
+      "present_count": 9,
+      "reasons": {}
+    },
+    "A-RR-1": {
+      "platform": "unknown",
+      "signals": [
+        "ios-xe",
+        "version-17.03.08a",
+        "uptime-5d10h48m",
+        "smart-license-unregistered"
+      ],
+      "added": [],
+      "present_count": 8,
+      "reasons": {}
+    }
+  },
+  "ini_path": "/app/doo/configs.5/taREMOVED3/agent7/1-plan/show_cmds.plan.ini",
+  "selected_hosts": [
+    "A-ASBR-1",
+    "A-ASBR-2",
+    "A-P-1",
+    "A-P-2",
+    "A-P-3",
+    "A-P-4",
+    "A-PE-1",
+    "A-PE-2",
+    "A-PE-3",
+    "A-PE-4",
+    "A-RR-1"
+  ]
+}

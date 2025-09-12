@@ -1,0 +1,50 @@
+--- Config Push Log for A-PE-1 ---
+Timestamp: 2025-08-05 02:41:25.903558
+
+configure terminal
+
+Tue Aug  5 06:41:20.207 UTC
+RP/0/RP0/CPU0:A-PE-1(config)#route-policy SID($SID)
+
+RP/0/RP0/CPU0:A-PE-1(config-rpl)#set label-index $SID
+
+RP/0/RP0/CPU0:A-PE-1(config-rpl)#end-policy
+
+RP/0/RP0/CPU0:A-PE-1(config)#!
+
+RP/0/RP0/CPU0:A-PE-1(config)#router bgp 100
+
+RP/0/RP0/CPU0:A-PE-1(config-bgp)# bgp router-id 1.0.101.1
+
+RP/0/RP0/CPU0:A-PE-1(config-bgp)# address-family ipv4 unicast
+
+RP/0/RP0/CPU0:A-PE-1(config-bgp-af)#network 1.0.101.1/32 route-policy SID(1)
+
+RP/0/RP0/CPU0:A-PE-1(config-bgp-af)#allocate-label all
+
+RP/0/RP0/CPU0:A-PE-1(config-bgp-af)# !
+
+RP/0/RP0/CPU0:A-PE-1(config-bgp-af)# neighbor-group TO_P
+
+RP/0/RP0/CPU0:A-PE-1(config-bgp-nbrgrp)#  remote-as 100
+
+RP/0/RP0/CPU0:A-PE-1(config-bgp-nbrgrp)#  update-source Loopback0
+
+RP/0/RP0/CPU0:A-PE-1(config-bgp-nbrgrp)#  address-family ipv4 labeled-unicast
+
+RP/0/RP0/CPU0:A-PE-1(config-bgp-nbrgrp-af)#  !
+
+RP/0/RP0/CPU0:A-PE-1(config-bgp-nbrgrp-af)# neighbor 1.0.101.5
+
+RP/0/RP0/CPU0:A-PE-1(config-bgp-nbr)#  use neighbor-group TO_P
+
+RP/0/RP0/CPU0:A-PE-1(config-bgp-nbr)#  !
+
+RP/0/RP0/CPU0:A-PE-1(config-bgp-nbr)# neighbor 1.0.101.6
+
+RP/0/RP0/CPU0:A-PE-1(config-bgp-nbr)#  use neighbor-group TO_P
+
+RP/0/RP0/CPU0:A-PE-1(config-bgp-nbr)#commit
+
+Tue Aug  5 06:41:21.542 UTC
+RP/0/RP0/CPU0:A-PE-1(config-bgp-nbr)#

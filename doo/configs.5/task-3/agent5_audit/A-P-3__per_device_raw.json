@@ -1,0 +1,26 @@
+```json
+{
+  "hostname": "A-P-3",
+  "platform": "ios-xr",
+  "signals_seen": ["bgp", "mpls"],
+  "status": "healthy",
+  "findings": [
+    {
+      "signal": "bgp",
+      "severity": "info",
+      "detail": "BGP process is active with Router-ID 1.0.101.7. IPv4 unicast address-family is configured. Route-policy for SID labeling is applied. Neighbor relationships are established with proper attributes."
+    },
+    {
+      "signal": "mpls",
+      "severity": "info",
+      "detail": "MPLS forwarding is operational with multiple labels and next hops configured."
+    }
+  ],
+  "recommended_show_cmds": [
+    "show bgp summary",
+    "show bgp ipv4 unicast summary",
+    "show run | section ^router bgp"
+  ],
+  "optional_active_cmds": []
+}
+```

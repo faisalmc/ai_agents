@@ -1,0 +1,34 @@
+
+Tue Aug 26 16:46:19.787 UTC
+Local  Outgoing    Prefix             Outgoing     Next Hop        Bytes       
+Label  Label       or ID              Interface                    Switched    
+------ ----------- ------------------ ------------ --------------- ------------
+16001  Aggregate   SR Pfx (idx 1)     default                      0           
+16002  Pop         SR Pfx (idx 2)     Gi0/0/0/2    1.0.40.2        12737       
+16003  16003       SR Pfx (idx 3)     Gi0/0/0/2    1.0.40.2        13175       
+16004  16004       SR Pfx (idx 4)                  1.0.101.6       0           
+16006  16006       SR Pfx (idx 6)     Gi0/0/0/2    1.0.40.2        182561      
+16007  16007       SR Pfx (idx 7)                  1.0.101.6       1152        
+16008  16008       SR Pfx (idx 8)                  1.0.101.6       0           
+16009  16009       SR Pfx (idx 9)                  1.0.101.6       768         
+16010  16010       SR Pfx (idx 10)                 1.0.101.6       0           
+17001  Aggregate   SR Pfx (idx 1001)  default                      0           
+17002  Pop         SR Pfx (idx 1002)  Gi0/0/0/2    fe80::5054:ff:fea8:2a5d   \
+                                                                   0           
+17003  17003       SR Pfx (idx 1003)  Gi0/0/0/2    fe80::5054:ff:fea8:2a5d   \
+                                                                   0           
+17006  17006       SR Pfx (idx 1006)  Gi0/0/0/2    fe80::5054:ff:fea8:2a5d   \
+                                                                   0           
+24000  Pop         SR Adj (idx 1)     Gi0/0/0/2    1.0.40.2        0           
+24001  Pop         SR Adj (idx 3)     Gi0/0/0/2    1.0.40.2        0           
+24002  Pop         SR Adj (idx 1)     Gi0/0/0/0    1.0.20.2        0           
+24003  Pop         SR Adj (idx 3)     Gi0/0/0/0    1.0.20.2        0           
+24004  Pop         SR Adj (idx 1)     Gi0/0/0/2    fe80::5054:ff:fea8:2a5d   \
+                                                                   0           
+24005  Pop         SR Adj (idx 3)     Gi0/0/0/2    fe80::5054:ff:fea8:2a5d   \
+                                                                   0           
+24006  Pop         SR Adj (idx 1)     Gi0/0/0/0    fe80::5054:ff:fece:9dfa   \
+                                                                   0           
+24007  Pop         SR Adj (idx 3)     Gi0/0/0/0    fe80::5054:ff:fece:9dfa   \
+                                                                   0           
+RP/0/RP0/CPU0:A-PE-1#

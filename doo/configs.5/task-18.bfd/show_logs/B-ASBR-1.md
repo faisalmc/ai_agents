@@ -1,0 +1,155 @@
+# Full Output for Task taREMOVED18.bfd.bravo_charlie/
+**Device:** B-ASBR-1 (192.168.100.124)
+_Generated: 2025-07-06 02:53:25.974221_
+
+## show run router bgp
+
+```
+show run router bgp
+
+Sun Jul  6 06:36:39.777 UTC
+router bgp 200
+ address-family ipv4 unicast
+ !
+ address-family vpnv4 unicast
+  retain route-target all
+ !
+ address-family ipv6 unicast
+ !
+ address-family vpnv6 unicast
+  retain route-target all
+ !
+ neighbor-group IBGP-VPN
+  remote-as 200
+  update-source Loopback0
+  address-family vpnv4 unicast
+   next-hop-self
+   route-policy PASS in
+   route-policy PASS out
+  !
+  address-family vpnv6 unicast
+   next-hop-self
+   route-policy PASS in
+   route-policy PASS out
+  !
+ !
+ neighbor-group TO_A_ASBR
+  remote-as 100
+  update-source GigabitEthernet0/0/0/0
+  address-family vpnv4 unicast
+   route-policy PASS in
+   route-policy PASS out
+  !
+  address-family vpnv6 unicast
+   route-policy PASS in
+   route-policy PASS out
+  !
+ !
+ neighbor-group TO_C_ASBR
+  remote-as 300
+  bfd fast-detect
+  bfd multiplier 5
+  bfd minimum-interval 500
+  address-family ipv4 unicast
+  !
+  address-family ipv6 unicast
+  !
+ !
+ neighbor 2.0.101.10
+  use neighbor-group IBGP-VPN
+ !
+ neighbor 100.64.121.1
+  use neighbor-group TO_A_ASBR
+ !
+ neighbor 100.64.231.2
+  use neighbor-group TO_C_ASBR
+ !
+ neighbor 2620:fc7:64:231::2
+  use neighbor-group TO_C_ASBR
+ !
+!
+
+RP/0/RP0/CPU0:B-ASBR-1#
+```
+
+## show ip bgp neighbor brief
+
+```
+show ip bgp neighbor brief
+
+Sun Jul  6 06:36:40.023 UTC
+
+Neighbor         Spk    AS  Description                         Up/Down  NBRState
+2.0.101.10        0   200                                      01:56:52 Established 
+100.64.121.1      0   100                                      04:04:52 Established 
+100.64.231.2      0   300                                      00:00:34 Established 
+2620:fc7:64:231::2
+                  0   300                                      00:00:46 Established 
+RP/0/RP0/CPU0:B-ASBR-1#
+```
+
+## show bfd session
+
+```
+show bfd session
+
+Sun Jul  6 06:36:40.147 UTC
+Interface           Dest Addr           Local det time(int*mult)      State     
+                                    Echo             Async   H/W   NPU     
+------------------- --------------- ---------------- ---------------- ----------
+Gi0/0/0/3           100.64.231.2    2500ms(500ms*5)  10s(2s*5)        UP        
+                                                             No    n/a            
+
+
+RP/0/RP0/CPU0:B-ASBR-1#
+```
+
+## show bfd session detail
+
+```
+show bfd session detail
+
+Sun Jul  6 06:36:40.278 UTC
+I/f: GigabitEthernet0/0/0/3, Location: 0/0/CPU0
+Dest: 100.64.231.2
+Src: 100.64.231.1
+ State: UP for 0d:0h:0m:32s, number of times UP: 1
+ Session type: PR/V4/SH
+Received parameters:
+ Version: 1, desired tx interval: 2 s, required rx interval: 2 s
+ Required echo rx interval: 1 ms, multiplier: 5, diag: None
+ My discr: 2148532226, your discr: 2148532226, state UP, D/F/P/C/A: 0/0/0/1/0
+Transmitted parameters:
+ Version: 1, desired tx interval: 2 s, required rx interval: 2 s
+ Required echo rx interval: 1 ms, multiplier: 5, diag: None
+ My discr: 2148532226, your discr: 2148532226, state UP, D/F/P/C/A: 0/0/0/1/0
+Timer Values:
+ Local negotiated async tx interval: 2 s
+ Remote negotiated async tx interval: 2 s
+ Desired echo tx interval: 500 ms, local negotiated echo tx interval: 500 ms
+ Echo detection time: 2500 ms(500 ms*5), async detection time: 10 s(2 s*5)
+Local Stats:
+ Intervals between async packets:
+   Tx: Number of intervals=19, min=2 ms, max=1959 ms, avg=1627 ms
+       Last packet transmitted 1318 ms ago
+   Rx: Number of intervals=18, min=2 ms, max=1956 ms, avg=1720 ms
+       Last packet received 1265 ms ago
+ Intervals between echo packets:
+   Tx: Number of intervals=0, min=0 s, max=0 s, avg=0 s
+       Last packet transmitted 226 ms ago
+   Rx: Number of intervals=0, min=0 s, max=0 s, avg=0 s
+       Last packet received 224 ms ago
+ Latency of echo packets (time between tx and rx):
+   Number of packets: 0, min=0 ms, max=0 ms, avg=0 ms
+Session owner information:
+                            Desired               Adjusted
+  Client               Interval   Multiplier Interval   Multiplier
+  -------------------- --------------------- ---------------------
+  bgp-default          500 ms     5          2 s        5         
+
+
+
+
+RP/0/RP0/CPU0:B-ASBR-1#
+```
+

@@ -1,0 +1,36 @@
+{
+  "hostname": "A-PE-1",
+  "platform_hint": "ios-xr",
+  "signals": [
+    "bgp",
+    "ipv4",
+    "labeled-unicast",
+    "mpls",
+    "neighbor"
+  ],
+  "confidence": 0.9,
+  "evidence": {
+    "bgp": [
+      "## show bgp neighbors brief",
+      "## show bgp ipv4 labeled-unicast 1.0.101.7",
+      "## show bgp ipv4 labeled-unicast 1.0.101.9"
+    ],
+    "ipv4": [
+      "## show bgp ipv4 labeled-unicast",
+      "## show bgp ipv4 labeled-unicast 1.0.101.7",
+      "## show bgp ipv4 labeled-unicast 1.0.101.9"
+    ],
+    "labeled-unicast": [
+      "## show bgp ipv4 labeled-unicast",
+      "## show bgp ipv4 labeled-unicast 1.0.101.7",
+      "## show bgp ipv4 labeled-unicast 1.0.101.9"
+    ],
+    "mpls": [
+      "## show mpls forwarding"
+    ],
+    "neighbor": [
+      "## show bgp neighbors brief"
+    ]
+  },
+  "notes": "The logs contain information about BGP neighbors, IPv4 labeled-unicast routes, MPLS forwarding, and BGP neighbor summary, indicating an IOS-XR platform."
+}

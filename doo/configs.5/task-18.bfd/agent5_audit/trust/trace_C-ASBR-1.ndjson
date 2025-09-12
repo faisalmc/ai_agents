@@ -1,0 +1,2 @@
+{"host": "C-ASBR-1", "platform": "ios-xr", "input_cmd": "show bgp summary", "sanitized": "show bgp summary", "decision": "UNVALIDATED", "reasons": []}
+{"host": "C-ASBR-1", "platform": "ios-xr", "input_cmd": "show bfd neighbors", "sanitized": "show bfd neighbors", "decision": "UNVALIDATED", "reasons": []}

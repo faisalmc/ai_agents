@@ -1,0 +1,14 @@
+
+Tue Aug  5 08:14:20.047 UTC
+
+IS-IS CORE SRv6 Locators
+Name                  ID       Algo  Prefix                    Status
+------                ----     ----  ------                    ------
+CCIE_ALGO_0           1        0     fc00:100:4::/48           Active
+  Advertised Level: level-1-2   
+  Level: level-2-only Metric: 1        Administrative Tag: 300       
+  SID behavior: uN (PSP/USD)
+  SID value:    fc00:100:4::
+  Block Length: 32, Node Length: 16, Func Length: 0, Args Length: 80
+
+RP/0/RP0/CPU0:C-PE-4#

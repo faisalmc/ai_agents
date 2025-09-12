@@ -1,0 +1,57 @@
+{
+  "0bcb1ca672e52ce1": {
+    "ts": 1757489727.221463,
+    "request": {
+      "q": "srv6 troubleshooting cisco-ios-xr commands",
+      "platform": "cisco-ios-xr",
+      "signal": "srv6",
+      "version": null,
+      "limit": 6
+    },
+    "results": []
+  },
+  "132a5429d2a77fd4": {
+    "ts": 1757489727.2282858,
+    "request": {
+      "q": "isis troubleshooting cisco-ios-xr commands",
+      "platform": "cisco-ios-xr",
+      "signal": "isis",
+      "version": null,
+      "limit": 6
+    },
+    "results": []
+  },
+  "956fcd70c74165d2": {
+    "ts": 1757489727.243211,
+    "request": {
+      "q": "locators troubleshooting cisco-ios-xr commands",
+      "platform": "cisco-ios-xr",
+      "signal": "locators",
+      "version": null,
+      "limit": 6
+    },
+    "results": []
+  },
+  "c5133403b0eb3afe": {
+    "ts": 1757489727.244602,
+    "request": {
+      "q": "enabled troubleshooting cisco-ios-xr commands",
+      "platform": "cisco-ios-xr",
+      "signal": "enabled",
+      "version": null,
+      "limit": 6
+    },
+    "results": []
+  },
+  "8f647df1c66d98fe": {
+    "ts": 1757489727.245582,
+    "request": {
+      "q": "configured troubleshooting cisco-ios-xr commands",
+      "platform": "cisco-ios-xr",
+      "signal": "configured",
+      "version": null,
+      "limit": 6
+    },
+    "results": []
+  }
+}

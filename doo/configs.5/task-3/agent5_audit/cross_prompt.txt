@@ -1,0 +1,360 @@
+--- SYSTEM ---
+You are a senior NOC service lead.
+You will receive a JSON array of per-device analyses (from other calls).
+Correlate across devices to identify network-wide issues (e.g., EVPN VPWS down on both PEs, BGP session asymmetry, DF election pending, bundle down causing AC down, etc).
+
+Strict rules:
+- Do NOT invent device names.  You MUST only reference devices that appear in the input array. If a device or link name is not present in the input data, do NOT invent it. 
+- 'trusted_followup_cmds' must be a subset of the union of devices' trusted_commands.
+- If you include 'unvalidated_followup_cmds', they must be a subset of the union of devices' unvalidated_cmds.
+- You must only report issues based upon information provided
+- Active probes limited to ping/traceroute. No config/clear/debug.
+- Keep output concise and actionable.
+- If no clear cross-device issue exists, return empty lists for "top_incidents" and "remediation_themes".  
+
+Return ONLY one JSON object:
+{
+  "task_status": "healthy" | "mixed" | "degraded" | "error" | "unknown",
+  "top_incidents": [ {"scope":"pair|site|global","summary":"...","impact":"...","devices":["...","..."]} ],
+  "remediation_themes": [ "..." ],
+  "trusted_followup_cmds": [ "show ..." ],
+  "unvalidated_followup_cmds": [ "show ..." ],
+  "optional_active_probes": [ "ping ...", "traceroute ..." ]
+}
+
+Be conservative and avoid config changes; only suggest read-only checks and optional probes.
+
+
+--- USER ---
+```json
+[
+  {
+    "hostname": "A-ASBR-1",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "mpls"
+    ],
+    "status": "healthy",
+    "findings": [
+      {
+        "signal": "bgp",
+        "severity": "info",
+        "detail": "BGP process is running with router ID 1.0.101.9. Core neighbors 1.0.101.7 and 1.0.101.8 are Established. AFI/SAFI ipv4 labeled-unicast is active."
+      },
+      {
+        "signal": "mpls",
+        "severity": "info",
+        "detail": "MPLS forwarding table shows labels being properly assigned and switched for SR prefixes."
+      }
+    ],
+    "optional_active_cmds": [],
+    "trusted_commands": [
+      "show mpls forwarding"
+    ],
+    "unvalidated_cmds": [
+      "show bgp summary",
+      "show bgp ipv4 labeled-unicast summary"
+    ],
+    "trusted_sources_used": [
+      "md_success"
+    ]
+  },
+  {
+    "hostname": "A-ASBR-2",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "mpls"
+    ],
+    "status": "healthy",
+    "findings": [
+      {
+        "signal": "bgp",
+        "severity": "info",
+        "detail": "BGP process is running with router ID 1.0.101.10. Core neighbors 1.0.101.7 and 1.0.101.8 are Established. AFI/SAFI ipv4 labeled-unicast is active."
+      },
+      {
+        "signal": "mpls",
+        "severity": "info",
+        "detail": "MPLS forwarding table is populated with labels and next hops."
+      }
+    ],
+    "optional_active_cmds": [],
+    "trusted_commands": [
+      "show mpls forwarding"
+    ],
+    "unvalidated_cmds": [
+      "show bgp summary",
+      "show bgp ipv4 labeled-unicast summary"
+    ],
+    "trusted_sources_used": [
+      "md_success"
+    ]
+  },
+  {
+    "hostname": "A-P-1",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "mpls"
+    ],
+    "status": "degraded",
+    "findings": [
+      {
+        "signal": "bgp",
+        "severity": "warn",
+        "detail": "BGP neighbors are all in 'Idle' state"
+      },
+      {
+        "signal": "mpls",
+        "severity": "info",
+        "detail": "MPLS forwarding table entries exist but no traffic switched"
+      }
+    ],
+    "optional_active_cmds": [],
+    "trusted_commands": [
+      "show bgp neighbors brief",
+      "show bgp ipv4 labeled-unicast",
+      "show mpls forwarding"
+    ],
+    "unvalidated_cmds": [],
+    "trusted_sources_used": [
+      "md_success"
+    ]
+  },
+  {
+    "hostname": "A-P-2",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "mpls"
+    ],
+    "status": "healthy",
+    "findings": [
+      {
+        "signal": "bgp",
+        "severity": "info",
+        "detail": "BGP process is running and core neighbors are Established. AFI/SAFI ipv4 labeled-unicast is active. Router-ID is set."
+      },
+      {
+        "signal": "mpls",
+        "severity": "info",
+        "detail": "MPLS forwarding is operational with multiple labels being used for SR prefixes and adjacencies."
+      }
+    ],
+    "optional_active_cmds": [],
+    "trusted_commands": [],
+    "unvalidated_cmds": [
+      "show bgp summary",
+      "show bgp ipv4 labeled-unicast summary",
+      "show run interface Loopback0"
+    ],
+    "trusted_sources_used": []
+  },
+  {
+    "hostname": "A-P-3",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "mpls"
+    ],
+    "status": "healthy",
+    "findings": [
+      {
+        "signal": "bgp",
+        "severity": "info",
+        "detail": "BGP process is active with Router-ID 1.0.101.7. IPv4 unicast address-family is configured. Route-policy for SID labeling is applied. Neighbor relationships are established with proper attributes."
+      },
+      {
+        "signal": "mpls",
+        "severity": "info",
+        "detail": "MPLS forwarding is operational with multiple labels and next hops configured."
+      }
+    ],
+    "optional_active_cmds": [],
+    "trusted_commands": [],
+    "unvalidated_cmds": [
+      "show bgp summary",
+      "show bgp ipv4 unicast summary",
+      "show run | section ^router bgp"
+    ],
+    "trusted_sources_used": []
+  },
+  {
+    "hostname": "A-P-4",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "mpls"
+    ],
+    "status": "healthy",
+    "findings": [
+      {
+        "signal": "bgp",
+        "severity": "info",
+        "detail": "BGP process is running and router-ID is set to 1.0.101.8. Core neighbors are Established. AFI/SAFI ipv4 labeled-unicast is active."
+      },
+      {
+        "signal": "mpls",
+        "severity": "info",
+        "detail": "MPLS forwarding is operational with various local and outgoing labels configured."
+      }
+    ],
+    "optional_active_cmds": [],
+    "trusted_commands": [
+      "show mpls forwarding"
+    ],
+    "unvalidated_cmds": [
+      "show bgp summary",
+      "show bgp ipv4 labeled-unicast summary"
+    ],
+    "trusted_sources_used": [
+      "md_success"
+    ]
+  },
+  {
+    "hostname": "A-PE-1",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "mpls",
+      "intf",
+      "ip"
+    ],
+    "status": "degraded",
+    "findings": [
+      {
+        "signal": "bgp",
+        "severity": "warn",
+        "detail": "BGP neighbor 1.0.101.5 is in Idle state"
+      },
+      {
+        "signal": "mpls",
+        "severity": "info",
+        "detail": "MPLS forwarding entries exist but no specific issues detected"
+      }
+    ],
+    "optional_active_cmds": [],
+    "trusted_commands": [
+      "show bgp neighbors brief",
+      "show bgp ipv4 labeled-unicast",
+      "show mpls forwarding"
+    ],
+    "unvalidated_cmds": [],
+    "trusted_sources_used": [
+      "md_success"
+    ]
+  },
+  {
+    "hostname": "A-PE-2",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "mpls"
+    ],
+    "status": "degraded",
+    "findings": [
+      {
+        "signal": "bgp",
+        "severity": "warn",
+        "detail": "BGP neighbor 1.0.101.5 is in an Idle state for 1 day and 4 hours"
+      }
+    ],
+    "optional_active_cmds": [],
+    "trusted_commands": [
+      "show bgp neighbors brief",
+      "show bgp ipv4 labeled-unicast",
+      "show mpls forwarding"
+    ],
+    "unvalidated_cmds": [],
+    "trusted_sources_used": [
+      "md_success"
+    ]
+  },
+  {
+    "hostname": "A-PE-3",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "mpls"
+    ],
+    "status": "degraded",
+    "findings": [
+      {
+        "signal": "bgp",
+        "severity": "warn",
+        "detail": "BGP neighbor 1.0.101.5 is in Idle state"
+      }
+    ],
+    "optional_active_cmds": [],
+    "trusted_commands": [
+      "show bgp neighbors brief",
+      "show bgp ipv4 labeled-unicast",
+      "show mpls forwarding"
+    ],
+    "unvalidated_cmds": [],
+    "trusted_sources_used": [
+      "md_success"
+    ]
+  },
+  {
+    "hostname": "A-PE-4",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "mpls"
+    ],
+    "status": "healthy",
+    "findings": [
+      {
+        "signal": "bgp",
+        "severity": "info",
+        "detail": "BGP process is running with router-ID set. Core neighbors 1.0.101.7 and 1.0.101.8 are Established. AFI/SAFI ipv4 unicast is active."
+      },
+      {
+        "signal": "mpls",
+        "severity": "info",
+        "detail": "MPLS forwarding is operational with multiple labels being forwarded correctly."
+      }
+    ],
+    "optional_active_cmds": [],
+    "trusted_commands": [
+      "show mpls forwarding"
+    ],
+    "unvalidated_cmds": [
+      "show bgp summary",
+      "show bgp ipv4 unicast summary"
+    ],
+    "trusted_sources_used": [
+      "md_success"
+    ]
+  },
+  {
+    "hostname": "A-RR-1",
+    "platform": "ios",
+    "signals_seen": [
+      "bgp",
+      "mpls"
+    ],
+    "status": "unknown",
+    "findings": [
+      {
+        "signal": "bgp",
+        "severity": "info",
+        "detail": "BGP process is running with AS 100 as a Route Reflector, RR_CLIENT peer-group configured, RR_CLIENT neighbors are set with remote-as 100, Route-Reflector functionality enabled for RR_CLIENT neighbors, Send-label configured for RR_CLIENT neighbors"
+      }
+    ],
+    "optional_active_cmds": [],
+    "trusted_commands": [],
+    "unvalidated_cmds": [
+      "show bgp summary",
+      "show run | section ^router bgp",
+      "show bgp neighbors brief",
+      "show bgp ipv4 labeled-unicast",
+      "show mpls forwarding"
+    ],
+    "trusted_sources_used": []
+  }
+]
+```

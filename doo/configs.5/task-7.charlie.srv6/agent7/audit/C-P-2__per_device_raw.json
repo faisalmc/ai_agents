@@ -1,0 +1,56 @@
+```json
+{
+  "hostname": "C-P-2",
+  "platform": "ios-xr",
+  "signals_seen": ["configured", "enabled", "isis", "locators", "srv6"],
+  "status": "healthy",
+  "status_reason": "SRv6 is enabled and operational with available resources.",
+  "ok": [
+    {
+      "summary": "SRv6 is enabled with operational parameters and resource availability.",
+      "evidence_ref": { "command_key": "show_segment-routing_srv6_manager", "path": "commands.show_segment-routing_srv6_manager.data.summary" }
+    },
+    {
+      "summary": "IS-IS has 8 IPv6 routes in the routing table.",
+      "evidence_ref": { "command_key": "show_isis_ipv6_route__inc_fc00tag", "path": "commands.show_isis_ipv6_route__inc_fc00tag.data.metrics.routes_total" }
+    }
+  ],
+  "suspect": [
+    {
+      "summary": "IS-IS database state is unknown with low confidence.",
+      "evidence_ref": { "command_key": "show_isis_ipv6_route__inc_fc00tag", "path": "commands.show_isis_ipv6_route__inc_fc00tag.data.status" }
+    },
+    {
+      "summary": "IS-IS SRv6 locators state is unknown with low confidence.",
+      "evidence_ref": { "command_key": "show_isis_segment-routing_srv6_locators_detail", "path": "commands.show_isis_segment-routing_srv6_locators_detail.data.status" }
+    }
+  ],
+  "findings": [
+    {
+      "signal": "srv6",
+      "severity": "info",
+      "summary": "SRv6 is operational with available resources.",
+      "evidence_ref": {
+        "command_key": "show_segment-routing_srv6_manager",
+        "path": "commands.show_segment-routing_srv6_manager.data.status"
+      }
+    },
+    {
+      "signal": "isis",
+      "severity": "warn",
+      "summary": "IS-IS database state is unknown.",
+      "evidence_ref": {
+        "command_key": "show_isis_ipv6_route__inc_fc00tag",
+        "path": "commands.show_isis_ipv6_route__inc_fc00tag.data.status"
+      }
+    }
+  ],
+  "recommended_show_cmds": [
+    "show isis ipv6 route",
+    "show segment-routing srv6 manager"
+  ],
+  "optional_active_cmds": [
+    "ping ..."
+  ]
+}
+```

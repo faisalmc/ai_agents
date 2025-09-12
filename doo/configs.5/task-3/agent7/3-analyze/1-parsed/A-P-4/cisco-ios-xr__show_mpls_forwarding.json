@@ -1,0 +1,564 @@
+{
+  "local_label": {
+    "16001": {
+      "outgoing_label": {
+        "16001": {
+          "prefix_or_id": {
+            "SR Pfx (idx": {
+              "outgoing_interface": {
+                "1)": {
+                  "next_hop": "1.0.101.6",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "16002": {
+      "outgoing_label": {
+        "16002": {
+          "prefix_or_id": {
+            "SR Pfx (idx": {
+              "outgoing_interface": {
+                "2)": {
+                  "next_hop": "1.0.101.6",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "16003": {
+      "outgoing_label": {
+        "16003": {
+          "prefix_or_id": {
+            "SR Pfx (idx": {
+              "outgoing_interface": {
+                "3)": {
+                  "next_hop": "1.0.101.6",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "16004": {
+      "outgoing_label": {
+        "Pop": {
+          "prefix_or_id": {
+            "SR Pfx (idx 4)": {
+              "outgoing_interface": {
+                "GigabitEthernet0/0/0/4": {
+                  "next_hop": "1.0.23.1",
+                  "bytes_switched": 363077
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "16006": {
+      "outgoing_label": {
+        "Pop": {
+          "prefix_or_id": {
+            "SR Pfx (idx 6)": {
+              "outgoing_interface": {
+                "GigabitEthernet0/0/0/1": {
+                  "next_hop": "1.0.31.1",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "16007": {
+      "outgoing_label": {
+        "Pop": {
+          "prefix_or_id": {
+            "SR Pfx (idx 7)": {
+              "outgoing_interface": {
+                "GigabitEthernet0/0/0/2": {
+                  "next_hop": "1.0.34.1",
+                  "bytes_switched": 180358
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "16008": {
+      "outgoing_label": {
+        "Aggregate": {
+          "prefix_or_id": {
+            "SR Pfx (idx": {
+              "outgoing_interface": {
+                "8)": {
+                  "next_hop": "default",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "16009": {
+      "outgoing_label": {
+        "16009": {
+          "prefix_or_id": {
+            "SR Pfx (idx 9)": {
+              "outgoing_interface": {
+                "GigabitEthernet0/0/0/0": {
+                  "next_hop": "1.0.51.1",
+                  "bytes_switched": 181642
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "16010": {
+      "outgoing_label": {
+        "Pop": {
+          "prefix_or_id": {
+            "SR Pfx (idx 10)": {
+              "outgoing_interface": {
+                "GigabitEthernet0/0/0/0": {
+                  "next_hop": "1.0.51.1",
+                  "bytes_switched": 177575
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "17004": {
+      "outgoing_label": {
+        "Pop": {
+          "prefix_or_id": {
+            "SR Pfx (idx 1004)  Gi0/0/0/4    fe80::5054:ff:fe7f:ac62": {
+              "outgoing_interface": {
+                "GigabitEthernet0/0/0/0": {
+                  "next_hop": "1.0.51.1",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "17006": {
+      "outgoing_label": {
+        "Pop": {
+          "prefix_or_id": {
+            "SR Pfx (idx 1006)  Gi0/0/0/1    fe80::5054:ff:feca:8b79": {
+              "outgoing_interface": {
+                "GigabitEthernet0/0/0/0": {
+                  "next_hop": "1.0.51.1",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "17007": {
+      "outgoing_label": {
+        "Pop": {
+          "prefix_or_id": {
+            "SR Pfx (idx 1007)  Gi0/0/0/2    fe80::5054:ff:fe05:dda7": {
+              "outgoing_interface": {
+                "GigabitEthernet0/0/0/0": {
+                  "next_hop": "1.0.51.1",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "17008": {
+      "outgoing_label": {
+        "Aggregate": {
+          "prefix_or_id": {
+            "SR Pfx (idx": {
+              "outgoing_interface": {
+                "1008)": {
+                  "next_hop": "default",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "17009": {
+      "outgoing_label": {
+        "17009": {
+          "prefix_or_id": {
+            "SR Pfx (idx 1009)  Gi0/0/0/0    fe80::5054:ff:fe57:46ea": {
+              "outgoing_interface": {
+                "1008)": {
+                  "next_hop": "default",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "17010": {
+      "outgoing_label": {
+        "Pop": {
+          "prefix_or_id": {
+            "SR Pfx (idx 1010)  Gi0/0/0/0    fe80::5054:ff:fe57:46ea": {
+              "outgoing_interface": {
+                "1008)": {
+                  "next_hop": "default",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "24000": {
+      "outgoing_label": {
+        "Pop": {
+          "prefix_or_id": {
+            "SR Adj (idx 1)": {
+              "outgoing_interface": {
+                "GigabitEthernet0/0/0/4": {
+                  "next_hop": "1.0.23.1",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "24001": {
+      "outgoing_label": {
+        "Pop": {
+          "prefix_or_id": {
+            "SR Adj (idx 3)": {
+              "outgoing_interface": {
+                "GigabitEthernet0/0/0/4": {
+                  "next_hop": "1.0.23.1",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "24002": {
+      "outgoing_label": {
+        "Pop": {
+          "prefix_or_id": {
+            "SR Adj (idx 1)": {
+              "outgoing_interface": {
+                "GigabitEthernet0/0/0/0": {
+                  "next_hop": "1.0.51.1",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "24003": {
+      "outgoing_label": {
+        "Pop": {
+          "prefix_or_id": {
+            "SR Adj (idx 3)": {
+              "outgoing_interface": {
+                "GigabitEthernet0/0/0/0": {
+                  "next_hop": "1.0.51.1",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "24004": {
+      "outgoing_label": {
+        "Pop": {
+          "prefix_or_id": {
+            "SR Adj (idx 1)     Gi0/0/0/4    fe80::5054:ff:fe7f:ac62": {
+              "outgoing_interface": {
+                "GigabitEthernet0/0/0/0": {
+                  "next_hop": "1.0.51.1",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "24005": {
+      "outgoing_label": {
+        "Pop": {
+          "prefix_or_id": {
+            "SR Adj (idx 3)     Gi0/0/0/4    fe80::5054:ff:fe7f:ac62": {
+              "outgoing_interface": {
+                "GigabitEthernet0/0/0/0": {
+                  "next_hop": "1.0.51.1",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "24006": {
+      "outgoing_label": {
+        "Pop": {
+          "prefix_or_id": {
+            "SR Adj (idx 1)     Gi0/0/0/0    fe80::5054:ff:fe57:46ea": {
+              "outgoing_interface": {
+                "GigabitEthernet0/0/0/0": {
+                  "next_hop": "1.0.51.1",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "24007": {
+      "outgoing_label": {
+        "Pop": {
+          "prefix_or_id": {
+            "SR Adj (idx 3)     Gi0/0/0/0    fe80::5054:ff:fe57:46ea": {
+              "outgoing_interface": {
+                "GigabitEthernet0/0/0/0": {
+                  "next_hop": "1.0.51.1",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "24008": {
+      "outgoing_label": {
+        "Pop": {
+          "prefix_or_id": {
+            "SR Adj (idx 1)": {
+              "outgoing_interface": {
+                "GigabitEthernet0/0/0/1": {
+                  "next_hop": "1.0.31.1",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "24009": {
+      "outgoing_label": {
+        "Pop": {
+          "prefix_or_id": {
+            "SR Adj (idx 3)": {
+              "outgoing_interface": {
+                "GigabitEthernet0/0/0/1": {
+                  "next_hop": "1.0.31.1",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "24010": {
+      "outgoing_label": {
+        "Pop": {
+          "prefix_or_id": {
+            "SR Adj (idx 1)": {
+              "outgoing_interface": {
+                "GigabitEthernet0/0/0/2": {
+                  "next_hop": "1.0.34.1",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "24011": {
+      "outgoing_label": {
+        "Pop": {
+          "prefix_or_id": {
+            "SR Adj (idx 3)": {
+              "outgoing_interface": {
+                "GigabitEthernet0/0/0/2": {
+                  "next_hop": "1.0.34.1",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "24012": {
+      "outgoing_label": {
+        "Pop": {
+          "prefix_or_id": {
+            "SR Adj (idx 1)": {
+              "outgoing_interface": {
+                "GigabitEthernet0/0/0/3": {
+                  "next_hop": "1.0.35.1",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "24013": {
+      "outgoing_label": {
+        "Pop": {
+          "prefix_or_id": {
+            "SR Adj (idx 3)": {
+              "outgoing_interface": {
+                "GigabitEthernet0/0/0/3": {
+                  "next_hop": "1.0.35.1",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "24014": {
+      "outgoing_label": {
+        "Pop": {
+          "prefix_or_id": {
+            "SR Adj (idx 1)     Gi0/0/0/1    fe80::5054:ff:feca:8b79": {
+              "outgoing_interface": {
+                "GigabitEthernet0/0/0/3": {
+                  "next_hop": "1.0.35.1",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "24015": {
+      "outgoing_label": {
+        "Pop": {
+          "prefix_or_id": {
+            "SR Adj (idx 3)     Gi0/0/0/1    fe80::5054:ff:feca:8b79": {
+              "outgoing_interface": {
+                "GigabitEthernet0/0/0/3": {
+                  "next_hop": "1.0.35.1",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "24016": {
+      "outgoing_label": {
+        "Pop": {
+          "prefix_or_id": {
+            "SR Adj (idx 1)     Gi0/0/0/2    fe80::5054:ff:fe05:dda7": {
+              "outgoing_interface": {
+                "GigabitEthernet0/0/0/3": {
+                  "next_hop": "1.0.35.1",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "24017": {
+      "outgoing_label": {
+        "Pop": {
+          "prefix_or_id": {
+            "SR Adj (idx 3)     Gi0/0/0/2    fe80::5054:ff:fe05:dda7": {
+              "outgoing_interface": {
+                "GigabitEthernet0/0/0/3": {
+                  "next_hop": "1.0.35.1",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "24018": {
+      "outgoing_label": {
+        "Pop": {
+          "prefix_or_id": {
+            "SR Adj (idx 1)     Gi0/0/0/3    fe80::5054:ff:fee3:e3d": {
+              "outgoing_interface": {
+                "GigabitEthernet0/0/0/3": {
+                  "next_hop": "1.0.35.1",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "24019": {
+      "outgoing_label": {
+        "Pop": {
+          "prefix_or_id": {
+            "SR Adj (idx 3)     Gi0/0/0/3    fe80::5054:ff:fee3:e3d": {
+              "outgoing_interface": {
+                "GigabitEthernet0/0/0/3": {
+                  "next_hop": "1.0.35.1",
+                  "bytes_switched": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

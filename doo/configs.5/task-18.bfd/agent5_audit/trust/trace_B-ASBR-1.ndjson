@@ -1,0 +1,3 @@
+{"host": "B-ASBR-1", "platform": "ios-xr", "input_cmd": "show bgp summary", "sanitized": "show bgp summary", "decision": "UNVALIDATED", "reasons": []}
+{"host": "B-ASBR-1", "platform": "ios-xr", "input_cmd": "show bgp neighbor-group TO_C_ASBR", "sanitized": "show bgp neighbor-group TO_C_ASBR", "decision": "UNVALIDATED", "reasons": []}
+{"host": "B-ASBR-1", "platform": "ios-xr", "input_cmd": "show bfd neighbors", "sanitized": "show bfd neighbors", "decision": "UNVALIDATED", "reasons": []}

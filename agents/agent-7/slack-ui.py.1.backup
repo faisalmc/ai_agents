@@ -1,0 +1,327 @@
+# ai_agents/agents/agent-7/slack_ui.py
+from __future__ import annotations
+from typing import Any, Dict, List, Tuple
+
+# ---- Limits to keep Slack modal size sane ----
+MAX_HOSTS_IN_MODAL = 8
+MAX_CMDS_PER_HOST  = 12
+
+# ---- Block/action ids (stable so the orchestrator can read submissions) ----
+HOSTS_MULTI_ID         = ("hosts_block", "hosts_select")
+INCLUDE_SHOW_RUN_ID    = ("opts_block", "include_show_run")
+# Per-host command picks are dynamic: block_id = f"cmds_{host}", action_id = "trusted_cmds"/"unval_cmds"
+
+def _mk_section(text: str) -> Dict[str, Any]:
+    return {"type": "section", "text": {"type": "mrkdwn", "text": text}}
+
+def _mk_divider() -> Dict[str, Any]:
+    return {"type": "divider"}
+
+def _mk_code_block(label: str, content: str, limit: int = 1400) -> Dict[str, Any]:
+    txt = content if len(content) <= limit else (content[:limit] + "\n…")
+    return _mk_section(f"*{label}:*\n```{txt}```")
+
+# ------------------------------------------------------------------------------------
+# Overview message blocks (feed to your orchestrator to post)
+# ------------------------------------------------------------------------------------
+def build_overview_blocks(
+    config_dir: str,
+    task_dir: str,
+    cross: Dict[str, Any] | None,
+    per_device: List[Dict[str, Any]] | None,
+) -> List[Dict[str, Any]]:
+    cross = cross or {}
+    per_device = per_device or []
+
+    status = cross.get("task_status", "unknown")
+    incidents = cross.get("top_incidents") or []
+    themes    = cross.get("remediation_themes") or []
+    t_trust   = cross.get("trusted_followup_cmds") or []
+    t_unval   = cross.get("unvalidated_followup_cmds") or []
+    probes    = cross.get("optional_active_probes") or []
+
+    blocks: List[Dict[str, Any]] = []
+    blocks.append(_mk_section(f"*Agent-7 Overview*\n*Config:* `{config_dir}` • *Task:* `{task_dir}` • *Status:* *{status}*"))
+
+    if incidents:
+        lines = []
+        for inc in incidents[:6]:
+            scope = inc.get("scope", "scope")
+            summary = inc.get("summary", "")
+            devs = ", ".join((inc.get("devices") or [])[:6])
+            lines.append(f"• *[{scope}]* {summary} — _{devs}_")
+        blocks.append(_mk_section("*Top incidents:*\n" + "\n".join(lines)))
+    else:
+        blocks.append(_mk_section("_No cross-device incidents detected._"))
+
+    if themes:
+        blocks.append(_mk_section("*Remediation themes:*\n" + "\n".join([f"• {t}" for t in themes[:8]])))
+
+    if t_trust or t_unval or probes:
+        if t_trust:
+            blocks.append(_mk_section("*Trusted follow-ups:*\n" + "\n".join([f"• `{c}`" for c in t_trust[:10]])))
+        if t_unval:
+            blocks.append(_mk_section("*Unvalidated ideas:*\n" + "\n".join([f"• `{c}`" for c in t_unval[:10]])))
+        if probes:
+            blocks.append(_mk_section("*Optional probes:*\n" + "\n".join([f"• `{c}`" for c in probes[:6]])))
+
+    blocks.append(_mk_divider())
+
+    # Per-device mini cards (top 5)
+    for row in per_device[:5]:
+        host = row.get("hostname", "?")
+        status = row.get("status", "unknown")
+        plat = row.get("platform", "unknown")
+        sigs = ", ".join(row.get("signals_seen", [])[:8]) or "—"
+        findings = row.get("findings") or []
+        f_lines = []
+        for f in findings[:4]:
+            sev = f.get("severity", "info")
+            sig = f.get("signal", "meta")
+            # our schema uses "summary" (not "detail")
+            summ = f.get("summary", "")
+            f_lines.append(f"• [{sev}] *{sig}* — {summ}")
+        text = (
+            f"*Device:* `{host}`  •  *Platform:* `{plat}`  •  *Status:* *{status}*\n"
+            f"*Signals:* {sigs}\n"
+            + ("\n".join(f_lines) if f_lines else "_No key findings._")
+        )
+        blocks.append(_mk_section(text))
+
+    if len(per_device) > 5:
+        blocks.append(_mk_section(f"_…and {len(per_device)-5} more devices. See Agent-7 JSON artifacts._"))
+
+    return blocks
+
+# ------------------------------------------------------------------------------------
+# “Run selected” modal (multi-host, per-host trusted/unvalidated command picks)
+# ------------------------------------------------------------------------------------
+def _opt(text: str, value: str) -> Dict[str, Any]:
+    return {"text": {"type": "plain_text", "text": text, "emoji": True}, "value": value}
+
+def _host_options(per_device: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    out, seen = [], set()
+    for row in per_device:
+        h = (row.get("hostname") or "").strip()
+        if h and h not in seen:
+            seen.add(h)
+            out.append(_opt(h, h))
+        if len(out) >= MAX_HOSTS_IN_MODAL:
+            break
+    return out
+
+def _commands_for_host(row: Dict[str, Any]) -> Tuple[List[str], List[str]]:
+    """
+    Map to our agreed per-device schema:
+      trusted     <- recommended_show_cmds   (fallback: trusted_commands)
+      unvalidated <- optional_active_cmds    (fallback: unvalidated_cmds)
+    """
+    trusted = (row.get("recommended_show_cmds") or row.get("trusted_commands") or [])[:MAX_CMDS_PER_HOST]
+    unval   = (row.get("optional_active_cmds") or row.get("unvalidated_cmds") or [])[:MAX_CMDS_PER_HOST]
+    return trusted, unval
+
+def build_run_selected_modal_from_per_device(
+    per_device: List[Dict[str, Any]],
+    title: str = "Agent-7: Run selected",
+    submit_text: str = "Run",
+) -> Dict[str, Any]:
+    """
+    Builds a modal with:
+      • Multi-select hosts
+      • Global option: include 'show running-config'
+      • For each (up to MAX_HOSTS_IN_MODAL) host: multi-select Trusted + Unvalidated commands
+    The orchestrator should read the submission with `parse_run_selected_submission(...)`.
+    """
+    host_opts = _host_options(per_device)
+
+    blocks: List[Dict[str, Any]] = []
+    blocks.append(_mk_section("Select hosts and the commands you want to capture now. "
+                              "_Trusted_ are safe/known; _Unvalidated_ are ideas (review before running)."))
+
+    # Hosts multi-select
+    blocks.append({
+        "type": "input",
+        "block_id": HOSTS_MULTI_ID[0],
+        "label": {"type": "plain_text", "text": "Hosts", "emoji": True},
+        "element": {
+            "type": "multi_static_select",
+            "action_id": HOSTS_MULTI_ID[1],
+            "placeholder": {"type": "plain_text", "text": "Pick up to 8 hosts"},
+            "options": host_opts
+        },
+        "optional": False
+    })
+
+    # Global options
+    blocks.append({
+        "type": "section",
+        "block_id": INCLUDE_SHOW_RUN_ID[0],
+        "text": {"type": "mrkdwn", "text": "*Options*"},
+        "accessory": {
+            "type": "checkboxes",
+            "action_id": INCLUDE_SHOW_RUN_ID[1],
+            "options": [
+                {
+                    "text": {"type": "plain_text", "text": "Include 'show running-config'"},
+                    "value": "include_show_run"
+                }
+            ]
+        }
+    })
+
+    # Per-host trusted/unvalidated selectors (limited to MAX_HOSTS_IN_MODAL)
+    for row in per_device[:MAX_HOSTS_IN_MODAL]:
+        host = (row.get("hostname") or "").strip()
+        if not host:
+            continue
+        trusted, unval = _commands_for_host(row)
+        if not (trusted or unval):
+            # nothing to show
+            continue
+
+        # Trusted
+        if trusted:
+            blocks.append({
+                "type": "input",
+                "block_id": f"cmds_{host}__trusted",
+                "label": {"type": "plain_text", "text": f"{host} — Trusted commands", "emoji": True},
+                "optional": True,
+                "element": {
+                    "type": "multi_static_select",
+                    "action_id": "trusted_cmds",
+                    "placeholder": {"type": "plain_text", "text": "Select trusted commands"},
+                    "options": [_opt(c, c) for c in trusted]
+                }
+            })
+        # Unvalidated
+        if unval:
+            blocks.append({
+                "type": "input",
+                "block_id": f"cmds_{host}__unval",
+                "label": {"type": "plain_text", "text": f"{host} — Unvalidated commands", "emoji": True},
+                "optional": True,
+                "element": {
+                    "type": "multi_static_select",
+                    "action_id": "unval_cmds",
+                    "placeholder": {"type": "plain_text", "text": "Select unvalidated commands"},
+                    "options": [_opt(c, c) for c in unval]
+                }
+            })
+
+    modal = {
+        "type": "modal",
+        "title": {"type": "plain_text", "text": title},
+        "submit": {"type": "plain_text", "text": submit_text},
+        "close": {"type": "plain_text", "text": "Cancel"},
+        "blocks": blocks,
+        "callback_id": "agent7_run_selected_modal"
+    }
+    return modal
+
+# ------------------------------------------------------------------------------------
+# Parse modal submission → normalized selection for capture_wrapper/command_plan_builder
+# ------------------------------------------------------------------------------------
+def _read_selected_host_ids(view_state: Dict[str, Any]) -> List[str]:
+    try:
+        blk = view_state["values"][HOSTS_MULTI_ID[0]][HOSTS_MULTI_ID[1]]
+        return [o["value"] for o in blk.get("selected_options") or []]
+    except Exception:
+        return []
+
+def _read_include_show_run(view_state: Dict[str, Any]) -> bool:
+    try:
+        blk = view_state["values"][INCLUDE_SHOW_RUN_ID[0]][INCLUDE_SHOW_RUN_ID[1]]
+        sel = blk.get("selected_options") or []
+        return any(o.get("value") == "include_show_run" for o in sel)
+    except Exception:
+        return False
+
+def _read_per_host_cmds(view_state: Dict[str, Any]) -> Dict[str, Dict[str, List[str]]]:
+    """
+    Returns:
+      { "<host>": { "trusted": [...], "unvalidated": [...] }, ... }
+    """
+    out: Dict[str, Dict[str, List[str]]] = {}
+    try:
+        for block_id, sub in (view_state.get("values") or {}).items():
+            if not isinstance(block_id, str):
+                continue
+            if block_id.startswith("cmds_") and ("__trusted" in block_id or "__unval" in block_id):
+                # block_id form: cmds_<host>__trusted or cmds_<host>__unval
+                _, rest = block_id.split("cmds_", 1)
+                host, kind = rest.split("__", 1)
+                action = "trusted_cmds" if kind == "trusted" else "unval_cmds"
+                sel = sub.get(action, {}).get("selected_options") or []
+                cmds = [o.get("value") for o in sel if o.get("value")]
+                d = out.setdefault(host, {"trusted": [], "unvalidated": []})
+                if kind == "trusted":
+                    d["trusted"].extend(cmds)
+                else:
+                    d["unvalidated"].extend(cmds)
+    except Exception:
+        pass
+    return out
+
+def parse_run_selected_submission(view_payload: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Slack sends a view_submission payload. Pass the whole payload here.
+    Output:
+      {
+        "hosts": ["A-PE-1", ...],
+        "include_show_run": true|false,
+        "per_host_cmds": { "<host>": { "trusted": [...], "unvalidated": [...] } }
+      }
+    """
+    view = (view_payload or {}).get("view") or {}
+    state = view.get("state") or {}
+    hosts = _read_selected_host_ids(state)
+    include_show_run = _read_include_show_run(state)
+    per_host_cmds = _read_per_host_cmds(state)
+    return {
+        "hosts": hosts,
+        "include_show_run": include_show_run,
+        "per_host_cmds": per_host_cmds
+    }
+
+# ------------------------------------------------------------------------------------
+# Capture result blocks (brief success/fail summary)
+# ------------------------------------------------------------------------------------
+def build_capture_result_blocks(
+    task_dir: str,
+    results: Dict[str, Any]
+) -> List[Dict[str, Any]]:
+    """
+    Supports two shapes:
+      (A) Current capture_wrapper summary:
+          { "hosts":[...], "harvest": {"copied":[...], "missing":[...]}, ... }
+      (B) Legacy per-host map:
+          { "hosts": { "A-PE-1": {"ok": true, "written": "..."}, "B-PE-2": {"ok": false, "error": "timeout"} } }
+    """
+    blocks: List[Dict[str, Any]] = []
+    blocks.append(_mk_section(f"*Agent-7 capture completed* — Task `{task_dir}`"))
+
+    # Shape A: new summary with harvest
+    harvest = results.get("harvest") if isinstance(results, dict) else None
+    if isinstance(harvest, dict) and ("copied" in harvest or "missing" in harvest):
+        copied = harvest.get("copied") or []
+        missing = harvest.get("missing") or []
+        if copied:
+            blocks.append(_mk_section("*Copied show logs:* " + ", ".join([f"`{h}`" for h in copied[:20]])))
+        if missing:
+            lines = [f"• `{h}` — no show log found" for h in missing[:20]]
+            blocks.append(_mk_section("*Missing:* \n" + "\n".join(lines)))
+        return blocks
+
+    # Shape B: legacy per-host map
+    hosts = (results.get("hosts") or {})
+    if isinstance(hosts, dict):
+        oks, fails = [], []
+        for h, r in hosts.items():
+            (oks if r.get("ok") else fails).append(h)
+        if oks:
+            blocks.append(_mk_section("*Success:* " + ", ".join([f"`{h}`" for h in oks[:20]])))
+        if fails:
+            lines = [f"• `{h}` — {hosts[h].get('error','error')}" for h in fails[:20]]
+            blocks.append(_mk_section("*Failed:*\n" + "\n".join(lines)))
+
+    return blocks

@@ -1,0 +1,95 @@
+--- SYSTEM ---
+You are a senior NOC service lead.
+You will receive a JSON array of per-device analyses (from other calls).
+Correlate across devices to identify network-wide issues (e.g., EVPN VPWS down on both PEs, BGP session asymmetry, DF election pending, bundle down causing AC down, etc).
+
+Strict rules:
+- Do NOT invent device names.  You MUST only reference devices that appear in the input array. If a device or link name is not present in the input data, do NOT invent it. 
+- 'trusted_followup_cmds' must be a subset of the union of devices' trusted_commands.
+- If you include 'unvalidated_followup_cmds', they must be a subset of the union of devices' unvalidated_cmds.
+- You must only report issues based upon information provided
+- Active probes limited to ping/traceroute. No config/clear/debug.
+- Keep output concise and actionable.
+- If no clear cross-device issue exists, return empty lists for "top_incidents" and "remediation_themes".  
+
+Return ONLY one JSON object:
+{
+  "task_status": "healthy" | "mixed" | "degraded" | "error" | "unknown",
+  "top_incidents": [ {"scope":"pair|site|global","summary":"...","impact":"...","devices":["...","..."]} ],
+  "remediation_themes": [ "..." ],
+  "trusted_followup_cmds": [ "show ..." ],
+  "unvalidated_followup_cmds": [ "show ..." ],
+  "optional_active_probes": [ "ping ...", "traceroute ..." ]
+}
+
+Be conservative and avoid config changes; only suggest read-only checks and optional probes.
+
+
+--- USER ---
+```json
+[
+  {
+    "hostname": "B-ASBR-1",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "intf",
+      "ip",
+      "mpls",
+      "bfd"
+    ],
+    "status": "healthy",
+    "findings": [
+      {
+        "signal": "bgp",
+        "severity": "info",
+        "detail": "BGP process is running. Neighbor-group TO_C_ASBR configured with remote AS 300. IPv4 and IPv6 unicast address families enabled."
+      },
+      {
+        "signal": "bfd",
+        "severity": "info",
+        "detail": "BFD configured with minimum-interval 500 and multiplier 5. BFD fast-detect enabled."
+      }
+    ],
+    "optional_active_cmds": [],
+    "trusted_commands": [],
+    "unvalidated_cmds": [
+      "show bgp summary",
+      "show bgp neighbor-group TO_C_ASBR",
+      "show bfd neighbors"
+    ],
+    "trusted_sources_used": []
+  },
+  {
+    "hostname": "C-ASBR-1",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "intf",
+      "ip",
+      "mpls",
+      "bfd"
+    ],
+    "status": "healthy",
+    "findings": [
+      {
+        "signal": "bgp",
+        "severity": "info",
+        "detail": "BGP process running for AS 300 with IPv4 and IPv6 unicast address families configured"
+      },
+      {
+        "signal": "bfd",
+        "severity": "info",
+        "detail": "BFD configured with minimum-interval 500ms, multiplier 5, and fast-detect for neighbor-group TO_B_ASBR"
+      }
+    ],
+    "optional_active_cmds": [],
+    "trusted_commands": [],
+    "unvalidated_cmds": [
+      "show bgp summary",
+      "show bfd neighbors"
+    ],
+    "trusted_sources_used": []
+  }
+]
+```

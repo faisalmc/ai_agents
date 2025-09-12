@@ -1,0 +1,298 @@
+--- SYSTEM ---
+You are a senior Cisco SP NOC engineer.
+You will receive:
+  • Optional JSON from Agent‑1 summarizing intended configuration for this host
+  • CLI show-output captured in a Markdown (.md) file for this host (IOS or IOS‑XR)
+Your tasks:
+  1) Determine platform ("ios-xr" or "ios") if possible from the log, else "unknown".
+  2) From the log ONLY, assess health for protocols/features that appear (BGP, EVPN/L2VPN,
+     ISIS/OSPF, SR/SRv6, MPLS, interface/port-channel, reachability).
+  3) If intent JSON is provided, use it as context for *expected* state, but do NOT invent facts
+     not visible in the log.
+  4) Return a single JSON object with fields:
+     {
+       "hostname": "<string>",
+       "platform": "ios-xr" | "ios" | "unknown",
+       "signals_seen": ["bgp","evpn","isis","mpls","sr","l2vpn","intf","ip", ...],
+       "status": "healthy" | "degraded" | "error" | "unknown",
+       "findings": [ {"signal":"bgp","severity":"warn|error|info","detail":"..."} , ... ],
+       "recommended_show_cmds": [ "show ...", ... ],   // safe, read-only
+       "optional_active_cmds": [ "ping ...", "traceroute ..." ]  // optional probes only
+     }
+  5) NEVER include config/clear/reload/debug commands in either list.
+  6) Be conservative: if signal is unclear, mark severity "info" and explain.
+  7) Only report signals that are evidenced by the provided log text, agent‑1 intents, or show_cmds.ini. Do not infer protocols that are not visible.
+  8) If `ground_evidence_facts` contains a condition (e.g., interface CLNS=Down, BGP neighbor=Idle/Active), you MUST surface a corresponding finding with the evidence reference.
+
+Output ONLY the JSON object.
+Prefer recommending follow-up 'show' commands that are already present in show_cmds.ini; add at most 3 new 'show' commands only if clearly warranted by the findings. Never suggest config/debug/clear.
+Do not mention devices other than the current hostname. If a signal is not evidenced in the log/context, exclude it.
+
+
+--- USER ---
+### Context (JSON)
+```json
+{
+  "hostname": "A-RR-1",
+  "platform_hint": "ios",
+  "focus_signals": [
+    "bgp",
+    "mpls"
+  ],
+  "allow_active_probes": false,
+  "agent1_summary": {
+    "hostname": "A-RR-1",
+    "provider": "Alpha",
+    "customer": null,
+    "role": "Route-Reflector",
+    "platform_hint": "cisco-ios",
+    "vendor": "cisco",
+    "config_intents": [
+      "Configure BGP AS 100 as a Route Reflector",
+      "Use Loopback0 as the update source for RR_CLIENT neighbors",
+      "Activate BGP neighbors 1.0.101.5, 1.0.101.6, 1.0.101.7, 1.0.101.8"
+    ],
+    "expected_state": [
+      {
+        "signal": "bgp",
+        "observation_goals": [
+          "BGP process is running with AS 100",
+          "RR_CLIENT peer-group configured",
+          "RR_CLIENT neighbors are set with remote-as 100",
+          "Route-Reflector functionality enabled for RR_CLIENT neighbors",
+          "Send-label configured for RR_CLIENT neighbors"
+        ],
+        "suggested_show": [
+          {
+            "cmd": "show bgp summary",
+            "provenance": "llm",
+            "confidence": "high",
+            "platform": "cisco-ios"
+          },
+          {
+            "cmd": "show run | section ^router bgp",
+            "provenance": "llm",
+            "confidence": "med",
+            "platform": "cisco-ios"
+          }
+        ],
+        "candidate_show": [
+          {
+            "cmd": "show ip bgp neighbors",
+            "provenance": "llm",
+            "confidence": "low",
+            "platform": "cisco-ios",
+            "note": "Not specific to RR_CLIENT neighbors"
+          }
+        ]
+      }
+    ]
+  },
+  "show_cmds_ini": [
+    "show run router bgp",
+    "show bgp neighbors brief",
+    "show bgp ipv4 labeled-unicast",
+    "show mpls forwarding",
+    "show run | sec bgp",
+    "show bgp ipv4 labeled-unicast 1.0.101.7",
+    "show bgp ipv4 labeled-unicast 1.0.101.9"
+  ],
+  "ground_evidence_facts": {
+    "hostname": "A-RR-1",
+    "platform_hint": "cisco-ios",
+    "signals_seen": [
+      "bgp",
+      "evpn",
+      "intf",
+      "ip",
+      "isis",
+      "l2vpn",
+      "mpls",
+      "ospf",
+      "sr",
+      "srv6"
+    ],
+    "trusted_from_observed": [
+      "show bgp ipv4 labeled-unicast",
+      "show bgp ipv4 labeled-unicast 1.0.101.7",
+      "show bgp ipv4 labeled-unicast 1.0.101.9",
+      "show bgp neighbors brief",
+      "show mpls forwarding",
+      "show run router bgp",
+      "show run | sec bgp"
+    ],
+    "trusted_from_agent1": [],
+    "trusted_all": [
+      "show bgp ipv4 labeled-unicast",
+      "show bgp ipv4 labeled-unicast 1.0.101.7",
+      "show bgp ipv4 labeled-unicast 1.0.101.9",
+      "show bgp neighbors brief",
+      "show mpls forwarding",
+      "show run router bgp",
+      "show run | sec bgp"
+    ],
+    "candidates_from_agent1": [
+      "show bgp summary",
+      "show run | section ^router bgp",
+      "show ip bgp neighbors"
+    ],
+    "ideas_from_lexicon": [
+      "show run | section router isis",
+      "show isis neighbors",
+      "show bgp summary",
+      "show ip ospf",
+      "show ip ospf database router self-originate",
+      "show ip ospf interface brief",
+      "show ip ospf | sec Process ID: 100",
+      "show ipv6 ospf",
+      "show ipv6 ospf | sec Process ID: 200",
+      "show run | section router bgp",
+      "show run | sec ipv6 router ospf 200",
+      "show run | sec router ospf 100",
+      "show run | section router ospf",
+      "show ip bgp neighbor 10.20.5.1 received-routes",
+      "show ipv6 bgp neighbor 2620:FC7:20:5::1 received-routes",
+      "show ip bgp neighbor 10.20.5.1 advertised-routes",
+      "show ipv6 bgp neighbor 2620:FC7:20:5::1 advertised-routes",
+      "show bgp ipv4 mvpn all summary",
+      "show ip igmp groups",
+      "show ip mroute",
+      "show ip pim rp-candidate",
+      "show run | sec router bgp",
+      "show bgp ipv4 mvpn neighbors",
+      "show ip pim interface",
+      "show run | sec multicast",
+      "show ip bgp",
+      "show ip interface brief | include Loopback8",
+      "show ip bgp neighbors",
+      "show run | section ^router bgp",
+      "show ip bgp summary"
+    ],
+    "candidates_all": [
+      "show bgp summary",
+      "show run | section ^router bgp",
+      "show ip bgp neighbors",
+      "show run | section router isis",
+      "show isis neighbors",
+      "show ip ospf",
+      "show ip ospf database router self-originate",
+      "show ip ospf interface brief",
+      "show ip ospf | sec Process ID: 100",
+      "show ipv6 ospf",
+      "show ipv6 ospf | sec Process ID: 200",
+      "show run | section router bgp",
+      "show run | sec ipv6 router ospf 200",
+      "show run | sec router ospf 100",
+      "show run | section router ospf",
+      "show ip bgp neighbor 10.20.5.1 received-routes",
+      "show ipv6 bgp neighbor 2620:FC7:20:5::1 received-routes",
+      "show ip bgp neighbor 10.20.5.1 advertised-routes",
+      "show ipv6 bgp neighbor 2620:FC7:20:5::1 advertised-routes",
+      "show bgp ipv4 mvpn all summary",
+      "show ip igmp groups",
+      "show ip mroute",
+      "show ip pim rp-candidate",
+      "show run | sec router bgp",
+      "show bgp ipv4 mvpn neighbors",
+      "show ip pim interface",
+      "show run | sec multicast",
+      "show ip bgp",
+      "show ip interface brief | include Loopback8",
+      "show ip bgp summary"
+    ],
+    "source_counts": {
+      "observed": 7,
+      "agent1_suggested": 0,
+      "agent1_candidates": 3,
+      "lexicon_candidates": 30,
+      "trusted_total": 7,
+      "candidates_total": 30
+    },
+    "md_len": 2611,
+    "facts": {
+      "bgp_neighbors": [],
+      "evpn_xconnects": [],
+      "lacp_bundles": [],
+      "reachability": []
+    }
+  }
+}
+```
+
+### Device Log (Markdown)
+```md
+# Grading Output for Task taREMOVED3
+**Device:** A-RR-1 (192.168.100.111)
+_Generated: 2025-08-26 16:46:54.808820_
+
+## show version
+
+```
+show version
+Cisco IOS XE Software, Version 17.03.08a
+Cisco IOS Software [Amsterdam], Virtual XE Software (X86_64_LINUX_IOSD-UNIVERSALK9-M), Version 17.3.8a, RELEASE SOFTWARE (fc3)
+Technical Support: http://www.cisco.com/techsupport
+Copyright (c) 1986-2023 by Cisco Systems, Inc.
+Compiled Fri 20-Oct-23 15:48 by mcpre
+
+
+Cisco IOS-XE software, Copyright (c) 2005-2023 by cisco Systems, Inc.
+All rights reserved.  Certain components of Cisco IOS-XE software are
+licensed under the GNU General Public License ("GPL") Version 2.0.  The
+software code licensed under GPL Version 2.0 is free software that comes
+with ABSOLUTELY NO WARRANTY.  You can redistribute and/or modify such
+GPL code under the terms of GPL Version 2.0.  For more details, see the
+documentation or "License Notice" file accompanying the IOS-XE software,
+or the applicable URL provided on the flyer accompanying the IOS-XE
+software.
+
+
+ROM: IOS-XE ROMMON
+
+A-RR-1 uptime is 5 days, 10 hours, 48 minutes
+Uptime for this control processor is 5 days, 10 hours, 50 minutes
+System returned to ROM by reload
+System image file is "bootflash:packages.conf"
+Last reload reason: factory-reset
+
+
+
+This product contains cryptographic features and is subject to United
+States and local country laws governing import, export, transfer and
+use. Delivery of Cisco cryptographic products does not imply
+third-party authority to import, export, distribute or use encryption.
+Importers, exporters, distributors and users are responsible for
+compliance with U.S. and local country laws. By using this product you
+agree to comply with applicable laws and regulations. If you are unable
+to comply with U.S. and local laws, return this product immediately.
+
+A summary of U.S. laws governing Cisco cryptographic products may be found at:
+http://www.cisco.com/wwl/export/crypto/tool/stqrg.html
+
+If you require further assistance please contact us by sending email to
+export@cisco.com.
+
+License Level: ax
+License Type: N/A(Smart License Enabled)
+Next reload license Level: ax
+
+The current throughput level is 1000 kbps 
+
+
+Smart Licensing Status: UNREGISTERED/No Licenses in Use
+
+cisco CSR1000V (VXE) processor (revision VXE) with 1104920K/3075K bytes of memory.
+Processor board ID 9I6SFBDC4JX
+Router operating mode: Autonomous
+4 Gigabit Ethernet interfaces
+32768K bytes of non-volatile configuration memory.
+3012036K bytes of physical memory.
+6188032K bytes of virtual hard disk at bootflash:.
+
+Configuration register is 0x2102
+
+A-RR-1#
+```
+
+
+```

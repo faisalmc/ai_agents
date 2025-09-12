@@ -1,0 +1,21 @@
+{
+  "summary": "The BGP IPv4 labeled-unicast command output is empty.",
+  "status": {
+    "name": "bgp_table_state",
+    "value": "unknown",
+    "confidence": "low",
+    "confidence_reason": "No routing information is present in the output."
+  },
+  "metrics": {
+    "prefixes_total": 0,
+    "paths_total": 0,
+    "best_paths": 0
+  },
+  "tables": {
+    "routes": []
+  },
+  "evidence": [
+    "L1: Tue Aug 26 16:46:27.699 UTC",
+    "L2: RP/0/RP0/CPU0:A-P-1#"
+  ]
+}

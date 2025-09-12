@@ -1,0 +1,3 @@
+{"host": "A-ASBR-1", "platform": "ios-xr", "input_cmd": "show bgp summary", "sanitized": "show bgp summary", "decision": "UNVALIDATED", "reasons": []}
+{"host": "A-ASBR-1", "platform": "ios-xr", "input_cmd": "show bgp ipv4 labeled-unicast summary", "sanitized": "show bgp ipv4 labeled-unicast summary", "decision": "UNVALIDATED", "reasons": []}
+{"host": "A-ASBR-1", "platform": "ios-xr", "input_cmd": "show mpls forwarding", "sanitized": "show mpls forwarding", "decision": "TRUSTED", "reasons": ["md_success"]}

@@ -1,0 +1,25 @@
+```json
+{
+  "hostname": "C-ASBR-1",
+  "platform": "ios-xr",
+  "signals_seen": ["bgp", "intf", "ip", "mpls", "bfd"],
+  "status": "healthy",
+  "findings": [
+    {
+      "signal": "bgp",
+      "severity": "info",
+      "detail": "BGP process running for AS 300 with IPv4 and IPv6 unicast address families configured"
+    },
+    {
+      "signal": "bfd",
+      "severity": "info",
+      "detail": "BFD configured with minimum-interval 500ms, multiplier 5, and fast-detect for neighbor-group TO_B_ASBR"
+    }
+  ],
+  "recommended_show_cmds": [
+    "show bgp summary",
+    "show bfd neighbors"
+  ],
+  "optional_active_cmds": []
+}
+```

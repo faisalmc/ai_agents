@@ -1,0 +1,20 @@
+route-policy SID($SID)
+set label-index $SID
+end-policy
+!
+router bgp 100
+ bgp router-id 1.0.101.3
+ address-family ipv4 unicast
+network 1.0.101.3/32 route-policy SID(3)
+allocate-label all
+ !
+ neighbor-group TO_P
+  remote-as 100
+  update-source Loopback0
+  address-family ipv4 labeled-unicast
+  !
+ neighbor 1.0.101.5
+  use neighbor-group TO_P
+  !
+ neighbor 1.0.101.6
+  use neighbor-group TO_P

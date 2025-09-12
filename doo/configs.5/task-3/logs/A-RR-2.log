@@ -1,0 +1,26 @@
+--- Config Push Log for A-RR-2 ---
+Timestamp: 2025-08-05 02:41:57.386128
+
+configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+A-RR-2(config)#router bgp 100
+A-RR-2(config-router)# bgp router-id 1.0.101.12
+A-RR-2(config-router)# no bgp default ipv4-unicast
+A-RR-2(config-router)#!
+A-RR-2(config-router)#neighbor RR_CLIENT peer-group
+A-RR-2(config-router)#neighbor RR_CLIENT remote-as 100
+A-RR-2(config-router)#neighbor RR_CLIENT update-source Loopback0
+A-RR-2(config-router)#neighbor 1.0.101.5 peer-group RR_CLIENT
+A-RR-2(config-router)#neighbor 1.0.101.6 peer-group RR_CLIENT
+A-RR-2(config-router)#neighbor 1.0.101.7 peer-group RR_CLIENT
+A-RR-2(config-router)#neighbor 1.0.101.8 peer-group RR_CLIENT
+A-RR-2(config-router)#!
+A-RR-2(config-router)#address-family ipv4 unicast
+A-RR-2(config-router-af)#neighbor RR_CLIENT route-reflector-client
+A-RR-2(config-router-af)#neighbor RR_CLIENT send-label
+A-RR-2(config-router-af)#neighbor 1.0.101.5 activate
+A-RR-2(config-router-af)#neighbor 1.0.101.6 activate
+A-RR-2(config-router-af)#neighbor 1.0.101.7 activate
+A-RR-2(config-router-af)#neighbor 1.0.101.8 activate
+A-RR-2(config-router-af)#end
+A-RR-2#

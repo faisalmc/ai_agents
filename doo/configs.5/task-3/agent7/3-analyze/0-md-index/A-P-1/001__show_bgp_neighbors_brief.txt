@@ -1,0 +1,10 @@
+
+Tue Aug 26 16:46:27.578 UTC
+
+Neighbor         Spk    AS  Description                         Up/Down  NBRState
+1.0.101.1         0   100                                         1d04h Idle        
+1.0.101.2         0   100                                         1d04h Idle        
+1.0.101.3         0   100                                         1d04h Idle        
+1.0.101.11        0   100                                         1d04h Idle        
+1.0.101.12        0   100                                         1d04h Idle        
+RP/0/RP0/CPU0:A-P-1#

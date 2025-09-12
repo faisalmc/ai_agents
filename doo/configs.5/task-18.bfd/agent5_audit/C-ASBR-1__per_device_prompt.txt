@@ -1,0 +1,349 @@
+--- SYSTEM ---
+You are a senior Cisco SP NOC engineer.
+You will receive:
+  • Optional JSON from Agent‑1 summarizing intended configuration for this host
+  • CLI show-output captured in a Markdown (.md) file for this host (IOS or IOS‑XR)
+Your tasks:
+  1) Determine platform ("ios-xr" or "ios") if possible from the log, else "unknown".
+  2) From the log ONLY, assess health for protocols/features that appear (BGP, EVPN/L2VPN,
+     ISIS/OSPF, SR/SRv6, MPLS, interface/port-channel, reachability).
+  3) If intent JSON is provided, use it as context for *expected* state, but do NOT invent facts
+     not visible in the log.
+  4) Return a single JSON object with fields:
+     {
+       "hostname": "<string>",
+       "platform": "ios-xr" | "ios" | "unknown",
+       "signals_seen": ["bgp","evpn","isis","mpls","sr","l2vpn","intf","ip", ...],
+       "status": "healthy" | "degraded" | "error" | "unknown",
+       "findings": [ {"signal":"bgp","severity":"warn|error|info","detail":"..."} , ... ],
+       "recommended_show_cmds": [ "show ...", ... ],   // safe, read-only
+       "optional_active_cmds": [ "ping ...", "traceroute ..." ]  // optional probes only
+     }
+  5) NEVER include config/clear/reload/debug commands in either list.
+  6) Be conservative: if signal is unclear, mark severity "info" and explain.
+  7) Only report signals that are evidenced by the provided log text, agent‑1 intents, or show_cmds.ini. Do not infer protocols that are not visible.
+  8) If `ground_evidence_facts` contains a condition (e.g., interface CLNS=Down, BGP neighbor=Idle/Active), you MUST surface a corresponding finding with the evidence reference.
+
+Output ONLY the JSON object.
+Prefer recommending follow-up 'show' commands that are already present in show_cmds.ini; add at most 3 new 'show' commands only if clearly warranted by the findings. Never suggest config/debug/clear.
+Do not mention devices other than the current hostname. If a signal is not evidenced in the log/context, exclude it.
+
+
+--- USER ---
+### Context (JSON)
+```json
+{
+  "hostname": "C-ASBR-1",
+  "platform_hint": "ios-xr",
+  "focus_signals": [
+    "bgp",
+    "intf",
+    "ip",
+    "mpls"
+  ],
+  "allow_active_probes": false,
+  "agent1_summary": {
+    "hostname": "C-ASBR-1",
+    "provider": "Charlie",
+    "customer": null,
+    "role": "ASBR",
+    "platform_hint": "cisco-ios-xr",
+    "vendor": "cisco",
+    "config_intents": [
+      "Establish BGP AS 300 with IPv4 and IPv6 unicast address families",
+      "Configure BFD with minimum-interval 500, multiplier 5, and fast-detect for neighbor-group TO_B_ASBR"
+    ],
+    "expected_state": [
+      {
+        "signal": "bgp",
+        "observation_goals": [
+          "BGP process running for AS 300",
+          "IPv4 and IPv6 unicast address families configured"
+        ],
+        "suggested_show": [
+          {
+            "cmd": "show bgp summary",
+            "provenance": "llm",
+            "confidence": "high",
+            "platform": "cisco-ios-xr"
+          }
+        ],
+        "candidate_show": []
+      },
+      {
+        "signal": "bfd",
+        "observation_goals": [
+          "BFD configured with minimum-interval 500, multiplier 5, and fast-detect for neighbor-group TO_B_ASBR"
+        ],
+        "suggested_show": [
+          {
+            "cmd": "show bfd neighbors",
+            "provenance": "llm",
+            "confidence": "high",
+            "platform": "cisco-ios-xr"
+          }
+        ],
+        "candidate_show": []
+      }
+    ]
+  },
+  "show_cmds_ini": [
+    "show run router bgp",
+    "show ip bgp neighbor brief",
+    "show bfd session",
+    "show bfd session detail",
+    "show ver"
+  ],
+  "ground_evidence_facts": {
+    "hostname": "C-ASBR-1",
+    "platform_hint": "cisco-ios-xr",
+    "signals_seen": [
+      "bfd",
+      "bgp",
+      "evpn",
+      "intf",
+      "ip",
+      "isis",
+      "l2vpn",
+      "mpls",
+      "ospf",
+      "sr",
+      "srv6"
+    ],
+    "trusted_from_observed": [
+      "show bfd session",
+      "show bfd session detail",
+      "show ip bgp neighbor brief",
+      "show running-config router bgp",
+      "show ver"
+    ],
+    "trusted_from_agent1": [],
+    "trusted_all": [
+      "show bfd session",
+      "show bfd session detail",
+      "show ip bgp neighbor brief",
+      "show running-config router bgp",
+      "show ver"
+    ],
+    "candidates_from_agent1": [
+      "show bgp summary",
+      "show bfd neighbors"
+    ],
+    "ideas_from_lexicon": [
+      "show running-config router isis",
+      "show isis neighbors",
+      "show bgp ipv4 unicast summary vrf YELLOW",
+      "show bgp ipv6 unicast summary vrf YELLOW",
+      "show bgp summary",
+      "show bgp vrf YELLOW",
+      "show bgp vrf YELLOW summary",
+      "show ospf vrf YELLOW",
+      "show running-config interface GigabitEthernet0/0/0/4",
+      "show running-config router bgp vrf YELLOW",
+      "show running-config router ospf vrf YELLOW",
+      "show running-config",
+      "show policy-map interface GigabitEthernet0/0/0/1 output",
+      "show class-map",
+      "show policy-map",
+      "show bgp vrf YELLOW neighbors",
+      "show running-config",
+      "show bgp mvpn all",
+      "show ip pim interface",
+      "show ip pim ssm range",
+      "show multicast",
+      "show running-config interface GigabitEthernet 0/0/0/0",
+      "show running-config interface GigabitEthernet 0/0/0/1",
+      "show running-config interface GigabitEthernet 0/0/0/2",
+      "show running-config interface loopback0",
+      "show running-config multicast-routing",
+      "show running-config mvpn",
+      "show running-config router pim",
+      "show running-config vrf YELLOW",
+      "show running-config vrf YELLOW",
+      "show running-config",
+      "show ip mroute",
+      "show running-config multicast",
+      "show running-config router bgp 200",
+      "show bfd neighbors",
+      "show bgp ipv4 unicast summary",
+      "show bgp ipv6 unicast summary",
+      "show running-config router bgp 200",
+      "show mpls lsd",
+      "show running-config interface Loopback0",
+      "show running-config router isis AGG2",
+      "show running-config",
+      "show management-plane security",
+      "show bgp vrf BLUE neighbors 10.10.2.2",
+      "show bgp vrf BLUE neighbors 10.10.2.2 received-routes",
+      "show running-config",
+      "show bgp ipv4 labeled-unicast summary",
+      "show running",
+      "show running-config interface GigabitEthernet0/0/0/0",
+      "show running-config interface GigabitEthernet0/0/0/1",
+      "show running-config router isis CORE",
+      "show running-config router bgp 300",
+      "show bgp neighbor-group TO_C_ASBR",
+      "show bgp neighbor",
+      "show bgp neighbor-group TO_B_ASBR"
+    ],
+    "candidates_all": [
+      "show bgp summary",
+      "show bfd neighbors",
+      "show running-config router isis",
+      "show isis neighbors",
+      "show bgp ipv4 unicast summary vrf YELLOW",
+      "show bgp ipv6 unicast summary vrf YELLOW",
+      "show bgp vrf YELLOW",
+      "show bgp vrf YELLOW summary",
+      "show ospf vrf YELLOW",
+      "show running-config interface GigabitEthernet0/0/0/4",
+      "show running-config router bgp vrf YELLOW",
+      "show running-config router ospf vrf YELLOW",
+      "show running-config",
+      "show policy-map interface GigabitEthernet0/0/0/1 output",
+      "show class-map",
+      "show policy-map",
+      "show bgp vrf YELLOW neighbors",
+      "show bgp mvpn all",
+      "show ip pim interface",
+      "show ip pim ssm range",
+      "show multicast",
+      "show running-config interface GigabitEthernet 0/0/0/0",
+      "show running-config interface GigabitEthernet 0/0/0/1",
+      "show running-config interface GigabitEthernet 0/0/0/2",
+      "show running-config interface loopback0",
+      "show running-config multicast-routing",
+      "show running-config mvpn",
+      "show running-config router pim",
+      "show running-config vrf YELLOW",
+      "show ip mroute",
+      "show running-config multicast",
+      "show running-config router bgp 200",
+      "show bgp ipv4 unicast summary",
+      "show bgp ipv6 unicast summary",
+      "show mpls lsd",
+      "show running-config interface Loopback0",
+      "show running-config router isis AGG2",
+      "show management-plane security",
+      "show bgp vrf BLUE neighbors 10.10.2.2",
+      "show bgp vrf BLUE neighbors 10.10.2.2 received-routes",
+      "show bgp ipv4 labeled-unicast summary",
+      "show running",
+      "show running-config interface GigabitEthernet0/0/0/0",
+      "show running-config interface GigabitEthernet0/0/0/1",
+      "show running-config router isis CORE",
+      "show running-config router bgp 300",
+      "show bgp neighbor-group TO_C_ASBR",
+      "show bgp neighbor",
+      "show bgp neighbor-group TO_B_ASBR"
+    ],
+    "source_counts": {
+      "observed": 5,
+      "agent1_suggested": 0,
+      "agent1_candidates": 2,
+      "lexicon_candidates": 55,
+      "trusted_total": 5,
+      "candidates_total": 49
+    },
+    "md_len": 3227,
+    "facts": {
+      "bgp_neighbors": [],
+      "evpn_xconnects": [],
+      "lacp_bundles": [],
+      "reachability": []
+    }
+  }
+}
+```
+
+### Device Log (Markdown)
+```md
+# Grading Output for Task taREMOVED18.bfd.bravo_charlie/
+**Device:** C-ASBR-1 (192.168.100.137)
+_Generated: 2025-07-06 02:53:24.755485_
+
+## show ip bgp neighbor brief
+
+```
+show ip bgp neighbor brief
+
+Sun Jul  6 06:40:51.217 UTC
+
+Neighbor         Spk    AS  Description                         Up/Down  NBRState
+3.0.101.1         0   300                                         2d19h Idle        
+3.0.101.2         0   300                                         2d19h Idle        
+3.0.101.3         0   300                                         2d19h Idle        
+3.0.101.4         0   300                                         2d19h Idle        
+100.64.231.1      0   200                                      00:00:32 Established 
+2620:fc7:64:231::1
+                  0   200                                      00:00:45 Established 
+RP/0/RP0/CPU0:C-ASBR-1#
+```
+
+## show bfd session
+
+```
+show bfd session
+
+Sun Jul  6 06:40:51.365 UTC
+Interface           Dest Addr           Local det time(int*mult)      State     
+                                    Echo             Async   H/W   NPU     
+------------------- --------------- ---------------- ---------------- ----------
+Gi0/0/0/1           100.64.231.1    2500ms(500ms*5)  10s(2s*5)        UP        
+                                                             No    n/a            
+
+
+RP/0/RP0/CPU0:C-ASBR-1#
+```
+
+## show bfd session detail
+
+```
+show bfd session detail
+
+Sun Jul  6 06:40:51.491 UTC
+I/f: GigabitEthernet0/0/0/1, Location: 0/0/CPU0
+Dest: 100.64.231.1
+Src: 100.64.231.2
+ State: UP for 0d:0h:0m:30s, number of times UP: 1
+ Session type: PR/V4/SH
+Received parameters:
+ Version: 1, desired tx interval: 2 s, required rx interval: 2 s
+ Required echo rx interval: 1 ms, multiplier: 5, diag: None
+ My discr: 2148532226, your discr: 2148532226, state UP, D/F/P/C/A: 0/0/0/1/0
+Transmitted parameters:
+ Version: 1, desired tx interval: 2 s, required rx interval: 2 s
+ Required echo rx interval: 1 ms, multiplier: 5, diag: None
+ My discr: 2148532226, your discr: 2148532226, state UP, D/F/P/C/A: 0/0/0/1/0
+Timer Values:
+ Local negotiated async tx interval: 2 s
+ Remote negotiated async tx interval: 2 s
+ Desired echo tx interval: 500 ms, local negotiated echo tx interval: 500 ms
+ Echo detection time: 2500 ms(500 ms*5), async detection time: 10 s(2 s*5)
+Local Stats:
+ Intervals between async packets:
+   Tx: Number of intervals=17, min=2 ms, max=1956 ms, avg=1719 ms
+       Last packet transmitted 1562 ms ago
+   Rx: Number of intervals=17, min=3 ms, max=1959 ms, avg=1712 ms
+       Last packet received 1671 ms ago
+ Intervals between echo packets:
+   Tx: Number of intervals=0, min=0 s, max=0 s, avg=0 s
+       Last packet transmitted 279 ms ago
+   Rx: Number of intervals=0, min=0 s, max=0 s, avg=0 s
+       Last packet received 278 ms ago
+ Latency of echo packets (time between tx and rx):
+   Number of packets: 0, min=0 ms, max=0 ms, avg=0 ms
+Session owner information:
+                            Desired               Adjusted
+  Client               Interval   Multiplier Interval   Multiplier
+  -------------------- --------------------- ---------------------
+  bgp-default          500 ms     5          2 s        5         
+
+
+
+
+RP/0/RP0/CPU0:C-ASBR-1#
+```
+
+
+```

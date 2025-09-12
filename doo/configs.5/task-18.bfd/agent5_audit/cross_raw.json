@@ -1,0 +1,12 @@
+{
+  "task_status": "healthy",
+  "top_incidents": [],
+  "remediation_themes": [],
+  "trusted_followup_cmds": [],
+  "unvalidated_followup_cmds": [
+    "show bgp summary",
+    "show bgp neighbor-group TO_C_ASBR",
+    "show bfd neighbors"
+  ],
+  "optional_active_probes": []
+}

@@ -1,0 +1,47 @@
+```json
+{
+  "hostname": "C-PE-2",
+  "platform": "ios-xr",
+  "signals_seen": ["configured", "enabled", "isis", "locators", "srv6"],
+  "status": "healthy",
+  "status_reason": "SRv6 is enabled and operational with available resources.",
+  "ok": [
+    {
+      "summary": "SRv6 is enabled with operational parameters and resource availability.",
+      "evidence_ref": { "command_key": "show_segment-routing_srv6_manager", "path": "commands.show_segment-routing_srv6_manager.data.summary" }
+    },
+    {
+      "summary": "IS-IS SRv6 locators are active.",
+      "evidence_ref": { "command_key": "show_isis_segment-routing_srv6_locators_detail", "path": "commands.show_isis_segment-routing_srv6_locators_detail.data.summary" }
+    }
+  ],
+  "suspect": [
+    {
+      "summary": "IS-IS IPv6 route status is unknown.",
+      "evidence_ref": { "command_key": "show_isis_ipv6_route__inc_fc00tag", "path": "commands.show_isis_ipv6_route__inc_fc00tag.data.status.value" }
+    }
+  ],
+  "findings": [
+    {
+      "signal": "srv6",
+      "severity": "info",
+      "summary": "SRv6 is operational with 63992 free SID resources.",
+      "evidence_ref": {
+        "command_key": "show_segment-routing_srv6_manager",
+        "path": "commands.show_segment-routing_srv6_manager.data.metrics.number_of_free_sid_resources"
+      }
+    },
+    {
+      "signal": "isis",
+      "severity": "info",
+      "summary": "Total of 8 IS-IS IPv6 routes available.",
+      "evidence_ref": {
+        "command_key": "show_isis_ipv6_route__inc_fc00tag",
+        "path": "commands.show_isis_ipv6_route__inc_fc00tag.data.metrics.routes_total"
+      }
+    }
+  ],
+  "recommended_show_cmds": ["show isis ipv6 route", "show segment-routing srv6 manager"],
+  "optional_active_cmds": ["ping fc00:100:2::1"]
+}
+```

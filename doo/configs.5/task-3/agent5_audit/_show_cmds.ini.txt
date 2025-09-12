@@ -1,0 +1,7 @@
+show run router bgp
+show bgp neighbors brief
+show bgp ipv4 labeled-unicast
+show mpls forwarding
+show run | sec bgp
+show bgp ipv4 labeled-unicast 1.0.101.7
+show bgp ipv4 labeled-unicast 1.0.101.9

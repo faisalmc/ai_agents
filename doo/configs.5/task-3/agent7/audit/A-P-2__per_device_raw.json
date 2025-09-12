@@ -1,0 +1,26 @@
+```json
+{
+  "hostname": "A-P-2",
+  "platform": "ios-xr",
+  "signals_seen": ["bgp", "mpls"],
+  "status": "healthy",
+  "status_reason": "BGP process is running with all neighbors in Established state and BGP table is active.",
+  "ok": [
+    {
+      "summary": "BGP table for IPv4 labeled-unicast is active with 9 prefixes.",
+      "evidence_ref": { "command_key": "show_bgp_ipv4_labeled-unicast", "path": "commands.show_bgp_ipv4_labeled-unicast.data.summary" }
+    },
+    {
+      "summary": "All five BGP neighbors are in Established state.",
+      "evidence_ref": { "command_key": "show_bgp_neighbors_brief", "path": "commands.show_bgp_neighbors_brief.data.summary" }
+    }
+  ],
+  "suspect": [],
+  "findings": [],
+  "recommended_show_cmds": [
+    "show bgp summary",
+    "show bgp ipv4 labeled-unicast summary"
+  ],
+  "optional_active_cmds": []
+}
+```

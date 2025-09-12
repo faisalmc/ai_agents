@@ -1,0 +1,306 @@
+# orchestrator/slack_bot.py
+import os
+from slack_bolt import App
+from slack_bolt.adapter.socket_mode import SocketModeHandler
+
+from agent2_client import run_deploy              # Agent-2 (/deploy)
+from agent3_client import run_analyze_host        # Agent-3 (/analyze-host)
+from agent4_client import run_operational_check   # Agent-4 (/operational-check)
+from agent5_client import run_operational_analyze   # Agent-5 (/operational-analyze)
+from agent7_client import run_plan as run_a7_plan, run_capture as run_a7_capture, run_analyze as run_a7_analyze
+
+SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
+SLACK_APP_TOKEN = os.environ["SLACK_APP_TOKEN"]
+BOT_NAME = os.getenv("ORCHESTRATOR_BOT_NAME", "agent")
+
+app = App(token=SLACK_BOT_TOKEN)
+
+
+# def _help_text() -> str:
+#     return (
+#         f"Commands:\n"
+#         f"• Deploy configs to router(s) in network - Agent-2 deployer:\n   `@{BOT_NAME} deploy <config_dir> <task>`\n"
+#         f"• Analyze router config deployment — Agent-3 per-host analysis:\n   `@{BOT_NAME} analyze-host <config_dir> <task> <hostname>`\n" 
+#         f"• NetOps capture — Agent-4 operational show commands capture:\n   `@{BOT_NAME} ops-check <config_dir> <task>`\n"
+#         f"• NetOps Analysis — Agent-5 operational analysis (per-device + cross-device):\n   `@{BOT_NAME} ops-analyze <config_dir> <task>`\n"
+#         f"• `@{BOT_NAME} help`\n"
+#     )
+
+def _help_text() -> str:
+    return (
+        f"Commands:\n"
+        f"• Deploy configs — Agent-2:\n   `@{BOT_NAME} deploy <config_dir> <task>`\n"
+        f"• Analyze a single host — Agent-3:\n   `@{BOT_NAME} analyze-host <config_dir> <task> <hostname>`\n"
+        f"• NetOps capture — Agent-4:\n   `@{BOT_NAME} operational-check <config_dir> <task>`\n"
+        f"• NetOps analysis — Agent-5:\n   `@{BOT_NAME} operational-analyze <config_dir> <task>`\n"
+        f"• Agent-7 PLAN (AI-built command plan):\n   `@{BOT_NAME} a7-plan <config_dir> <task> [host1,host2,...]`\n"
+        f"• Agent-7 CAPTURE (run plan via Agent-4):\n   `@{BOT_NAME} a7-capture <config_dir> <task> [host1,host2,...]`\n"
+        f"• Agent-7 ANALYZE (md→parsed→facts):\n   `@{BOT_NAME} a7-analyze <config_dir> <task>`\n"
+        f"• Agent-7 END-TO-END (plan→capture→analyze):\n   `@{BOT_NAME} a7-run <config_dir> <task> [host1,host2,...]`\n"
+        f"• `@{BOT_NAME} help`\n"
+    )
+
+@app.event("app_mention")
+def handle_app_mention(body, say, logger):
+    ev = body.get("event", {})
+    text = (ev.get("text") or "").strip()
+    channel = ev.get("channel")
+    thread_ts = ev.get("ts")
+    user = ev.get("user")
+
+    # text looks like: "<@UXXXX> analyze-host configs.5 taREMOVED1 HOST"
+    parts = text.split(maxsplit=2)  # ["<@U...>", "analyze-host", "configs.5 taREMOVED1 HOST"]
+    if len(parts) < 2:
+        say(channel=channel, thread_ts=thread_ts, text=_help_text())
+        return
+
+    cmd = parts[1].lower()
+
+    ### Normalize Agent-3 aliases
+    if cmd in ("a3", "analyse-host", "host"):
+        cmd = "analyze-host"
+
+    # Normalize Agent-4 aliases
+    if cmd in ("a4", "ops-capture", "ops-check", "operational-capture"):
+        cmd = "operational-check"
+
+    # Normalize Agent-5 aliases
+    if cmd in ("a5", "ops-analyze", "operational-analyze", "ops-analysis"):
+        cmd = "operational-analyze"
+
+    # Normalize Agent-7 aliases
+    if cmd in ("a7", "agent7", "ops7", "ops"):
+        cmd = "a7-run"
+
+    print(f"[DEBUG] app_mention parsed cmd={cmd} raw_text={text}", flush=True)
+
+    if cmd == "help":
+        say(channel=channel, thread_ts=thread_ts, text=_help_text())
+        return
+
+    # Agent-3: per-host analysis
+    if cmd == "analyze-host" and len(parts) == 3:
+        args = parts[2].split()
+        if len(args) != 3:
+            say(
+                channel=channel,
+                thread_ts=thread_ts,
+                text=f"Usage: `@{BOT_NAME} analyze-host <config_dir> <task_id> <hostname>`"
+            )
+            return
+
+        config_dir, task_id, hostname = args
+        say(
+            channel=channel,
+            thread_ts=thread_ts,
+            text=f"🔬 Routing to Agent-3: `{config_dir}` `{task_id}` host=`{hostname}` …"
+        )
+        result = run_analyze_host(config_dir, task_id, hostname, channel, thread_ts, user)
+        say(
+            channel=channel,
+            thread_ts=thread_ts,
+            text=f"✅ Agent-3 request accepted.\n`{result}`"
+        )
+        return
+
+    # Agent-4: operational capture summary
+    if cmd == "operational-check" and len(parts) == 3:
+        args = parts[2].split()
+        if len(args) != 2:
+            say(
+                channel=channel,
+                thread_ts=thread_ts,
+                text=f"Usage: `@{BOT_NAME} operational-check <config_dir> <task_id>`"
+            )
+            return
+
+        config_dir, task_id = args
+        say(
+            channel=channel,
+            thread_ts=thread_ts,
+            text=f"📟 Routing to Agent-4: `{config_dir}` `{task_id}` …"
+        )
+        result = run_operational_check(config_dir, task_id, channel, thread_ts, user)
+        say(
+            channel=channel,
+            thread_ts=thread_ts,
+            text=f"✅ Agent-4 request accepted.\n`{result}`"
+        )
+        return
+
+    # Agent-5: operational analyze (per-device + cross-device)
+    if cmd == "operational-analyze" and len(parts) == 3:
+        args = parts[2].split()
+        if len(args) != 2:
+            say(
+                channel=channel,
+                thread_ts=thread_ts,
+                text=f"Usage: `@{BOT_NAME} ops-analyze <config_dir> <task_id>`"
+            )
+            return
+
+        config_dir, task_id = args
+        say(
+            channel=channel,
+            thread_ts=thread_ts,
+            text=f"🧠 Routing to Agent-5: `{config_dir}` `{task_id}` …"
+        )
+        result = run_operational_analyze(config_dir, task_id, channel, thread_ts, user)
+        say(
+            channel=channel,
+            thread_ts=thread_ts,
+            text=f"✅ Agent-5 request accepted.\n`{result}`"
+        )
+        return
+    
+    # Agent-7: PLAN
+    if cmd == "a7-plan" and len(parts) == 3:
+        args = parts[2].split()
+        if len(args) not in (2, 3):
+            say(channel=channel, thread_ts=thread_ts,
+                text=f"Usage: `@{BOT_NAME} a7-plan <config_dir> <task_id> [host1,host2,...]`")
+            return
+        config_dir, task_id = args[0], args[1]
+        hosts = args[2].split(",") if len(args) == 3 else None
+        say(channel=channel, thread_ts=thread_ts,
+            text=f"📝 Routing to Agent-7 /plan: `{config_dir}` `{task_id}` hosts=`{','.join(hosts) if hosts else '(auto)'}` …")
+        res = run_a7_plan(config_dir, task_id, hosts=hosts)
+        say(channel=channel, thread_ts=thread_ts,
+            text=f"✅ Plan ready.\n• INI: `{res.get('overlay_ini','')}`\n• Plan JSON: `{res.get('capture_plan','')}`\n• Hosts: `{', '.join(res.get('hosts') or [])}`")
+        return
+
+    # Agent-7: CAPTURE
+    if cmd == "a7-capture" and len(parts) == 3:
+        args = parts[2].split()
+        if len(args) not in (2, 3):
+            say(channel=channel, thread_ts=thread_ts,
+                text=f"Usage: `@{BOT_NAME} a7-capture <config_dir> <task_id> [host1,host2,...]`")
+            return
+        config_dir, task_id = args[0], args[1]
+        hosts_override = args[2].split(",") if len(args) == 3 else None
+        say(channel=channel, thread_ts=thread_ts,
+            text=f"📟 Routing to Agent-7 /capture: `{config_dir}` `{task_id}` hosts_override=`{','.join(hosts_override) if hosts_override else '(plan)'}` …")
+        res = run_a7_capture(config_dir, task_id, plan_path=None, hosts_override=hosts_override)
+        say(channel=channel, thread_ts=thread_ts,
+            text=f"✅ Capture summary: `{res.get('summary_path','')}`")
+        return
+
+    # Agent-7: ANALYZE
+    if cmd == "a7-analyze" and len(parts) == 3:
+        args = parts[2].split()
+        if len(args) != 2:
+            say(channel=channel, thread_ts=thread_ts,
+                text=f"Usage: `@{BOT_NAME} a7-analyze <config_dir> <task_id>`")
+            return
+        config_dir, task_id = args
+        say(channel=channel, thread_ts=thread_ts,
+            text=f"🔎 Routing to Agent-7 /analyze: `{config_dir}` `{task_id}` …")
+        res = run_a7_analyze(config_dir, task_id)
+        say(channel=channel, thread_ts=thread_ts,
+            text=f"✅ Analyze summary: `{res.get('facts_summary_path','')}` • hosts={res.get('hosts_processed',0)}")
+        return
+
+    # Agent-7: END-TO-END (plan → capture → analyze)
+    if cmd == "a7-run" and len(parts) == 3:
+        args = parts[2].split()
+        if len(args) not in (2, 3):
+            say(channel=channel, thread_ts=thread_ts,
+                text=f"Usage: `@{BOT_NAME} a7-run <config_dir> <task_id> [host1,host2,...]`")
+            return
+        config_dir, task_id = args[0], args[1]
+        hosts = args[2].split(",") if len(args) == 3 else None
+
+        say(channel=channel, thread_ts=thread_ts,
+            text=f"🚀 Agent-7 run starting: `{config_dir}` `{task_id}` • hosts=`{','.join(hosts) if hosts else '(auto)'}`")
+
+        try:
+            plan_res = run_a7_plan(config_dir, task_id, hosts=hosts)
+            say(channel=channel, thread_ts=thread_ts,
+                text=f"📝 Plan ok → INI=`{plan_res.get('overlay_ini','')}`")
+
+            cap_res = run_a7_capture(config_dir, task_id, plan_path=None, hosts_override=hosts)
+            say(channel=channel, thread_ts=thread_ts,
+                text=f"📟 Capture ok → summary=`{cap_res.get('summary_path','')}`")
+
+            ana_res = run_a7_analyze(config_dir, task_id)
+            say(channel=channel, thread_ts=thread_ts,
+                text=f"🔎 Analyze ok → facts_summary=`{ana_res.get('facts_summary_path','')}` • hosts={ana_res.get('hosts_processed',0)}")
+
+            say(channel=channel, thread_ts=thread_ts,
+                text=f"✅ Agent-7 run COMPLETE.")
+        except Exception as e:
+            say(channel=channel, thread_ts=thread_ts,
+                text=f"❌ Agent-7 run failed: `{e}`")
+        return
+    
+    # Allow shorthand: "@agent <config_dir> <task_id>" (implicit deploy)
+    if len(parts) == 3 and cmd not in (
+        "help",
+        "deploy",
+        "analyze-host", "analyse-host", "host", "a3",
+        "operational-analyze", "ops-analyze", "ops-analysis", "a5",
+    ):
+        maybe_config = parts[1]
+        maybe_task = parts[2].strip()
+        args = maybe_task.split()
+        if len(args) == 1:
+            config_dir, task_id = maybe_config, args[0]
+            say(
+                channel=channel,
+                thread_ts=thread_ts,
+                text=f"**Routing** request to **Agent-2**: `{config_dir}` `{task_id}` …\n Hang tight! agent will update you shortly"
+            )
+            result = run_deploy(config_dir, task_id, channel, thread_ts, user)
+            # say(
+            #     channel=channel,
+            #     thread_ts=thread_ts,
+            #     text=f"🧭 ✅ Request sent to Agent-2.\n`{result}`"
+            # )
+            return
+        else:
+            say(
+                channel=channel,
+                thread_ts=thread_ts,
+                text=f"Usage: `@{BOT_NAME} deploy <config_dir> <task_id>`"
+            )
+            return
+
+    # Explicit Agent-2 deploy
+    if cmd == "deploy" and len(parts) == 3:
+        args = parts[2].split()
+        if len(args) != 2:
+            say(
+                channel=channel,
+                thread_ts=thread_ts,
+                text=f"Usage: `@{BOT_NAME} deploy <config_dir> <task_id>`"
+            )
+            return
+
+        config_dir, task_id = args
+        say(
+            channel=channel,
+            thread_ts=thread_ts,
+            text=f"🧭 Routing to Agent-2: `{config_dir}` `{task_id}` …\n Hang tight! agent will update you shortly"
+        )
+        result = run_deploy(config_dir, task_id, channel, thread_ts, user)
+        # Agent-2 posts real summary/logs; we just echo status
+        # say(
+        #     channel=channel,
+        #     thread_ts=thread_ts,
+        #     text=f"✅ Request sent to Agent-2.\n`{result}`"
+        # )
+        return
+
+    say(channel=channel, thread_ts=thread_ts, text=f"Unknown command `{cmd}`.\n{_help_text()}")
+
+
+# Optional: silence generic "message" events if your app is subscribed to them
+@app.event("message")
+def ignore_plain_messages(body, logger):
+    # No-op so Bolt doesn’t return 404 for message events
+    pass
+
+
+if __name__ == "__main__":
+    print("[DEBUG] Orchestrator Slack bot starting...")
+    SocketModeHandler(app, SLACK_APP_TOKEN).start()

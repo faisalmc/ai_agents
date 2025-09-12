@@ -1,0 +1,49 @@
+{
+  "B-ASBR-1": {
+    "hostname": "B-ASBR-1",
+    "platform_hint": "ios-xr",
+    "signals": [
+      "bgp",
+      "bfd"
+    ],
+    "confidence": 0.9,
+    "evidence": {
+      "bgp": [
+        "2.0.101.10        0   200                                      01:56:52 Established",
+        "100.64.121.1      0   100                                      04:04:52 Established",
+        "100.64.231.2      0   300                                      00:00:34 Established",
+        "2620:fc7:64:231::2 0   300                                      00:00:46 Established"
+      ],
+      "bfd": [
+        "Interface           Dest Addr           Local det time(int*mult)      State",
+        "Gi0/0/0/3           100.64.231.2    2500ms(500ms*5)  10s(2s*5)        UP"
+      ]
+    },
+    "notes": "The logs show BGP neighbor information and BFD session details, common in Cisco IOS-XR devices."
+  },
+  "C-ASBR-1": {
+    "hostname": "C-ASBR-1",
+    "platform_hint": "ios-xr",
+    "signals": [
+      "bgp",
+      "bfd"
+    ],
+    "confidence": 0.9,
+    "evidence": {
+      "bgp": [
+        "3.0.101.1         0   300                                         2d19h Idle        ",
+        "100.64.231.1      0   200                                      00:00:32 Established ",
+        "2620:fc7:64:231::1 0   200                                      00:00:45 Established "
+      ],
+      "bfd": [
+        "Interface           Dest Addr           Local det time(int*mult)      State     ",
+        "Gi0/0/0/1           100.64.231.1    2500ms(500ms*5)  10s(2s*5)        UP        ",
+        "Dest: 100.64.231.1",
+        "Src: 100.64.231.2",
+        "State: UP for 0d:0h:0m:30s, number of times UP: 1",
+        "Session type: PR/V4/SH"
+      ]
+    },
+    "notes": "The logs show BGP neighbor information and BFD session details, indicating the presence of BGP and BFD protocols on an IOS-XR device."
+  }
+}

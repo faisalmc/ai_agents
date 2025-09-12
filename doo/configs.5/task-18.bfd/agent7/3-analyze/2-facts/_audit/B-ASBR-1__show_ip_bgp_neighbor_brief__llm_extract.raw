@@ -1,0 +1,59 @@
+```json
+{
+  "summary": "The BGP neighbor summary shows four established neighbors.",
+  "status": {
+    "name": "bgp_neighbors",
+    "value": "established",
+    "confidence": "high",
+    "confidence_reason": "All neighbors are in the Established state."
+  },
+  "metrics": {
+    "bgp_neighbors_total": 4,
+    "bgp_neighbors_by_state": {
+      "established": 4
+    }
+  },
+  "tables": {
+    "bgp_neighbors": [
+      {
+        "Neighbor": "2.0.101.10",
+        "Spk": 0,
+        "AS": 200,
+        "Description": "",
+        "Up/Down": "01:56:52",
+        "NBRState": "Established"
+      },
+      {
+        "Neighbor": "100.64.121.1",
+        "Spk": 0,
+        "AS": 100,
+        "Description": "",
+        "Up/Down": "04:04:52",
+        "NBRState": "Established"
+      },
+      {
+        "Neighbor": "100.64.231.2",
+        "Spk": 0,
+        "AS": 300,
+        "Description": "",
+        "Up/Down": "00:00:34",
+        "NBRState": "Established"
+      },
+      {
+        "Neighbor": "2620:fc7:64:231::2",
+        "Spk": 0,
+        "AS": 300,
+        "Description": "",
+        "Up/Down": "00:00:46",
+        "NBRState": "Established"
+      }
+    ]
+  },
+  "evidence": [
+    "L2: 2.0.101.10        0   200                                      01:56:52 Established",
+    "L3: 100.64.121.1      0   100                                      04:04:52 Established",
+    "L4: 100.64.231.2      0   300                                      00:00:34 Established",
+    "L5: 2620:fc7:64:231::2\n                  0   300                                      00:00:46 Established"
+  ]
+}
+```

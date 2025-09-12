@@ -1,0 +1,126 @@
+--- SYSTEM ---
+You are a senior Cisco SP NOC engineer.
+You will analyze structured FACTS produced from parsed CLI (pyATS Genie or LLM). You MUST:
+- Use only the provided facts as evidence; do NOT invent information.
+- Return STRICT JSON only (no prose) with this schema:
+{
+  "hostname": "<string>",
+  "platform": "ios-xr" | "ios" | "unknown",
+  "signals_seen": ["bgp","isis","mpls","evpn","l2vpn","sr","srv6","intf","ip","bfd", ...],
+  "status": "healthy" | "degraded" | "error" | "unknown",
+  "status_reason": "<short explanation tied to evidence, not to parsing availability>",
+  "ok": [
+    {
+      "summary": "<what looks healthy (1 line)>",
+      "evidence_ref": { "command_key": "<cmd_key>", "path": "commands.<cmd_key>.<...>" }
+    }
+  ],
+  "suspect": [
+    {
+      "summary": "<what looks off (1 line)>",
+      "evidence_ref": { "command_key": "<cmd_key>", "path": "commands.<cmd_key>.<...>" }
+    }
+  ],
+  "findings": [
+    {
+      "signal": "<one of signals_seen>",
+      "severity": "info" | "warn" | "error",
+      "summary": "<short, evidence-backed>",
+      "evidence_ref": {
+        "command_key": "<cmd_key from facts.commands>",
+        "path": "commands.<cmd_key>.<...>"  // MUST point to a real path in facts
+      }
+    }
+  ],
+  "recommended_show_cmds": ["show ..."],
+  "optional_active_cmds": ["ping ..."]
+}
+Rules:
+- Evidence must reference REAL paths in the provided facts (start with commands.<cmd_key>.).
+- Do NOT mark status as degraded/error just because a parser is unavailable or parser_ok=false.
+  If tables/metrics/evidence_text exist and clearly show healthy behavior, treat that as valid evidence.
+- Prefer listing both positives (ok[]) and negatives (suspect[]) so the operator sees what's working and what's not.
+- status_reason must reflect network state (e.g., "some BGP neighbors Idle while others Established"), NOT "parser not found".
+- Be conservative: if unclear, use severity "info".
+- Never propose config/debug/clear/reload commands.
+
+
+--- USER ---
+### Context
+```json
+{
+  "hostname": "B-ASBR-1",
+  "platform_hint": "cisco-ios-xr",
+  "signals_seen": [
+    "bfd",
+    "bgp"
+  ],
+  "available_command_keys": [
+    "show_bfd_session",
+    "show_bfd_session_detail",
+    "show_ip_bgp_neighbor_brief"
+  ],
+  "agent1_summary": {
+    "hostname": "B-ASBR-1",
+    "provider": "Beta",
+    "customer": null,
+    "role": "ASBR",
+    "platform_hint": "cisco-ios-xr",
+    "vendor": "cisco",
+    "config_intents": [
+      "Establish BGP AS 200 with IPv4 and IPv6 unicast address families",
+      "Configure BFD with minimum-interval 500, multiplier 5, and fast-detect for neighbor-group TO_C_ASBR"
+    ],
+    "expected_state": [
+      {
+        "signal": "bgp",
+        "observation_goals": [
+          "BGP process is running",
+          "Neighbor-group TO_C_ASBR configured with remote AS 300",
+          "IPv4 and IPv6 unicast address families enabled"
+        ],
+        "suggested_show": [
+          {
+            "cmd": "show bgp summary",
+            "provenance": "llm",
+            "confidence": "high",
+            "platform": "cisco-ios-xr"
+          },
+          {
+            "cmd": "show bgp neighbor-group TO_C_ASBR",
+            "provenance": "llm",
+            "confidence": "med",
+            "platform": "cisco-ios-xr"
+          }
+        ],
+        "candidate_show": [
+          {
+            "cmd": "show run | section ^router bgp",
+            "provenance": "llm",
+            "confidence": "low",
+            "platform": "cisco-ios-xr",
+            "note": "Partial output"
+          }
+        ]
+      },
+      {
+        "signal": "bfd",
+        "observation_goals": [
+          "BFD configured with minimum-interval 500 and multiplier 5",
+          "BFD fast-detect enabled"
+        ],
+        "suggested_show": [
+          {
+            "cmd": "show bfd neighbors",
+            "provenance": "llm",
+            "confidence": "high",
+            "platform": "cisco-ios-xr"
+          }
+        ]
+      }
+    ]
+  },
+  "adk_snippets": [],
+  "facts_json": "{\"hostname\": \"B-ASBR-1\", \"platform_hint\": \"cisco-ios-xr\", \"signals_seen\": [\"bfd\", \"bgp\"], \"generated_at\": 1757488178, \"facts_version\": 1, \"coverage\": {\"genie_ok\": 1, \"genie_err\": 0, \"llm_ok\": 2, \"total_cmds\": 3, \"total_enriched\": 3}, \"commands\": {\"show_bfd_session\": {\"command\": \"show bfd session\", \"topic\": \"bfd\", \"platform_hint\": \"cisco-ios-xr\", \"source\": \"genie\", \"parsed_path\": \"/app/doo/configs.5/taREMOVED18.bfd/agent7/3-analyze/1-parsed/B-ASBR-1/cisco-ios-xr__show_bfd_session.json\", \"evidence_text_path\": \"/app/doo/configs.5/taREMOVED18.bfd/agent7/3-analyze/0-md-index/B-ASBR-1/002__show_bfd_session.txt\", \"parser_ok\": true, \"data\": {\"interface\": {\"GigabitEthernet0/0/0/3\": {\"dest_ip_address\": {\"100.64.231.2\": {\"echo_total_msec\": 2500, \"echo_msec\": 500, \"echo_multiplier\": 5, \"async_total_msec\": 10000, \"async_msec\": 2000, \"async_multiplier\": 5, \"state\": \"UP\", \"hardware\": \"No\", \"npu\": \"n/a\"}}}}}, \"genie_data\": {\"interface\": {\"GigabitEthernet0/0/0/3\": {\"dest_ip_address\": {\"100.64.231.2\": {\"echo_total_msec\": 2500, \"echo_msec\": 500, \"echo_multiplier\": 5, \"async_total_msec\": 10000, \"async_msec\": 2000, \"async_multiplier\": 5, \"state\": \"UP\", \"hardware\": \"No\", \"npu\": \"n/a\"}}}}}}, \"show_bfd_session_detail\": {\"command\": \"show bfd session detail\", \"topic\": \"bfd\", \"platform_hint\": \"cisco-ios-xr\", \"source\": \"llm\", \"parsed_path\": \"\", \"evidence_text_path\": \"/app/doo/configs.5/taREMOVED18.bfd/agent7/3-analyze/0-md-index/B-ASBR-1/003__show_bfd_session_detail.txt\", \"parser_ok\": false, \"data\": {\"summary\": \"BFD session is currently up with specific parameters and statistics.\", \"status\": {\"name\": \"bfd_session\", \"value\": \"up\", \"confidence\": \"high\", \"confidence_reason\": \"The state is explicitly stated as UP.\"}, \"metrics\": {\"desired_tx_interval_seconds\": 2, \"required_rx_interval_seconds\": 2, \"required_echo_rx_interval_ms\": 1, \"multiplier\": 5, \"async_detection_time_seconds\": 10, \"echo_detection_time_ms\": 2500, \"local_negotiated_async_tx_interval_seconds\": 2, \"remote_negotiated_async_tx_interval_seconds\": 2, \"desired_echo_tx_interval_ms\": 500, \"local_negotiated_echo_tx_interval_ms\": 500, \"last_packet_transmitted_ms\": 1740, \"last_packet_received_ms\": 1687}, \"tables\": {\"parameters\": [{\"Client\": \"bgp-default\", \"Desired Interval\": \"500 ms\", \"Desired Multiplier\": 5, \"Adjusted Interval\": \"2 s\", \"Adjusted Multiplier\": 5}], \"timers\": [{\"Local negotiated async tx interval\": \"2 s\", \"Remote negotiated async tx interval\": \"2 s\", \"Desired echo tx interval\": \"500 ms\", \"Local negotiated echo tx interval\": \"500 ms\", \"Echo detection time\": \"2500 ms\", \"Async detection time\": \"10 s\"}], \"local_stats\": [{\"Tx Intervals\": {\"Number of intervals\": 19, \"Min\": \"2 ms\", \"Max\": \"1959 ms\", \"Avg\": \"1627 ms\", \"Last packet transmitted\": \"1740 ms ago\"}, \"Rx Intervals\": {\"Number of intervals\": 18, \"Min\": \"2 ms\", \"Max\": \"1956 ms\", \"Avg\": \"1720 ms\", \"Last packet received\": \"1687 ms ago\"}, \"Echo Tx Intervals\": {\"Number of intervals\": 0, \"Min\": \"0 s\", \"Max\": \"0 s\", \"Avg\": \"0 s\", \"Last packet transmitted\": \"148 ms ago\"}, \"Echo Rx Intervals\": {\"Number of intervals\": 0, \"Min\": \"0 s\", \"Max\": \"0 s\", \"Avg\": \"0 s\", \"Last packet received\": \"147 ms ago\"}, \"Latency of echo packets\": {\"Number of packets\": 0, \"Min\": \"0 ms\", \"Max\": \"0 ms\", \"Avg\": \"0 ms\"}}]}, \"evidence\": [\"L5: State: UP for 0d:0h:0m:32s, number of times UP: 1\", \"L6: Session type: PR/V4/SH\", \"L7: My discr: 2148532226, your discr: 2148532226, state UP\", \"L8: Local negotiated async tx interval: 2 s\", \"L9: Remote negotiated async tx interval: 2 s\"]}, \"llm_data\": {\"summary\": \"BFD session is currently up with specific parameters and statistics.\", \"status\": {\"name\": \"bfd_session\", \"value\": \"up\", \"confidence\": \"high\", \"confidence_reason\": \"The state is explicitly stated as UP.\"}, \"metrics\": {\"desired_tx_interval_seconds\": 2, \"required_rx_interval_seconds\": 2, \"required_echo_rx_interval_ms\": 1, \"multiplier\": 5, \"async_detection_time_seconds\": 10, \"echo_detection_time_ms\": 2500, \"local_negotiated_async_tx_interval_seconds\": 2, \"remote_negotiated_async_tx_interval_seconds\": 2, \"desired_echo_tx_interval_ms\": 500, \"local_negotiated_echo_tx_interval_ms\": 500, \"last_packet_transmitted_ms\": 1740, \"last_packet_received_ms\": 1687}, \"tables\": {\"parameters\": [{\"Client\": \"bgp-default\", \"Desired Interval\": \"500 ms\", \"Desired Multiplier\": 5, \"Adjusted Interval\": \"2 s\", \"Adjusted Multiplier\": 5}], \"timers\": [{\"Local negotiated async tx interval\": \"2 s\", \"Remote negotiated async tx interval\": \"2 s\", \"Desired echo tx interval\": \"500 ms\", \"Local negotiated echo tx interval\": \"500 ms\", \"Echo detection time\": \"2500 ms\", \"Async detection time\": \"10 s\"}], \"local_stats\": [{\"Tx Intervals\": {\"Number of intervals\": 19, \"Min\": \"2 ms\", \"Max\": \"1959 ms\", \"Avg\": \"1627 ms\", \"Last packet transmitted\": \"1740 ms ago\"}, \"Rx Intervals\": {\"Number of intervals\": 18, \"Min\": \"2 ms\", \"Max\": \"1956 ms\", \"Avg\": \"1720 ms\", \"Last packet received\": \"1687 ms ago\"}, \"Echo Tx Intervals\": {\"Number of intervals\": 0, \"Min\": \"0 s\", \"Max\": \"0 s\", \"Avg\": \"0 s\", \"Last packet transmitted\": \"148 ms ago\"}, \"Echo Rx Intervals\": {\"Number of intervals\": 0, \"Min\": \"0 s\", \"Max\": \"0 s\", \"Avg\": \"0 s\", \"Last packet received\": \"147 ms ago\"}, \"Latency of echo packets\": {\"Number of packets\": 0, \"Min\": \"0 ms\", \"Max\": \"0 ms\", \"Avg\": \"0 ms\"}}]}, \"evidence\": [\"L5: State: UP for 0d:0h:0m:32s, number of times UP: 1\", \"L6: Session type: PR/V4/SH\", \"L7: My discr: 2148532226, your discr: 2148532226, state UP\", \"L8: Local negotiated async tx interval: 2 s\", \"L9: Remote negotiated async tx interval: 2 s\"]}}, \"show_ip_bgp_neighbor_brief\": {\"command\": \"show ip bgp neighbor brief\", \"topic\": \"bgp\", \"platform_hint\": \"cisco-ios-xr\", \"source\": \"llm\", \"parsed_path\": \"\", \"evidence_text_path\": \"/app/doo/configs.5/taREMOVED18.bfd/agent7/3-analyze/0-md-index/B-ASBR-1/001__show_ip_bgp_neighbor_brief.txt\", \"parser_ok\": false, \"data\": {\"summary\": \"The BGP neighbor summary shows four established neighbors.\", \"status\": {\"name\": \"bgp_neighbors\", \"value\": \"established\", \"confidence\": \"high\", \"confidence_reason\": \"All neighbors are in the Established state.\"}, \"metrics\": {\"bgp_neighbors_total\": 4, \"bgp_neighbors_by_state\": {\"established\": 4}}, \"tables\": {\"bgp_neighbors\": [{\"Neighbor\": \"2.0.101.10\", \"Spk\": 0, \"AS\": 200, \"Description\": \"\", \"Up/Down\": \"01:56:52\", \"NBRState\": \"Established\"}, {\"Neighbor\": \"100.64.121.1\", \"Spk\": 0, \"AS\": 100, \"Description\": \"\", \"Up/Down\": \"04:04:52\", \"NBRState\": \"Established\"}, {\"Neighbor\": \"100.64.231.2\", \"Spk\": 0, \"AS\": 300, \"Description\": \"\", \"Up/Down\": \"00:00:34\", \"NBRState\": \"Established\"}, {\"Neighbor\": \"2620:fc7:64:231::2\", \"Spk\": 0, \"AS\": 300, \"Description\": \"\", \"Up/Down\": \"00:00:46\", \"NBRState\": \"Established\"}]}, \"evidence\": [\"L2: 2.0.101.10        0   200                                      01:56:52 Established\", \"L3: 100.64.121.1      0   100                                      04:04:52 Established\", \"L4: 100.64.231.2      0   300                                      00:00:34 Established\", \"L5: 2620:fc7:64:231::2\\n                  0   300                                      00:00:46 Established\"]}, \"llm_data\": {\"summary\": \"The BGP neighbor summary shows four established neighbors.\", \"status\": {\"name\": \"bgp_neighbors\", \"value\": \"established\", \"confidence\": \"high\", \"confidence_reason\": \"All neighbors are in the Established state.\"}, \"metrics\": {\"bgp_neighbors_total\": 4, \"bgp_neighbors_by_state\": {\"established\": 4}}, \"tables\": {\"bgp_neighbors\": [{\"Neighbor\": \"2.0.101.10\", \"Spk\": 0, \"AS\": 200, \"Description\": \"\", \"Up/Down\": \"01:56:52\", \"NBRState\": \"Established\"}, {\"Neighbor\": \"100.64.121.1\", \"Spk\": 0, \"AS\": 100, \"Description\": \"\", \"Up/Down\": \"04:04:52\", \"NBRState\": \"Established\"}, {\"Neighbor\": \"100.64.231.2\", \"Spk\": 0, \"AS\": 300, \"Description\": \"\", \"Up/Down\": \"00:00:34\", \"NBRState\": \"Established\"}, {\"Neighbor\": \"2620:fc7:64:231::2\", \"Spk\": 0, \"AS\": 300, \"Description\": \"\", \"Up/Down\": \"00:00:46\", \"NBRState\": \"Established\"}]}, \"evidence\": [\"L2: 2.0.101.10        0   200                                      01:56:52 Established\", \"L3: 100.64.121.1      0   100                                      04:04:52 Established\", \"L4: 100.64.231.2      0   300                                      00:00:34 Established\", \"L5: 2620:fc7:64:231::2\\n                  0   300                                      00:00:46 Established\"]}}}, \"notes\": {\"gap_fill_permitted\": true, \"gap_fill_used\": true, \"providers\": [\"mcp(if-wired)\", \"genie\", \"llm\"]}}"
+}
+```

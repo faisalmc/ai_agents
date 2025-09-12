@@ -1,0 +1,250 @@
+{
+  "C-ASBR-1": {
+    "hostname": "C-ASBR-1",
+    "platform_hint": "unknown",
+    "signals": [
+      "srv6",
+      "isis",
+      "locators",
+      "enabled",
+      "configured"
+    ],
+    "confidence": 0.8,
+    "evidence": {
+      "srv6": [
+        "SRv6 Enabled: Yes",
+        "SID Base Block: fc00:100::/24"
+      ],
+      "isis": [
+        "IS-IS CORE SRv6 Locators"
+      ],
+      "locators": [
+        "Name                  ID       Algo  Prefix                    Status"
+      ],
+      "enabled": [
+        "SRv6 Enabled: Yes"
+      ],
+      "configured": [
+        "Configured: 2620:fc7:3:101::7"
+      ]
+    },
+    "notes": "The signals were derived from the SRv6 and IS-IS related commands in the logs, indicating the presence of segment routing and locator configurations."
+  },
+  "C-ASBR-2": {
+    "hostname": "C-ASBR-2",
+    "platform_hint": "unknown",
+    "signals": [
+      "srv6",
+      "isis",
+      "locators",
+      "enabled",
+      "configured"
+    ],
+    "confidence": 0.8,
+    "evidence": {
+      "srv6": [
+        "SRv6 Enabled: Yes",
+        "SID Base Block: fc00:100::/24"
+      ],
+      "isis": [
+        "IS-IS CORE SRv6 Locators"
+      ],
+      "locators": [
+        "Name                  ID       Algo  Prefix                    Status"
+      ],
+      "enabled": [
+        "SRv6 Enabled: Yes"
+      ],
+      "configured": [
+        "Configured: 2620:fc7:3:101::8"
+      ]
+    },
+    "notes": "The signals were derived from the SRv6 and IS-IS related commands and their outputs indicating the configuration and operational status."
+  },
+  "C-P-1": {
+    "hostname": "C-P-1",
+    "platform_hint": "unknown",
+    "signals": [
+      "srv6",
+      "isis",
+      "locators",
+      "enabled",
+      "configured"
+    ],
+    "confidence": 0.8,
+    "evidence": {
+      "srv6": [
+        "SRv6 Enabled: Yes",
+        "SID Base Block: fc00:100::/24"
+      ],
+      "isis": [
+        "IS-IS CORE SRv6 Locators"
+      ],
+      "locators": [
+        "Name                  ID       Algo  Prefix                    Status"
+      ],
+      "enabled": [
+        "SRv6 Enabled: Yes"
+      ],
+      "configured": [
+        "Configured: 2620:fc7:3:101::5"
+      ]
+    },
+    "notes": "The signals were derived from the SRv6 and IS-IS related commands and their outputs, indicating the presence of segment routing and locator configurations."
+  },
+  "C-P-2": {
+    "hostname": "C-P-2",
+    "platform_hint": "unknown",
+    "signals": [
+      "srv6",
+      "isis",
+      "locators",
+      "enabled",
+      "configured"
+    ],
+    "confidence": 0.8,
+    "evidence": {
+      "srv6": [
+        "SRv6 Enabled: Yes",
+        "SID Base Block: fc00:100::/24"
+      ],
+      "isis": [
+        "IS-IS CORE SRv6 Locators"
+      ],
+      "locators": [
+        "Name                  ID       Algo  Prefix                    Status"
+      ],
+      "enabled": [
+        "SRv6 Enabled: Yes"
+      ],
+      "configured": [
+        "Configured: 2620:fc7:3:101::6"
+      ]
+    },
+    "notes": "The signals were derived from the SRv6 and IS-IS related commands in the logs, indicating the presence of segment routing and locator configurations."
+  },
+  "C-PE-1": {
+    "hostname": "C-PE-1",
+    "platform_hint": "unknown",
+    "signals": [
+      "srv6",
+      "isis",
+      "locators",
+      "enabled",
+      "configured"
+    ],
+    "confidence": 0.8,
+    "evidence": {
+      "srv6": [
+        "SRv6 Enabled: Yes",
+        "SID Base Block: fc00:100::/24"
+      ],
+      "isis": [
+        "IS-IS CORE SRv6 Locators"
+      ],
+      "locators": [
+        "Name                  ID       Algo  Prefix                    Status"
+      ],
+      "enabled": [
+        "SRv6 Enabled: Yes"
+      ],
+      "configured": [
+        "Configured: 2620:fc7:3:101::1"
+      ]
+    },
+    "notes": "The signals were derived from the presence of SRv6 and IS-IS commands in the logs, indicating segment routing capabilities. The platform hint is uncertain due to lack of specific identifiers."
+  },
+  "C-PE-2": {
+    "hostname": "C-PE-2",
+    "platform_hint": "unknown",
+    "signals": [
+      "srv6",
+      "isis",
+      "locators",
+      "enabled",
+      "configured"
+    ],
+    "confidence": 0.8,
+    "evidence": {
+      "srv6": [
+        "SRv6 Enabled: Yes",
+        "SID Base Block: fc00:100::/24"
+      ],
+      "isis": [
+        "IS-IS CORE SRv6 Locators"
+      ],
+      "locators": [
+        "Name                  ID       Algo  Prefix                    Status"
+      ],
+      "enabled": [
+        "SRv6 Enabled: Yes"
+      ],
+      "configured": [
+        "Configured: 2620:fc7:3:101::2"
+      ]
+    },
+    "notes": "The signals were derived from the SRv6 and IS-IS related commands in the logs, indicating the presence of segment routing and locator configurations."
+  },
+  "C-PE-3": {
+    "hostname": "C-PE-3",
+    "platform_hint": "unknown",
+    "signals": [
+      "srv6",
+      "isis",
+      "locators",
+      "enabled",
+      "configured"
+    ],
+    "confidence": 0.8,
+    "evidence": {
+      "srv6": [
+        "SRv6 Enabled: Yes",
+        "SID Base Block: fc00:100::/24"
+      ],
+      "isis": [
+        "IS-IS CORE SRv6 Locators"
+      ],
+      "locators": [
+        "Name                  ID       Algo  Prefix                    Status"
+      ],
+      "enabled": [
+        "SRv6 Enabled: Yes"
+      ],
+      "configured": [
+        "Configured: 2620:fc7:3:101::3"
+      ]
+    },
+    "notes": "The log contains multiple references to SRv6 and IS-IS segment routing, indicating the device is configured for these protocols. The confidence is high due to the presence of specific parameters and operational details."
+  },
+  "C-PE-4": {
+    "hostname": "C-PE-4",
+    "platform_hint": "unknown",
+    "signals": [
+      "srv6",
+      "isis",
+      "locators",
+      "enabled",
+      "configured"
+    ],
+    "confidence": 0.8,
+    "evidence": {
+      "srv6": [
+        "SRv6 Enabled: Yes",
+        "SID Base Block: fc00:100::/24"
+      ],
+      "isis": [
+        "IS-IS CORE SRv6 Locators"
+      ],
+      "locators": [
+        "Name                  ID       Algo  Prefix                    Status"
+      ],
+      "enabled": [
+        "SRv6 Enabled: Yes"
+      ],
+      "configured": [
+        "Configured: 2620:fc7:3:101::4"
+      ]
+    },
+    "notes": "The signals were derived from the SRv6 and IS-IS related commands in the logs, indicating the presence of segment routing and IS-IS locators."
+  }
+}

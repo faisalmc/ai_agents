@@ -1,0 +1,28 @@
+
+Tue Aug 26 16:46:23.881 UTC
+Local  Outgoing    Prefix             Outgoing     Next Hop        Bytes       
+Label  Label       or ID              Interface                    Switched    
+------ ----------- ------------------ ------------ --------------- ------------
+16001  16001       SR Pfx (idx 1)     Gi0/0/0/0    1.0.22.2        0           
+16002  16002       SR Pfx (idx 2)     Gi0/0/0/0    1.0.22.2        0           
+16003  Aggregate   SR Pfx (idx 3)     default                      0           
+16004  16004       SR Pfx (idx 4)                  1.0.101.6       0           
+16006  Pop         SR Pfx (idx 6)     Gi0/0/0/0    1.0.22.2        180339      
+16007  16007       SR Pfx (idx 7)                  1.0.101.6       0           
+16008  16008       SR Pfx (idx 8)                  1.0.101.6       0           
+16009  16009       SR Pfx (idx 9)                  1.0.101.6       0           
+16010  16010       SR Pfx (idx 10)                 1.0.101.6       0           
+17001  17001       SR Pfx (idx 1001)  Gi0/0/0/0    fe80::5054:ff:fe99:b62d   \
+                                                                   0           
+17002  17002       SR Pfx (idx 1002)  Gi0/0/0/0    fe80::5054:ff:fe99:b62d   \
+                                                                   0           
+17003  Aggregate   SR Pfx (idx 1003)  default                      0           
+17006  Pop         SR Pfx (idx 1006)  Gi0/0/0/0    fe80::5054:ff:fe99:b62d   \
+                                                                   0           
+24000  Pop         SR Adj (idx 1)     Gi0/0/0/0    1.0.22.2        0           
+24001  Pop         SR Adj (idx 3)     Gi0/0/0/0    1.0.22.2        0           
+24002  Pop         SR Adj (idx 1)     Gi0/0/0/0    fe80::5054:ff:fe99:b62d   \
+                                                                   0           
+24003  Pop         SR Adj (idx 3)     Gi0/0/0/0    fe80::5054:ff:fe99:b62d   \
+                                                                   0           
+RP/0/RP0/CPU0:A-PE-3#

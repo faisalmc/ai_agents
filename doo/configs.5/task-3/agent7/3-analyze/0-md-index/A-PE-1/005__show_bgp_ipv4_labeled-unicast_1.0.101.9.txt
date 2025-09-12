@@ -1,0 +1,20 @@
+
+Tue Aug 26 16:46:20.159 UTC
+BGP routing table entry for 1.0.101.9/32
+Versions:
+  Process           bRIB/RIB  SendTblVer
+  Speaker                  30           30
+    Local Label: 16009
+Last Modified: Aug 25 12:14:01.246 for 1d04h
+Paths: (1 available, best #1)
+  Not advertised to any peer
+  Path #1: Received by speaker 0
+  Not advertised to any peer
+  Local
+    1.0.101.6 (metric 300) from 1.0.101.6 (1.0.101.9)
+      Received Label 16009 
+      Origin IGP, metric 0, localpref 100, valid, internal, best, group-best, labeled-unicast
+      Received Path ID 0, Local Path ID 1, version 30
+      Originator: 1.0.101.9, Cluster list: 1.0.101.6, 1.0.101.11, 1.0.101.7
+      Label-Index: 9
+RP/0/RP0/CPU0:A-PE-1#

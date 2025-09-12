@@ -1,0 +1,18 @@
+{
+  "config_dir": "configs.5",
+  "task_dir": "taREMOVED3",
+  "hosts": 11,
+  "facts_written": [
+    "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/2-facts/A-ASBR-1.json",
+    "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/2-facts/A-ASBR-2.json",
+    "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/2-facts/A-P-1.json",
+    "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/2-facts/A-P-2.json",
+    "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/2-facts/A-P-3.json",
+    "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/2-facts/A-P-4.json",
+    "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/2-facts/A-PE-1.json",
+    "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/2-facts/A-PE-2.json",
+    "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/2-facts/A-PE-3.json",
+    "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/2-facts/A-PE-4.json",
+    "/app/doo/configs.5/taREMOVED3/agent7/3-analyze/2-facts/A-RR-1.json"
+  ]
+}
