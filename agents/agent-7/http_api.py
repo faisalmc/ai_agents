@@ -3,12 +3,12 @@ from __future__ import annotations
 import os
 import json
 import glob
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-app = FastAPI(title="Agent-7 HTTP API", version="1.0.0")
+app = FastAPI(title="Agent-7 HTTP API", version="1.1.0")
 
 REPO_ROOT = os.getenv("REPO_ROOT", "/app/doo")
 
@@ -76,6 +76,51 @@ def _read_json(path: str) -> Any:
     except Exception:
         return None
 
+def _host_from_blocks_path(blocks_json_path: str) -> Optional[str]:
+    """
+    md_splitter writes 0-md-index/<HOST>__blocks.json
+    """
+    base = os.path.basename(blocks_json_path)
+    if "__blocks.json" in base:
+        return base.split("__blocks.json")[0]
+    return None
+
+def _prune_md_index_for_hosts(md_index_dir: str, allowed_hosts: Set[str]) -> None:
+    """
+    SAFE pruning of generated index ONLY (never touch capture logs).
+    Keeps only md-index artifacts for allowed hosts so downstream parsers
+    process a subset. All files under 3-analyze/0-md-index are regenerated
+    by md_splitter on the next run, so pruning here is safe.
+
+    Structure we expect:
+      0-md-index/<HOST>__blocks.json
+      0-md-index/00x__<HOST>__<cmd>.txt
+    """
+    if not allowed_hosts:
+        return
+
+    # Remove per-host blocks.json not in allowed set
+    for p in glob.glob(os.path.join(md_index_dir, "*__blocks.json")):
+        h = _host_from_blocks_path(p)
+        if h and h not in allowed_hosts:
+            try:
+                os.remove(p)
+            except Exception:
+                pass
+
+    # Remove per-command block text files for non-allowed hosts
+    for p in glob.glob(os.path.join(md_index_dir, "*.txt")):
+        base = os.path.basename(p)
+        # Files commonly look like 00x__<HOST>__<cmd>.txt
+        parts = base.split("__", 2)  # ["00x", "<HOST>", "<rest>.txt"]
+        if len(parts) >= 2:
+            host = parts[1]
+            if host not in allowed_hosts:
+                try:
+                    os.remove(p)
+                except Exception:
+                    pass
+
 # -------- models --------
 class PlanRequest(BaseModel):
     config_dir: str
@@ -106,13 +151,15 @@ class CaptureResponse(BaseModel):
 class AnalyzeRequest(BaseModel):
     config_dir: str
     task_dir: str
+    # NEW: optional per-host filtering for a faster, scoped analyze
+    hosts: Optional[List[str]] = None
 
 class AnalyzeResponse(BaseModel):
     facts_summary_path: str
     hosts_processed: int
     per_device_json_path: str
     cross_device_json_path: str
-    slack_overview_path: Optional[str] = None  # NEW
+    slack_overview_path: Optional[str] = None  # best-effort
 
 # -------- endpoints --------
 @app.get("/health")
@@ -255,11 +302,12 @@ def analyze(req: AnalyzeRequest):
 
     executes →
       1) md_splitter.split_task(config_dir, task_dir)  → agent7/3-analyze/0-md-index/...
-      2) genie_parser.run(config_dir, task_dir)        → agent7/3-analyze/1-parsed/...
-      3) facts_builder.build_all(config_dir, task_dir) → agent7/3-analyze/2-facts/*.json
-      4) per_device_llm.run(config_dir, task_dir)      → agent7/3-analyze/per_device.json
-      5) cross_device_llm.run(config_dir, task_dir)    → agent7/3-analyze/cross_device.json
-      6) slack_summarizer.summarize(...)               → agent7/3-analyze/slack_overview.json  (best-effort)
+      2) (optional) prune md-index to selected hosts
+      3) genie_parser.run(config_dir, task_dir)        → agent7/3-analyze/1-parsed/...
+      4) facts_builder.build_all(config_dir, task_dir) → agent7/3-analyze/2-facts/*.json
+      5) per_device_llm.run(config_dir, task_dir)      → agent7/3-analyze/per_device.json
+      6) cross_device_llm.run(config_dir, task_dir)    → agent7/3-analyze/cross_device.json  (skipped if single host)
+      7) slack_summarizer.summarize(...)               → agent7/3-analyze/slack_overview.json  (best-effort)
     emits →
       • agent7/3-analyze/facts_summary.json
     """
@@ -269,13 +317,32 @@ def analyze(req: AnalyzeRequest):
     import per_device_llm
     import cross_device_llm
 
+    # Always split to regenerate md-index (safe)
     md_splitter.split_task(req.config_dir, req.task_dir)
+
+    # If a host filter is provided, prune ONLY the generated md-index to those hosts.
+    # This avoids touching capture logs and speeds up downstream parsing.
+    if req.hosts:
+        root = _agent7_root(req.config_dir, req.task_dir)
+        dirs = _ensure_dirs(root)
+        allowed = {h.strip() for h in req.hosts if h and isinstance(h, str)}
+        _prune_md_index_for_hosts(dirs["md_index_dir"], allowed_hosts=allowed)
+
+    # Parse facts from the (possibly pruned) md-index
     genie_parser.run(req.config_dir, req.task_dir)
     facts_summary = facts_builder.build_all(req.config_dir, req.task_dir)
 
-    # Run LLM analyses (per-device, then cross-device)
+    # Run LLM analyses (per-device, then cross-device if applicable)
     per_dev = per_device_llm.run(req.config_dir, req.task_dir) or {}
-    cross   = cross_device_llm.run(req.config_dir, req.task_dir) or {}
+
+    run_cross = True
+    if req.hosts and len(req.hosts) == 1:
+        # Fast path for triage: skip cross-device when only one host is requested
+        run_cross = False
+
+    cross = {}
+    if run_cross:
+        cross = cross_device_llm.run(req.config_dir, req.task_dir) or {}
 
     root = _agent7_root(req.config_dir, req.task_dir)
     dirs = _ensure_dirs(root)

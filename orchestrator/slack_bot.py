@@ -1,5 +1,6 @@
 # orchestrator/slack_bot.py
 import os, json, importlib.util
+from typing import Dict, Optional
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 
@@ -9,21 +10,36 @@ from agent4_client import run_operational_check   # Agent-4 (/operational-check)
 from agent5_client import run_operational_analyze # Agent-5 (/operational-analyze)
 from agent7_client import run_plan as run_a7_plan, run_capture as run_a7_capture, run_analyze as run_a7_analyze
 
+# --- New: minimal HTTP helper (no external client file) ---
+import requests
+
+def _post_json(url: str, payload: dict, timeout: int = 30) -> dict:
+    try:
+        r = requests.post(url, json=payload, timeout=timeout)
+        r.raise_for_status()
+        return r.json() if r.headers.get("content-type","").startswith("application/json") else {"ok": True}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
 SLACK_APP_TOKEN = os.environ["SLACK_APP_TOKEN"]
 BOT_NAME = os.getenv("ORCHESTRATOR_BOT_NAME", "agent")
 
 # Where the repo data lives (to locate artifacts to attach)
 REPO_ROOT = os.getenv("REPO_ROOT", "/app/doo")
-# Where to import Agent-7 Slack UI renderer from (file path).
 
-# # Default now points inside REPO_ROOT so it exists in the Orchestrator container.
-# A7_SLACK_UI_PATH = os.getenv("A7_SLACK_UI_PATH", os.path.join(REPO_ROOT, "agents", "agent-7", "slack_ui.py"))
+# Agent-7 Slack UI helper (file path)
 A7_SLACK_UI_PATH = os.getenv("A7_SLACK_UI_PATH", "/app/agents/agent-7/slack_ui.py")
+
+# New: Agent-8 base URL
+AGENT_8_URL = os.getenv("AGENT_8_URL", "http://agent-8:8008")
 
 app = App(token=SLACK_BOT_TOKEN)
 
-print(f"[DEBUG] slack_bot.py: A7_SLACK_UI_PATH={A7_SLACK_UI_PATH} REPO_ROOT={REPO_ROOT}", flush=True)
+print(f"[DEBUG] slack_bot.py: A7_SLACK_UI_PATH={A7_SLACK_UI_PATH} REPO_ROOT={REPO_ROOT} AGENT_8_URL={AGENT_8_URL}", flush=True)
+
+# --- Simple per-thread memory of the last picked triage host ---
+_SELECTED_TRIAGE_HOST: Dict[str, str] = {}  # key = thread_ts, value = host
 
 # -------- small helpers --------
 def _help_text() -> str:
@@ -79,22 +95,6 @@ def _post_a7_llm_overview_if_available(say, channel: str, thread_ts: str, slack_
     print("[DEBUG] LLM overview: no usable content", flush=True)
     return False
 
-# commented out to add DEBUGs
-# def _load_a7_slack_ui():
-#     """
-#     Dynamically import agents/agent-7/slack_ui.py even though the parent
-#     folder has a hyphen and isn't a valid package name.
-#     """
-#     try:
-#         spec = importlib.util.spec_from_file_location("a7_slack_ui", A7_SLACK_UI_PATH)
-#         if spec and spec.loader:
-#             mod = importlib.util.module_from_spec(spec)
-#             spec.loader.exec_module(mod)  # type: ignore
-#             return mod
-#     except Exception:
-#         pass
-#     return None
-
 def _load_a7_slack_ui():
     """
     Dynamically import agents/agent-7/slack_ui.py even though the parent
@@ -115,39 +115,6 @@ def _load_a7_slack_ui():
     except Exception as e:
         print(f"[DEBUG] _load_a7_slack_ui: import failed: {e}", flush=True)
     return None
-
-# commented out to add DEBUGs
-# def _post_a7_overview(say, channel: str, thread_ts: str, config_dir: str, task_id: str,
-#                       per_device_path: str | None, cross_device_path: str | None):
-#     """
-#     Fallback renderer if run_a7_analyze didn't return prebuilt blocks.
-#     """
-#     ui = _load_a7_slack_ui()
-#     per_device = _read_json(per_device_path) if per_device_path else None
-#     cross = _read_json(cross_device_path) if cross_device_path else None
-
-#     # Fallback: if import failed or malformed data, just print a compact text.
-#     if not ui or not hasattr(ui, "build_overview_blocks"):
-#         status = (cross or {}).get("task_status", "unknown") if isinstance(cross, dict) else "unknown"
-#         hosts = len(per_device or []) if isinstance(per_device, list) else 0
-#         say(
-#             channel=channel,
-#             thread_ts=thread_ts,
-#             text=(f"*Agent-7 Overview*\n"
-#                   f"Config `{config_dir}` Task `{task_id}` • Status: *{status}* • Per-device rows: {hosts}\n"
-#                   f"(Install slack_ui or set A7_SLACK_UI_PATH for rich blocks)")
-#         )
-#         return
-
-#     blocks = ui.build_overview_blocks(
-#         config_dir=config_dir,
-#         task_dir=task_id,
-#         cross=cross if isinstance(cross, dict) else {},
-#         per_device=per_device if isinstance(per_device, list) else [],
-#         include_attach_button=True,
-#     )
-#     # Slack requires a fallback text string even with blocks
-#     say(channel=channel, thread_ts=thread_ts, text="Agent-7 Analysis", blocks=blocks)
 
 def _post_a7_overview(say, channel: str, thread_ts: str, config_dir: str, task_id: str,
                       per_device_path: str | None, cross_device_path: str | None):
@@ -187,6 +154,8 @@ def _post_a7_overview(say, channel: str, thread_ts: str, config_dir: str, task_i
             cross=cross if isinstance(cross, dict) else {},
             per_device=per_device if isinstance(per_device, list) else [],
             include_attach_button=True,
+            include_triage_button=True,      # <<< NEW: show Start triage + host picker
+            triage_picker_limit=8,           # <<< NEW: optional cap
         )
         # last-resort sanity
         if not isinstance(blocks, list) or not blocks:
@@ -213,7 +182,6 @@ def _post_a7_overview(say, channel: str, thread_ts: str, config_dir: str, task_i
             text=(f"*Agent-7 Overview*\n"
                   f"Config: `{config_dir}` • Task: `{task_id}` • Status: *{status}* • Per-device rows: {hosts}\n"
                   f"(UI build failed: {e})"))
-        
 
 # -------- Slack events --------
 @app.event("app_mention")
@@ -324,38 +292,6 @@ def handle_app_mention(body, say, logger):
             text=f"✅ Capture summary: `{res.get('summary_path','')}`")
         return
 
-    # # Agent-7 ANALYZE
-    # if cmd == "a7-analyze" and len(parts) == 3:
-    #     args = parts[2].split()
-    #     if len(args) != 2:
-    #         say(channel=channel, thread_ts=thread_ts,
-    #             text=f"Usage: `@{BOT_NAME} a7-analyze <config_dir> <task_id>`")
-    #         return
-    #     config_dir, task_id = args
-    #     say(channel=channel, thread_ts=thread_ts,
-    #         text=f"🔎 Routing to Agent-7 /analyze: `{config_dir}` `{task_id}` …")
-    #     res = run_a7_analyze(config_dir, task_id)
-
-    #     # Post concise pointer (kept for continuity)
-    #     say(channel=channel, thread_ts=thread_ts,
-    #         text=(f"✅ Analyze summary: `{res.get('facts_summary_path','')}` • hosts={res.get('hosts_processed',0)}"))
-
-    #     # Prefer prebuilt blocks from agent7_client; fallback to local renderer if missing.
-    #     blocks = res.get("blocks")
-    #     if isinstance(blocks, list) and blocks:
-    #         say(channel=channel, thread_ts=thread_ts, text="Agent-7 Analysis", blocks=blocks)
-    #     else:
-    #         _post_a7_overview(
-    #             say=say,
-    #             channel=channel,
-    #             thread_ts=thread_ts,
-    #             config_dir=config_dir,
-    #             task_id=task_id,
-    #             per_device_path=res.get("per_device_json_path"),
-    #             cross_device_path=res.get("cross_device_json_path"),
-    #         )
-    #     return
-
     # Agent-7 ANALYZE
     if cmd == "a7-analyze" and len(parts) == 3:
         args = parts[2].split()
@@ -381,7 +317,7 @@ def handle_app_mention(body, say, logger):
             ):
                 return
 
-            # 2) Fallback to local renderer → per_device + cross (with attach button)
+            # 2) Fallback to local renderer → per_device + cross (with attach button + triage)
             _post_a7_overview(
                 say=say,
                 channel=channel,
@@ -424,14 +360,12 @@ def handle_app_mention(body, say, logger):
                 text=(f"🔎 Analyze ok → facts_summary=`{ana_res.get('facts_summary_path','')}` "
                       f"• hosts={ana_res.get('hosts_processed',0)}"))
 
-            # Prefer prebuilt blocks; fallback if missing
-            # Prefer LLM-made slack_overview.json (blocks/text) if present
+            # Prefer prebuilt blocks; fallback if missing (with triage controls)
             if _post_a7_llm_overview_if_available(
                 say, channel, thread_ts, ana_res.get("slack_overview_path")
             ):
                 pass
             else:
-                # Fallback to local renderer
                 _post_a7_overview(
                     say=say,
                     channel=channel,
@@ -441,19 +375,6 @@ def handle_app_mention(body, say, logger):
                     per_device_path=ana_res.get("per_device_json_path"),
                     cross_device_path=ana_res.get("cross_device_json_path"),
                 )
-            # blocks = ana_res.get("blocks")
-            # if isinstance(blocks, list) and blocks:
-            #     say(channel=channel, thread_ts=thread_ts, text="Agent-7 Analysis", blocks=blocks)
-            # else:
-            #     _post_a7_overview(
-            #         say=say,
-            #         channel=channel,
-            #         thread_ts=thread_ts,
-            #         config_dir=config_dir,
-            #         task_id=task_id,
-            #         per_device_path=ana_res.get("per_device_json_path"),
-            #         cross_device_path=ana_res.get("cross_device_json_path"),
-            #     )
 
             say(channel=channel, thread_ts=thread_ts, text=f"✅ Agent-7 run COMPLETE.")
         except Exception as e:
@@ -564,7 +485,94 @@ def handle_attach_artifacts(ack, body, client, say, logger):
     if not uploaded_any:
         say(channel=channel, thread_ts=thread_ts,
             text=f"⚠️ Artifacts not found to attach for `{config_dir}` `{task_id}`.")
-                
+
+# -------- NEW: Triage host picker (static_select) --------
+@app.action("agent8_host_select")
+def handle_triage_host_select(ack, body, say, logger):
+    """
+    Remember the last selected host for this thread.
+    """
+    ack()
+    try:
+        # Find thread_ts
+        thread_ts = body.get("container", {}).get("message_ts") or body.get("message", {}).get("ts")
+        action = (body.get("actions") or [{}])[0]
+        sel = action.get("selected_option") or {}
+        host = sel.get("value") or sel.get("text", {}).get("text")
+        if thread_ts and host and host != "__none__":
+            _SELECTED_TRIAGE_HOST[thread_ts] = host
+            print(f"[DEBUG] triage host selected: thread={thread_ts} host={host}", flush=True)
+    except Exception as e:
+        logger.error(f"agent8_host_select error: {e}")
+
+# -------- NEW: Start triage button --------
+@app.action("agent8_start_triage")
+def handle_start_triage(ack, body, say, logger):
+    """
+    Start Agent-8 triage for the chosen host (or default).
+    - Reads config_dir/task_dir from button value JSON.
+    - Uses the last selected host in this thread, or falls back to the first option shown.
+    - Calls Agent-8 /triage/start and posts a compact confirmation.
+    """
+    ack()
+
+    # Channel/thread
+    channel = body.get("container", {}).get("channel_id") or body.get("channel", {}).get("id")
+    thread_ts = body.get("container", {}).get("message_ts") or body.get("message", {}).get("ts")
+
+    # Parse button payload (value)
+    payload = {}
+    try:
+        val = (body.get("actions") or [{}])[0].get("value") or "{}"
+        payload = json.loads(val)
+    except Exception:
+        pass
+
+    config_dir = payload.get("config_dir", "")
+    task_id    = payload.get("task_dir", "")
+
+    # Determine host: prefer remembered selection in this thread
+    host: Optional[str] = _SELECTED_TRIAGE_HOST.get(thread_ts)
+
+    # Fallback: derive first option from the message blocks (if present)
+    if not host:
+        try:
+            blocks = (body.get("message") or {}).get("blocks") or []
+            for blk in blocks:
+                if blk.get("type") == "actions":
+                    for el in blk.get("elements", []):
+                        if el.get("type") == "static_select" and el.get("action_id") == "agent8_host_select":
+                            opts = el.get("options") or []
+                            if opts:
+                                host = opts[0].get("value") or opts[0].get("text", {}).get("text")
+                                break
+                if host:
+                    break
+        except Exception:
+            pass
+
+    if not host or host == "__none__":
+        say(channel=channel, thread_ts=thread_ts, text="⚠️ No host selected for triage.")
+        return
+
+    # Call Agent-8
+    start_payload = {
+        "config_dir": config_dir,
+        "task_dir": task_id,
+        "hosts": [host],
+        "thread_ts": thread_ts,
+        "channel": channel
+    }
+    url = f"{AGENT_8_URL}/triage/start"
+    res = _post_json(url, start_payload, timeout=60)
+
+    if res.get("ok", True):
+        say(channel=channel, thread_ts=thread_ts,
+            text=f"🧭 Starting triage on `{host}` (config `{config_dir}`, task `{task_id}`)…")
+    else:
+        say(channel=channel, thread_ts=thread_ts,
+            text=f"❌ Triage start failed for `{host}`: `{res.get('error','unknown')}`")
+
 # Optional: silence generic "message" events
 @app.event("message")
 def ignore_plain_messages(body, logger):

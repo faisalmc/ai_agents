@@ -12,6 +12,10 @@ HOSTS_MULTI_ID         = ("hosts_block", "hosts_select")
 INCLUDE_SHOW_RUN_ID    = ("opts_block", "include_show_run")
 ATTACH_BTN_ACTION_ID   = "agent7_attach_artifacts"  # orchestrator listens for this
 
+# NEW: Agent-8 triage action ids
+TRIAGE_BTN_ACTION_ID   = "agent8_start_triage"
+TRIAGE_HOST_PICKER_ID  = ("triage_block", "agent8_host_select")
+
 # Per-host command picks are dynamic: block_id = f"cmds_{host}", action_id = "trusted_cmds"/"unval_cmds"
 
 def _per_device_status_counts(rows):
@@ -41,6 +45,30 @@ def _per_device_status_counts(rows: List[Dict[str, Any]]) -> Dict[str, int]:
         counts[s] += 1
     return counts
 
+# NEW: pick top degraded/error hosts for triage picker
+def _top_degraded_hosts(per_device: List[Dict[str, Any]], limit: int = 8) -> List[str]:
+    """
+    Order: error → degraded → unknown → healthy (cap by limit).
+    Fallback to per_device order if statuses missing.
+    """
+    buckets = {"error": [], "degraded": [], "unknown": [], "healthy": []}
+    for row in per_device or []:
+        host = (row.get("hostname") or "").strip()
+        if not host:
+            continue
+        status = str(row.get("status", "unknown")).lower()
+        if status not in buckets:
+            status = "unknown"
+        buckets[status].append(host)
+    ordered = buckets["error"] + buckets["degraded"] + buckets["unknown"] + buckets["healthy"]
+    out: List[str] = []
+    for h in ordered:
+        if h not in out:
+            out.append(h)
+        if len(out) >= max(1, limit):
+            break
+    return out
+
 # ------------------------------------------------------------------------------------
 # Overview message blocks (feed to your orchestrator to post)
 # ------------------------------------------------------------------------------------
@@ -51,6 +79,9 @@ def build_overview_blocks(
     per_device: List[Dict[str, Any]] | None,
     *,
     include_attach_button: bool = False,
+    # NEW keyword-only args (backward compatible):
+    include_triage_button: bool = False,
+    triage_picker_limit: int = 8,
 ) -> List[Dict[str, Any]]:
     cross = cross or {}
     per_device = per_device or []
@@ -172,22 +203,57 @@ def build_overview_blocks(
         if probes:
             blocks.append(_mk_section("*Optional probes:*\n" + "\n".join([f"• `{c}`" for c in probes[:6]])))
 
-    # (6) Optional action
+    # (6) Optional actions
+    action_elems: List[Dict[str, Any]] = []
+
     if include_attach_button:
         payload = json.dumps({"config_dir": config_dir, "task_dir": task_dir})
+        action_elems.append({
+            "type": "button",
+            "text": {"type": "plain_text", "text": "Attach artifacts"},
+            "action_id": ATTACH_BTN_ACTION_ID,
+            "value": payload
+        })
+
+    # NEW: Start triage + host picker (only if requested)
+    if include_triage_button:
+        # Host options: top degraded/error first (cap by triage_picker_limit)
+        host_candidates = _top_degraded_hosts(per_device, limit=triage_picker_limit)
+        host_options = [{
+            "text": {"type": "plain_text", "text": h, "emoji": True},
+            "value": h
+        } for h in host_candidates] or [{
+            "text": {"type": "plain_text", "text": "— no hosts —", "emoji": True},
+            "value": "__none__"
+        }]
+
+        # Button payload carries config/task; selected host will be read via select action
+        triage_payload = json.dumps({"config_dir": config_dir, "task_dir": task_dir})
+
+        action_elems.extend([
+            {
+                "type": "button",
+                "text": {"type": "plain_text", "text": "Start triage"},
+                "action_id": TRIAGE_BTN_ACTION_ID,
+                "value": triage_payload
+            },
+            {
+                "type": "static_select",
+                "placeholder": {"type": "plain_text", "text": "Pick host"},
+                "action_id": TRIAGE_HOST_PICKER_ID[1],
+                "options": host_options
+            }
+        ])
+
+    if action_elems:
         blocks.append({
             "type": "actions",
-            "elements": [
-                {
-                    "type": "button",
-                    "text": {"type": "plain_text", "text": "Attach artifacts"},
-                    "action_id": ATTACH_BTN_ACTION_ID,
-                    "value": payload
-                }
-            ]
+            "block_id": TRIAGE_HOST_PICKER_ID[0],
+            "elements": action_elems
         })
 
     return blocks
+
 # ------------------------------------------------------------------------------------
 # “Run selected” modal (multi-host, per-host trusted/unvalidated command picks)
 # ------------------------------------------------------------------------------------
