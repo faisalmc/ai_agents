@@ -1,16 +1,35 @@
 services:
   agent_1:
-    build: .
+    build:
+      context: ./agents/agent-1
+      dockerfile: Dockerfile
     container_name: agent-1
     env_file: .env
-    working_dir: /app
+    # working_dir: /app/agents/agent-1
+    environment:
+      PYTHONPATH: /app:/app/shared
+      PYTHONDONTWRITEBYTECODE: "1"
     volumes:
-      - ./agents:/app/agents
-      - ./shared:/app/shared
-      - ./doo:/app/doo
+      - ./:/app               # dev-friendly whole-repo mount
     ports: ["8000:8000"]
-    command: python agents/agent-router/agent_router.py
+    command: python agents/agent-1/agent_router.py #uvicorn agent_router:app --host 0.0.0.0 --port 8000
     restart: unless-stopped
+
+  # agent_2:
+  #   build:
+  #     context: ./agents/agent-2
+  #     dockerfile: Dockerfile
+  #   env_file: .env
+  #   working_dir: /app/agents/agent-2
+  #   environment:
+  #     # Match Agent-7 style so shared utils import cleanly
+  #     PYTHONPATH: /app:/app/shared
+  #   volumes:
+  #     - ./:/app               # dev-friendly whole-repo mount
+  #   ports: ["8001:8001"]   # FastAPI /deploy endpoint
+  #   command: uvicorn agent2_api:app --host 0.0.0.0 --port 8001
+  #   # command: python agents/agent-router/llm_clients/agent_b_push_configs.py
+  #   restart: unless-stopped
 
   agent_2:
     build: .
@@ -120,6 +139,35 @@ services:
 
 
   # # working agent_5 under agent-router/llm_clients
+
+  # agent_1:
+  #   build: .
+  #   container_name: agent-1
+  #   env_file: .env
+  #   working_dir: /app
+  #   volumes:
+  #     - ./agents:/app/agents
+  #     - ./shared:/app/shared
+  #     - ./doo:/app/doo
+  #   ports: ["8000:8000"]
+  #   command: python agents/agent-router/agent_router.py
+  #   restart: unless-stopped
+
+  # agent_2:
+  #   build: .
+  #   container_name: agent-2
+  #   env_file: .env
+  #   working_dir: /app
+  #   volumes:
+  #     - ./agents:/app/agents
+  #     - ./shared:/app/shared
+  #     - ./doo:/app/doo
+  #   ports: ["8001:8001"]   # FastAPI /deploy endpoint
+  #   command: uvicorn agents.agent-router.llm_clients.agent2_api:app --host 0.0.0.0 --port 8001
+  #   # command: python agents/agent-router/llm_clients/agent_b_push_configs.py
+  #   restart: unless-stopped
+
+
   # agent_4:
   #   build: .
   #   container_name: agent-4
