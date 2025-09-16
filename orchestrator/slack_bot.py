@@ -1,5 +1,5 @@
 # orchestrator/slack_bot.py
-import os, json, importlib.util
+import os, json, importlib.util, re
 from typing import Dict, Optional
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
@@ -8,7 +8,15 @@ from agent2_client import run_deploy              # Agent-2 (/deploy)
 from agent3_client import run_analyze_host        # Agent-3 (/analyze-host)
 from agent4_client import run_operational_check   # Agent-4 (/operational-check)
 from agent5_client import run_operational_analyze # Agent-5 (/operational-analyze)
-from agent7_client import run_plan as run_a7_plan, run_capture as run_a7_capture, run_analyze as run_a7_analyze
+from agent7_client import (
+    run_plan as run_a7_plan,
+    run_capture as run_a7_capture,
+    run_analyze as run_a7_analyze,
+    run_analyze_host as run_a7_analyze_host,   # NEW
+)
+
+# --- New: minimal HTTP helper (no external client file) ---
+import requests
 
 # --- New: minimal HTTP helper (no external client file) ---
 import requests
@@ -17,10 +25,14 @@ def _post_json(url: str, payload: dict, timeout: int = 30) -> dict:
     try:
         r = requests.post(url, json=payload, timeout=timeout)
         r.raise_for_status()
-        return r.json() if r.headers.get("content-type","").startswith("application/json") else {"ok": True}
+        # Always try to parse JSON regardless of headers; fall back to text.
+        try:
+            return r.json()
+        except Exception:
+            return {"ok": True, "raw": r.text}
     except Exception as e:
         return {"ok": False, "error": str(e)}
-
+    
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
 SLACK_APP_TOKEN = os.environ["SLACK_APP_TOKEN"]
 BOT_NAME = os.getenv("ORCHESTRATOR_BOT_NAME", "agent")
@@ -40,6 +52,15 @@ print(f"[DEBUG] slack_bot.py: A7_SLACK_UI_PATH={A7_SLACK_UI_PATH} REPO_ROOT={REP
 
 # --- Simple per-thread memory of the last picked triage host ---
 _SELECTED_TRIAGE_HOST: Dict[str, str] = {}  # key = thread_ts, value = host
+
+# NEW: remember Agent-8 session per thread
+_A8_SESSION_BY_THREAD: Dict[str, str] = {}  # key = thread_ts, value = session_id
+
+_A8_SESSION_LAST_BY_CHANNEL: Dict[str, str] = {}  # NEW: fallback when thread mapping isn’t available
+# Remember config/task/host for this thread so we can watch for output and auto-analyze
+_A8_CTX_BY_THREAD: Dict[str, Dict[str, str]] = {}
+
+_A8_CTX_BY_SESSION: Dict[str, Dict[str, str]] = {}   # key = session_id, value = {config_dir, task_id, host, thread_ts, channel}
 
 # -------- small helpers --------
 def _help_text() -> str:
@@ -62,6 +83,81 @@ def _read_json(path: str):
             return json.load(f)
     except Exception:
         return None
+
+def _read_text(path: str) -> str:
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return f.read()
+    except Exception:
+        return ""
+
+def _post_show_snippets(say, channel: str, thread_ts: str, md_path: str, commands: list[str], host: str):
+    """
+    Reads the host's show_log markdown and posts only the sections matching the commands.
+    If no sections match (e.g., error file), post a concise raw/error preview instead.
+    Sections in show logs are formatted as '## <command>' ... fenced block.
+    """
+    import re
+    body = _read_text(md_path)
+    if not body:
+        try:
+            say(channel=channel, thread_ts=thread_ts,
+                text=f"⚠️ Could not read captured log for `{host}` at `{md_path}`.")
+        except Exception:
+            pass
+        return
+
+    # Try to collect matching command snippets
+    snippets = []
+    for cmd in commands or []:
+        # Match header '## <cmd>' then the FIRST fenced code block under it.
+        pat = rf"(?mis)^##\s*{re.escape(cmd)}\s*\n+```(.*?)```"
+        m = re.search(pat, body)
+        if not m:
+            # Fallback: header up to next header (no fenced block)
+            pat2 = rf"(?mis)^##\s*{re.escape(cmd)}\s*\n(.*?)(?=^##\s|\Z)"
+            m = re.search(pat2, body)
+        if m:
+            raw = m.group(1).strip() if m.groups() else m.group(0).strip()
+            preview = raw if len(raw) <= 1800 else (raw[:1750] + "\n…(truncated)…")
+            snippets.append((cmd, preview))
+
+    if snippets:
+        parts = [f"*📄 Output — {host}*"]
+        for cmd, txt in snippets:
+            parts.append(f"*{cmd}*\n```{txt}```")
+        try:
+            say(channel=channel, thread_ts=thread_ts, text="\n\n".join(parts))
+        except Exception:
+            pass
+        return
+
+    # ---- No matching sections: provide a useful fallback (error/first block/raw) ----
+    # 1) If it's an error file, post the first fenced block as the device error details.
+    if body.lstrip().startswith("# ERROR for"):
+        m_err = re.search(r"(?s)```(.*?)```", body)
+        err_txt = (m_err.group(1).strip() if m_err else body.strip())
+        preview = err_txt if len(err_txt) <= 1800 else (err_txt[:1750] + "\n…(truncated)…")
+        try:
+            say(channel=channel, thread_ts=thread_ts,
+                text=f"⚠️ *Capture error on `{host}`* — posting device error details:\n```{preview}```")
+        except Exception:
+            pass
+        return
+
+    # 2) Otherwise, post the first fenced block; if none, a short raw preview of the file.
+    m_block = re.search(r"(?s)```(.*?)```", body)
+    if m_block:
+        blob = m_block.group(1).strip()
+    else:
+        blob = body.strip()
+    preview = blob if len(blob) <= 1800 else (blob[:1750] + "\n…(truncated)…")
+    try:
+        say(channel=channel, thread_ts=thread_ts,
+            text=f"*📄 Output — {host}*\n```{preview}```")
+    except Exception:
+        pass
+
 
 def _post_a7_llm_overview_if_available(say, channel: str, thread_ts: str, slack_overview_path: str | None) -> bool:
     """
@@ -116,6 +212,81 @@ def _load_a7_slack_ui():
         print(f"[DEBUG] _load_a7_slack_ui: import failed: {e}", flush=True)
     return None
 
+# def _post_a7_overview(say, channel: str, thread_ts: str, config_dir: str, task_id: str,
+#                       per_device_path: str | None, cross_device_path: str | None):
+#     print(f"[DEBUG] _post_a7_overview: per_device_path={per_device_path} cross_device_path={cross_device_path}", flush=True)
+
+#     ui = _load_a7_slack_ui()
+
+#     per_device = _read_json(per_device_path) if per_device_path else None
+#     cross = _read_json(cross_device_path) if cross_device_path else None
+
+#     ## ------------------------
+#     ##  agent-8 fix attempt
+#     is_scoped = per_device_path and 'scoped' in per_device_path
+
+#     if is_scoped:
+#         print("[DEBUG] Scoped mode detected — suppressing cross-device analysis")
+#         cross = {}  # Clear stale cross-device summary if present
+#     # ------------------------##
+#     try:
+#         pd_count = len(per_device) if isinstance(per_device, list) else "n/a"
+#         cross_keys = list(cross.keys()) if isinstance(cross, dict) else []
+#         print(f"[DEBUG] _post_a7_overview: per_device_rows={pd_count} cross_keys={cross_keys}", flush=True)
+#     except Exception:
+#         print("[DEBUG] _post_a7_overview: debug-counts failed", flush=True)
+
+#     # Fallback if UI missing
+#     if not ui:
+#         status = (cross or {}).get("task_status", "unknown") if isinstance(cross, dict) else "unknown"
+#         hosts = len(per_device or []) if isinstance(per_device, list) else 0
+#         say(
+#             channel=channel,
+#             thread_ts=thread_ts,
+#             text=(f"*Agent-7 Overview*\n"
+#                   f"Config: `{config_dir}` • Task: `{task_id}` • Status: *{status}*\n"
+#                   f"(Install slack_ui.py or set A7_SLACK_UI_PATH to enable rich blocks)")
+#         )
+#         print("[DEBUG] _post_a7_overview: posted fallback (no UI)", flush=True)
+#         return
+
+#     # Try to build blocks
+#     try:
+#         blocks = ui.build_overview_blocks(
+#             config_dir=config_dir,
+#             task_dir=task_id,
+#             cross=cross if isinstance(cross, dict) else {},
+#             per_device=per_device if isinstance(per_device, list) else [],
+#             include_attach_button=True,
+#             include_triage_button=True,      # <<< NEW: show Start triage + host picker
+#             triage_picker_limit=8,           # <<< NEW: optional cap
+#         )
+#         # last-resort sanity
+#         if not isinstance(blocks, list) or not blocks:
+#             raise RuntimeError("build_overview_blocks returned empty/invalid")
+#         # Post with blocks
+#         try:
+#             say(channel=channel, thread_ts=thread_ts, text="Agent-7 Analysis", blocks=blocks)
+#             print("[DEBUG] _post_a7_overview: posted rich blocks ok", flush=True)
+#         except Exception as e:
+#             print(f"[DEBUG] _post_a7_overview: say(blocks=...) failed: {e}", flush=True)
+#             # safe degrade to text
+#             status = (cross or {}).get("task_status", "unknown") if isinstance(cross, dict) else "unknown"
+#             hosts = len(per_device or []) if isinstance(per_device, list) else 0
+#             say(channel=channel, thread_ts=thread_ts,
+#                 text=(f"*Agent-7 Overview*\n"
+#                       f"Config: `{config_dir}` • Task: `{task_id}` • Status: *{status}* • Per-device rows: {hosts}\n"
+#                       f"(blocks post failed)"))
+#     except Exception as e:
+#         print(f"[DEBUG] _post_a7_overview: build blocks failed: {e}", flush=True)
+#         # One more fallback
+#         status = (cross or {}).get("task_status", "unknown") if isinstance(cross, dict) else "unknown"
+#         hosts = len(per_device or []) if isinstance(per_device, list) else 0
+#         say(channel=channel, thread_ts=thread_ts,
+#             text=(f"*Agent-7 Overview*\n"
+#                   f"Config: `{config_dir}` • Task: `{task_id}` • Status: *{status}* • Per-device rows: {hosts}\n"
+#                   f"(UI build failed: {e})"))
+
 def _post_a7_overview(say, channel: str, thread_ts: str, config_dir: str, task_id: str,
                       per_device_path: str | None, cross_device_path: str | None):
     print(f"[DEBUG] _post_a7_overview: per_device_path={per_device_path} cross_device_path={cross_device_path}", flush=True)
@@ -124,6 +295,17 @@ def _post_a7_overview(say, channel: str, thread_ts: str, config_dir: str, task_i
 
     per_device = _read_json(per_device_path) if per_device_path else None
     cross = _read_json(cross_device_path) if cross_device_path else None
+
+    ## ------------------------
+    ##  agent-8 fix attempt + debug
+    is_scoped = per_device_path and 'scoped' in per_device_path
+
+    if is_scoped:
+        print("[DEBUG] Scoped mode detected — suppressing cross-device analysis", flush=True)
+        cross = {}  # Clear stale cross-device summary if present
+    else:
+        print("[DEBUG] Not scoped mode — full analysis includes cross-device summary", flush=True)
+    # ------------------------##
 
     try:
         pd_count = len(per_device) if isinstance(per_device, list) else "n/a"
@@ -160,6 +342,10 @@ def _post_a7_overview(say, channel: str, thread_ts: str, config_dir: str, task_i
         # last-resort sanity
         if not isinstance(blocks, list) or not blocks:
             raise RuntimeError("build_overview_blocks returned empty/invalid")
+
+        print(f"[DEBUG] Slack blocks built: count={len(blocks)}", flush=True)
+        print(f"[DEBUG] Posting to Slack (scoped={is_scoped})...", flush=True)
+
         # Post with blocks
         try:
             say(channel=channel, thread_ts=thread_ts, text="Agent-7 Analysis", blocks=blocks)
@@ -182,14 +368,14 @@ def _post_a7_overview(say, channel: str, thread_ts: str, config_dir: str, task_i
             text=(f"*Agent-7 Overview*\n"
                   f"Config: `{config_dir}` • Task: `{task_id}` • Status: *{status}* • Per-device rows: {hosts}\n"
                   f"(UI build failed: {e})"))
-
+        
 # -------- Slack events --------
 @app.event("app_mention")
 def handle_app_mention(body, say, logger):
     ev = body.get("event", {})
     text = (ev.get("text") or "").strip()
     channel = ev.get("channel")
-    thread_ts = ev.get("ts")
+    thread_ts = ev.get("thread_ts") or ev.get("ts")
     user = ev.get("user")
 
     parts = text.split(maxsplit=2)
@@ -210,6 +396,286 @@ def handle_app_mention(body, say, logger):
         cmd = "a7-run"
 
     print(f"[DEBUG] app_mention parsed cmd={cmd} raw_text={text}", flush=True)
+
+    # --- NEW: Agent-8 free-text triage ---
+    if cmd == "triage" and len(parts) == 3:
+        user_text = parts[2]
+
+        # Prefer the most-recent channel session; if the thread has an older one, override it.
+        sess_thread = _A8_SESSION_BY_THREAD.get(thread_ts) if thread_ts else None
+        sess_chan   = _A8_SESSION_LAST_BY_CHANNEL.get(channel) if channel else None
+
+        session_id = None
+        if sess_chan:  # newest for the channel wins
+            session_id = sess_chan
+            if thread_ts:
+                _A8_SESSION_BY_THREAD[thread_ts] = sess_chan  # refresh thread mapping to latest
+        elif sess_thread:
+            session_id = sess_thread
+        else:
+            say(channel=channel, thread_ts=thread_ts,
+                text="⚠️ No active triage session here. Click *Start triage* first.")
+            return
+
+        print(f"[DEBUG] triage using session={session_id} "
+            f"sess_thread={sess_thread} sess_chan={sess_chan} "
+            f"thread={thread_ts} channel={channel}", flush=True)
+
+        # # Prefer session bound to this thread; otherwise fall back to channel's last session
+        # session_id = None
+        # if thread_ts and thread_ts in _A8_SESSION_BY_THREAD:
+        #     session_id = _A8_SESSION_BY_THREAD[thread_ts]
+        # elif channel and channel in _A8_SESSION_LAST_BY_CHANNEL:
+        #     session_id = _A8_SESSION_LAST_BY_CHANNEL[channel]
+        #     if thread_ts:
+        #         _A8_SESSION_BY_THREAD[thread_ts] = session_id
+        # else:
+        #     say(channel=channel, thread_ts=thread_ts,
+        #         text="⚠️ No active triage session here. Click *Start triage* first.")
+        #     return
+
+        print(f"[DEBUG] triage using session={session_id} thread={thread_ts} channel={channel}", flush=True)
+
+        # ---- Mini parser: support "run ..." to dispatch immediately ----
+        low = user_text.strip().lower()
+        if low.startswith("run ") or low.startswith("run:"):
+            # Commands can be separated by | ; or newline. If none, treat remainder as a single command.
+            remainder = user_text.split(" ", 1)[1] if " " in user_text else ""
+            raw_cmds = [remainder] if ("|" not in remainder and ";" not in remainder and "\n" not in remainder) \
+                       else [c for c in re.split(r"[|;\n]", remainder) if c.strip()]
+            commands = [c.strip() for c in raw_cmds if c.strip()]
+            if not commands:
+                say(channel=channel, thread_ts=thread_ts,
+                    text="⚠️ No commands to run. Example: `@{BOT_NAME} triage run show ip bgp summary | show bgp neighbors`".format(BOT_NAME=BOT_NAME))
+                return
+
+            # Use the context that belongs to THIS session (original thread/channel/host)
+            ctx = _A8_CTX_BY_SESSION.get(session_id, {})
+            post_thread  = ctx.get("thread_ts") or thread_ts
+            post_channel = ctx.get("channel")  or channel
+            cfg = ctx.get("config_dir", "")
+            tsk = ctx.get("task_id", "")
+            host_hint = ctx.get("host") or _SELECTED_TRIAGE_HOST.get(post_thread or "", "selected host")
+
+            run_url = f"{AGENT_8_URL}/triage/run_shows"
+            payload = {"session_id": session_id, "host": host_hint, "commands": commands}
+            resp = _post_json(run_url, payload, timeout=90)
+
+            if not resp or resp.get("ok") is False:
+                say(channel=post_channel, thread_ts=post_thread,
+                    text=f"❌ Dispatch failed: `{resp.get('error','unknown')}`")
+                return
+
+            ini_path = resp.get("plan_ini_path", "(unknown)")
+            dispatched = resp.get("dispatched", False)
+
+            # Confirm dispatch + tell user we’ll bring results back and analyze
+            say(
+                channel=post_channel,
+                thread_ts=post_thread,
+                text=(
+                    f"📤 Dispatched {len(commands)} command(s) on `{host_hint}`.\n"
+                    f"• Plan INI: `{ini_path}`\n"
+                    f"• Capture: *{'queued with Agent-4' if dispatched else 'saved (not dispatched)'}*\n\n"
+                    "I’ll post the command output here when it lands, then analyze it."
+                )
+            )
+
+            # Watch for new logs for this host, then auto-run analysis and post findings
+            def _watch_and_analyze():
+                import os, time
+
+                # Prefer the session context (always points to the original triage thread)
+                c = _A8_CTX_BY_SESSION.get(session_id, {})
+                cfg2 = c.get("config_dir", cfg)
+                tsk2 = c.get("task_id", tsk)
+                hst  = c.get("host", host_hint)
+                pthr = c.get("thread_ts", post_thread) or post_thread
+                pchan = c.get("channel", post_channel) or post_channel
+
+                if not (cfg2 and tsk2 and hst):
+                    return
+
+                base = os.path.join(REPO_ROOT, cfg2, tsk2, "agent7")
+
+                # Canonical paths only (Agent-8 dispatches to agent7/2-capture/)
+                show_md    = os.path.join(base, "2-capture", "show_logs",    f"{hst}.md")
+                grading_md = os.path.join(base, "2-capture", "grading_logs", f"{hst}.md")
+
+                # Poll up to 2 minutes for fresh output
+                deadline = time.time() + 120
+                while time.time() < deadline:
+                    if (os.path.isfile(grading_md) and os.path.getsize(grading_md) > 0) or \
+                    (os.path.isfile(show_md)    and os.path.getsize(show_md)    > 0):
+                        break
+                    time.sleep(3)
+                else:
+                    try:
+                        say(channel=pchan, thread_ts=pthr,
+                            text=f"⌛ Still waiting for output from `{hst}`…")
+                    except Exception:
+                        pass
+                    return
+
+                # 1) Post ONLY the sections for the commands we just ran (or a clean error/raw preview)
+                try:
+                    existing = grading_md if (os.path.isfile(grading_md) and os.path.getsize(grading_md) > 0) else show_md
+                    _post_show_snippets(say, pchan, pthr, existing, commands, hst)
+                except Exception:
+                    pass
+
+                # 2) Let user know we’re analyzing just this host
+                try:
+                    say(channel=pchan, thread_ts=pthr,
+                        text=f"🔎 Analyzing `{hst}` (scoped)…")
+                except Exception:
+                    pass
+
+                # 3) Host-scoped analyze: ask Agent-7 to process only this host
+                try:
+                    res = run_a7_analyze_host(cfg2, tsk2, hst)
+                    # Prefer server-built slack_overview.json (host-scoped); otherwise fallback to overview renderer
+                    if not _post_a7_llm_overview_if_available(
+                        say, pchan, pthr, res.get("slack_overview_path")
+                    ):
+                        _post_a7_overview(
+                            say=say,
+                            channel=pchan,
+                            thread_ts=pthr,
+                            config_dir=cfg2,
+                            task_id=tsk2,
+                            per_device_path=res.get("per_device_json_path"),
+                            cross_device_path=res.get("cross_device_json_path"),
+                        )
+                except Exception as e:
+                    try:
+                        say(channel=pchan, thread_ts=pthr,
+                            text=f"⚠️ Analysis step hit an error: `{e}`")
+                    except Exception:
+                        pass
+                    
+            # def _watch_and_analyze():
+            #     import os, time
+
+            #     # Prefer the session context (always points to the original triage thread)
+            #     c = _A8_CTX_BY_SESSION.get(session_id, {})
+            #     cfg2 = c.get("config_dir", cfg)
+            #     tsk2 = c.get("task_id", tsk)
+            #     hst  = c.get("host", host_hint)
+            #     pthr = c.get("thread_ts", post_thread) or post_thread
+            #     pchan = c.get("channel", post_channel) or post_channel
+
+            #     if not (cfg2 and tsk2 and hst):
+            #         return
+
+            #     base = os.path.join(REPO_ROOT, cfg2, tsk2, "agent7")
+
+            #     # Prefer canonical v2 path, but accept legacy flat path as fallback
+            #     candidate_show = [
+            #         os.path.join(base, "2-capture", "show_logs", f"{hst}.md"),
+            #         os.path.join(base, "show_logs", f"{hst}.md"),
+            #     ]
+            #     candidate_grade = [
+            #         os.path.join(base, "2-capture", "grading_logs", f"{hst}.md"),
+            #         os.path.join(base, "grading_logs", f"{hst}.md"),
+            #     ]
+
+            #     show_md    = next((p for p in candidate_show  if os.path.isfile(p)), candidate_show[0])
+            #     grading_md = next((p for p in candidate_grade if os.path.isfile(p)), candidate_grade[0])
+
+            #     # Poll up to 2 minutes for fresh output
+            #     deadline = time.time() + 120
+            #     while time.time() < deadline:
+            #         if (os.path.isfile(grading_md) and os.path.getsize(grading_md) > 0) or \
+            #            (os.path.isfile(show_md)    and os.path.getsize(show_md)    > 0):
+            #             break
+            #         time.sleep(3)
+            #     else:
+            #         try:
+            #             say(channel=pchan, thread_ts=pthr,
+            #                 text=f"⌛ Still waiting for output from `{hst}`…")
+            #         except Exception:
+            #             pass
+            #         return
+
+            #     # 1) Post ONLY the sections for the commands we just ran
+            #     try:
+            #         existing = grading_md if os.path.isfile(grading_md) else show_md
+            #         _post_show_snippets(say, pchan, pthr, existing, commands, hst)
+            #     except Exception:
+            #         pass
+
+            #     # 2) Let user know we’re analyzing just this host
+            #     try:
+            #         say(channel=pchan, thread_ts=pthr,
+            #             text=f"🔎 Analyzing `{hst}` (scoped)…")
+            #     except Exception:
+            #         pass
+
+            #     # 3) Host-scoped analyze (Option-C): ask Agent-7 to process only this host
+            #     try:
+            #         res = run_a7_analyze_host(cfg2, tsk2, hst)
+            #         # Prefer server-built slack_overview.json (host-scoped); otherwise fallback to overview renderer
+            #         if not _post_a7_llm_overview_if_available(
+            #             say, pchan, pthr, res.get("slack_overview_path")
+            #         ):
+            #             _post_a7_overview(
+            #                 say=say,
+            #                 channel=pchan,
+            #                 thread_ts=pthr,
+            #                 config_dir=cfg2,
+            #                 task_id=tsk2,
+            #                 per_device_path=res.get("per_device_json_path"),
+            #                 cross_device_path=res.get("cross_device_json_path"),
+            #             )
+            #     except Exception as e:
+            #         try:
+            #             say(channel=pchan, thread_ts=pthr,
+            #                 text=f"⚠️ Analysis step hit an error: `{e}`")
+            #         except Exception:
+            #             pass
+            
+
+            import threading
+            threading.Thread(target=_watch_and_analyze, daemon=True).start()
+            return
+
+            
+        # ---- Default path: send free-text to Agent-8 /triage/ingest ----
+        ingest_url = f"{AGENT_8_URL}/triage/ingest"
+        payload = {"session_id": session_id, "user_text": user_text}
+        resp = _post_json(ingest_url, payload, timeout=60)
+
+        if not resp or resp.get("ok") is False:
+            err = (resp or {}).get("error", "unknown")
+            hint = ""
+            # If Agent-8 was restarted, in-memory sessions are gone; 404 is expected.
+            if "404" in str(err) or "Not Found" in str(err):
+                hint = " (session likely expired—click *Start triage* again in this thread)"
+            say(channel=channel, thread_ts=thread_ts,
+                text=f"❌ Triage ingest failed: `{err}`{hint}")
+            return
+
+        guidance = (resp.get("guidance_text") or "").strip()
+        cmds = resp.get("proposed_commands") or []
+        lines = []
+        for c in cmds[:12]:
+            cmd_txt = c.get("command", "")
+            src = c.get("source", "llm")
+            trust = c.get("trust_hint", "low")
+            if cmd_txt:
+                lines.append(f"• `{cmd_txt}`  _(src: {src}, trust: {trust})_")
+
+        hint = f"_To run now:_ `@{BOT_NAME} triage run <cmd1> | <cmd2>`"
+        out = []
+        if guidance:
+            out.append(f"*Guidance:*\n{guidance}")
+        if lines:
+            out.append("*Proposed commands:*\n" + "\n".join(lines))
+        out.append(hint)
+
+        say(channel=channel, thread_ts=thread_ts, text="\n\n".join(out))
+        return
 
     if cmd == "help":
         say(channel=channel, thread_ts=thread_ts, text=_help_text())
@@ -416,6 +882,7 @@ def handle_app_mention(body, say, logger):
 
     say(channel=channel, thread_ts=thread_ts, text=f"Unknown command `{cmd}`.\n{_help_text()}")
 
+
 # -------- Button handler: “Attach artifacts” --------
 @app.action("agent7_attach_artifacts")
 def handle_attach_artifacts(ack, body, client, say, logger):
@@ -512,7 +979,7 @@ def handle_start_triage(ack, body, say, logger):
     Start Agent-8 triage for the chosen host (or default).
     - Reads config_dir/task_dir from button value JSON.
     - Uses the last selected host in this thread, or falls back to the first option shown.
-    - Calls Agent-8 /triage/start and posts a compact confirmation.
+    - Calls Agent-8 /triage/start and stores session_id for this thread.
     """
     ack()
 
@@ -559,20 +1026,58 @@ def handle_start_triage(ack, body, say, logger):
     start_payload = {
         "config_dir": config_dir,
         "task_dir": task_id,
-        "hosts": [host],
+        "host": host,              # send single host (Agent-8 also accepts hosts[0])
         "thread_ts": thread_ts,
         "channel": channel
     }
     url = f"{AGENT_8_URL}/triage/start"
     res = _post_json(url, start_payload, timeout=60)
+    print(f"[DEBUG] agent8_start_triage response: {res}", flush=True)
 
-    if res.get("ok", True):
+    sess = res.get("session_id")
+    if not isinstance(sess, str) or not sess:
+        # Do NOT proceed silently; tell the user and stop.
+        err = res.get("error") or res.get("raw") or "no session_id returned"
         say(channel=channel, thread_ts=thread_ts,
-            text=f"🧭 Starting triage on `{host}` (config `{config_dir}`, task `{task_id}`)…")
-    else:
-        say(channel=channel, thread_ts=thread_ts,
-            text=f"❌ Triage start failed for `{host}`: `{res.get('error','unknown')}`")
+            text=f"❌ Triage start failed for `{host}`: `{err}`")
+        return
 
+    # Remember session for this Slack thread (primary) and channel (fallback)
+    if thread_ts:
+        _A8_SESSION_BY_THREAD[thread_ts] = sess
+    if channel:
+        _A8_SESSION_LAST_BY_CHANNEL[channel] = sess  # NEW: channel-level fallback
+    print(f"[DEBUG] stored triage session: thread={thread_ts} channel={channel} session={sess}", flush=True)
+
+    # Save context for this thread (used by run-path watcher)
+    if thread_ts:
+        _A8_CTX_BY_THREAD[thread_ts] = {
+            "config_dir": config_dir,
+            "task_id": task_id,
+            "host": host,
+        }
+    # ALSO save by session (so later messages can find the original thread/channel)
+    _A8_CTX_BY_SESSION[sess] = {
+        "config_dir": config_dir,
+        "task_id": task_id,
+        "host": host,
+        "thread_ts": thread_ts or "",
+        "channel": channel or "",
+    }
+
+    # Save context for this thread (used by run-path watcher)
+    if thread_ts:
+        _A8_CTX_BY_THREAD[thread_ts] = {
+            "config_dir": config_dir,
+            "task_id": task_id,
+            "host": host,
+        }
+
+    say(channel=channel, thread_ts=thread_ts,
+        text=f"🧭 Starting triage on `{host}` (config `{config_dir}`, task `{task_id}`)…\n"
+             f"_Tip:_ reply in this thread: `@{BOT_NAME} triage <what you’re seeing>`")
+    
+    
 # Optional: silence generic "message" events
 @app.event("message")
 def ignore_plain_messages(body, logger):

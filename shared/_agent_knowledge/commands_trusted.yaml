@@ -1,0 +1,24 @@
+# shared/_agent_knowledge/commands_trusted.yaml
+# Keep tiny; only well-known, read-only shows that are broadly safe.
+# Structure: vendor -> platform -> tech -> [commands]
+cisco:
+  iosxe:
+    bgp:
+      - "show ip bgp summary"
+      - "show bgp neighbors"
+    interfaces:
+      - "show interfaces"
+      - "show ip interface brief"
+    routing:
+      - "show ip route summary"
+  nxos:
+    bgp:
+      - "show bgp process vrf all"
+      - "show bgp neighbors"
+    interfaces:
+      - "show interface brief"
+      - "show interface status"
+    routing:
+      - "show ip route summary vrf all"
+# Add other vendors/platforms incrementally via promotion (not by hand).
+

@@ -16,6 +16,11 @@ ATTACH_BTN_ACTION_ID   = "agent7_attach_artifacts"  # orchestrator listens for t
 TRIAGE_BTN_ACTION_ID   = "agent8_start_triage"
 TRIAGE_HOST_PICKER_ID  = ("triage_block", "agent8_host_select")
 
+# DEBUG 
+print(" ---------------------")
+print("[slack_ui] slack_ui.py file LOADED ✅")
+print(" ---------------------")
+
 # Per-host command picks are dynamic: block_id = f"cmds_{host}", action_id = "trusted_cmds"/"unval_cmds"
 
 def _per_device_status_counts(rows):
@@ -69,6 +74,8 @@ def _top_degraded_hosts(per_device: List[Dict[str, Any]], limit: int = 8) -> Lis
             break
     return out
 
+# DEBUG before build_overview_block
+# print(f"[slack_ui] build_overview_blocks: per_device={len(per_device)} host(s), cross keys={list(cross.keys())}")
 # ------------------------------------------------------------------------------------
 # Overview message blocks (feed to your orchestrator to post)
 # ------------------------------------------------------------------------------------
@@ -86,6 +93,13 @@ def build_overview_blocks(
     cross = cross or {}
     per_device = per_device or []
 
+    print(" ---------------------")
+    print("[slack_ui] build_overview_blocks() INVOKED ✅")
+    print(f"[slack_ui] Received task_id: {task_dir}")
+    print(f"[slack_ui] Number of per_device entries: {len(per_device)}")
+    print(f"[slack_ui] cross_device keys: {list(cross.keys())}")
+
+
     blocks: List[Dict[str, Any]] = []
     blocks.append(_mk_section(f"*Agent-7 Overview*\n*Config:* `{config_dir}` • *Task:* `{task_dir}`"))
 
@@ -93,7 +107,10 @@ def build_overview_blocks(
     net_sum = (cross.get("network_summary") or "").strip()
     if net_sum:
         blocks.append(_mk_section(f"*Summary:* {net_sum}"))
-
+        print("[slack_ui] Using cross-network summary in Slack message")
+    else:
+        print("[slack_ui] No cross-network summary — likely scoped triage mode")
+    
     # (2) Status rollup: prefer cross.status_rollup; else derive
     roll = cross.get("status_rollup") if isinstance(cross, dict) else None
     need_derive = (
@@ -204,19 +221,30 @@ def build_overview_blocks(
             blocks.append(_mk_section("*Optional probes:*\n" + "\n".join([f"• `{c}`" for c in probes[:6]])))
 
     # (6) Optional actions
+    # (6) Optional actions — split into two rows for clarity
+    # 6a) Attach artifacts (first row)
     action_elems: List[Dict[str, Any]] = []
 
     if include_attach_button:
         payload = json.dumps({"config_dir": config_dir, "task_dir": task_dir})
-        action_elems.append({
-            "type": "button",
-            "text": {"type": "plain_text", "text": "Attach artifacts"},
-            "action_id": ATTACH_BTN_ACTION_ID,
-            "value": payload
+        blocks.append({
+            "type": "actions",
+            "elements": [
+                {
+                    "type": "button",
+                    "text": {"type": "plain_text", "text": "Attach artifacts"},
+                    "action_id": ATTACH_BTN_ACTION_ID,
+                    "value": payload
+                }
+            ]
         })
 
-    # NEW: Start triage + host picker (only if requested)
+    # 6b) Friendly lead-in + Start triage row (next line)
     if include_triage_button:
+        # short human lead-in
+        blocks.append(_mk_divider())
+        blocks.append(_mk_section("*Want to troubleshoot further?* \n Pick a host and start a focused triage session."))
+
         # Host options: top degraded/error first (cap by triage_picker_limit)
         host_candidates = _top_degraded_hosts(per_device, limit=triage_picker_limit)
         host_options = [{
@@ -227,32 +255,77 @@ def build_overview_blocks(
             "value": "__none__"
         }]
 
-        # Button payload carries config/task; selected host will be read via select action
+        # Button payload carries config/task; selected host will be picked by action handler
         triage_payload = json.dumps({"config_dir": config_dir, "task_dir": task_dir})
 
-        action_elems.extend([
-            {
-                "type": "button",
-                "text": {"type": "plain_text", "text": "Start triage"},
-                "action_id": TRIAGE_BTN_ACTION_ID,
-                "value": triage_payload
-            },
-            {
-                "type": "static_select",
-                "placeholder": {"type": "plain_text", "text": "Pick host"},
-                "action_id": TRIAGE_HOST_PICKER_ID[1],
-                "options": host_options
-            }
-        ])
-
-    if action_elems:
         blocks.append({
             "type": "actions",
             "block_id": TRIAGE_HOST_PICKER_ID[0],
-            "elements": action_elems
+            "elements": [
+                {
+                    "type": "static_select",
+                    "placeholder": {"type": "plain_text", "text": "Pick host"},
+                    "action_id": TRIAGE_HOST_PICKER_ID[1],
+                    "options": host_options
+                },
+                {
+                    "type": "button",
+                    "text": {"type": "plain_text", "text": "Start triage"},
+                    "action_id": TRIAGE_BTN_ACTION_ID,
+                    "value": triage_payload
+                }
+            ]
         })
 
-    return blocks
+    return blocks    
+
+    # if include_attach_button:
+    #     payload = json.dumps({"config_dir": config_dir, "task_dir": task_dir})
+    #     action_elems.append({
+    #         "type": "button",
+    #         "text": {"type": "plain_text", "text": "Attach artifacts"},
+    #         "action_id": ATTACH_BTN_ACTION_ID,
+    #         "value": payload
+    #     })
+
+    # # NEW: Start triage + host picker (only if requested)
+    # if include_triage_button:
+    #     # Host options: top degraded/error first (cap by triage_picker_limit)
+    #     host_candidates = _top_degraded_hosts(per_device, limit=triage_picker_limit)
+    #     host_options = [{
+    #         "text": {"type": "plain_text", "text": h, "emoji": True},
+    #         "value": h
+    #     } for h in host_candidates] or [{
+    #         "text": {"type": "plain_text", "text": "— no hosts —", "emoji": True},
+    #         "value": "__none__"
+    #     }]
+
+    #     # Button payload carries config/task; selected host will be read via select action
+    #     triage_payload = json.dumps({"config_dir": config_dir, "task_dir": task_dir})
+
+    #     action_elems.extend([
+    #         {
+    #             "type": "button",
+    #             "text": {"type": "plain_text", "text": "Start triage"},
+    #             "action_id": TRIAGE_BTN_ACTION_ID,
+    #             "value": triage_payload
+    #         },
+    #         {
+    #             "type": "static_select",
+    #             "placeholder": {"type": "plain_text", "text": "Pick host"},
+    #             "action_id": TRIAGE_HOST_PICKER_ID[1],
+    #             "options": host_options
+    #         }
+    #     ])
+
+    # if action_elems:
+    #     blocks.append({
+    #         "type": "actions",
+    #         "block_id": TRIAGE_HOST_PICKER_ID[0],
+    #         "elements": action_elems
+    #     })
+
+    # return blocks
 
 # ------------------------------------------------------------------------------------
 # “Run selected” modal (multi-host, per-host trusted/unvalidated command picks)

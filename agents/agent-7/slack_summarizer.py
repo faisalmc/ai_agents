@@ -12,6 +12,10 @@ except Exception:
 # Slack action id (kept identical to orchestrator listener)
 ATTACH_BTN_ACTION_ID = "agent7_attach_artifacts"
 
+print(" ---------------------")
+print("✅ slack_summarizer.py was loaded")
+print(" ---------------------")
+
 # ---- small Slack helpers -----------------------------------------------------
 def _mk_section(text: str) -> Dict[str, Any]:
     return {"type": "section", "text": {"type": "mrkdwn", "text": text}}
@@ -100,6 +104,31 @@ def build_overview_blocks(
 ) -> List[Dict[str, Any]]:
     cross = cross or {}
     per_device = per_device or []
+
+    print("\n========== DEBUG: build_overview_blocks ==========")
+    print(f"🗂️ config_dir: {config_dir}")
+    print(f"🧪 task_dir: {task_dir}")
+
+    print("\n📥 per_device (input):")
+    print(per_device)
+
+    print("\n📥 cross (input):")
+    print(cross)
+
+    llm_obj = LLMOutput.from_analysis(per_device, cross)
+
+    print("\n✅ LLMOutput.device_cards:")
+    print(llm_obj.device_cards)
+
+    summary_block = llm_obj.generate_summary()
+
+    device_blocks = llm_obj.device_cards_to_blocks()
+
+    print("\n📦 Final Slack blocks to return:")
+    print([summary_block] + device_blocks)
+
+    print("========== DEBUG END ==========\n")
+
 
     # Prepare rollup hint deterministically (LLM may reuse it)
     rollup_hint = _rollup_from_per_device(per_device)

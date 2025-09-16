@@ -1,19 +1,32 @@
 services:
   agent_1:
-    build:
-      context: ./agents/agent-1
-      dockerfile: Dockerfile
+    build: .
     container_name: agent-1
     env_file: .env
-    # working_dir: /app/agents/agent-1
-    environment:
-      PYTHONPATH: /app:/app/shared
-      PYTHONDONTWRITEBYTECODE: "1"
+    working_dir: /app
     volumes:
-      - ./:/app               # dev-friendly whole-repo mount
+      - ./agents:/app/agents
+      - ./shared:/app/shared
+      - ./doo:/app/doo
     ports: ["8000:8000"]
-    command: python agents/agent-1/agent_router.py #uvicorn agent_router:app --host 0.0.0.0 --port 8000
+    command: python agents/agent-router/agent_router.py
     restart: unless-stopped
+
+  # agent_1:
+  #   build:
+  #     context: ./agents/agent-1
+  #     dockerfile: Dockerfile
+  #   container_name: agent-1
+  #   env_file: .env
+  #   # working_dir: /app/agents/agent-1
+  #   environment:
+  #     PYTHONPATH: /app:/app/shared
+  #     PYTHONDONTWRITEBYTECODE: "1"
+  #   volumes:
+  #     - ./:/app               # dev-friendly whole-repo mount
+  #   ports: ["8000:8000"]
+  #   command: python agents/agent-router/agent_router.py #uvicorn agent_router:app --host 0.0.0.0 --port 8000
+  #   restart: unless-stopped
 
   # agent_2:
   #   build:
@@ -136,6 +149,21 @@ services:
     # depends_on:
       # - agent_4     # since we will call Agent-4 for capture of .md files
 
+  agent_8:
+    build:
+      context: ./agents/agent-8
+      dockerfile: Dockerfile
+    container_name: agent-8
+    env_file: .env
+    working_dir: /app/agents/agent-8
+    environment:
+      PYTHONPATH: /app:/app/shared
+      REPO_ROOT: ${DOO_DIR}
+    volumes:
+      - ./:/app
+    ports: ["8008:8008"]
+    command: uvicorn http_api:app --host 0.0.0.0 --port 8008
+    restart: unless-stopped
 
 
   # # working agent_5 under agent-router/llm_clients
