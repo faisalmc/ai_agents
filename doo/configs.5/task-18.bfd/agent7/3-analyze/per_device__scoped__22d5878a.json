@@ -1,0 +1,20 @@
+[
+  {
+    "hostname": "B-ASBR-1",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bfd",
+      "bgp"
+    ],
+    "status": "unknown",
+    "status_reason": "No command output available to assess BGP and BFD states.",
+    "ok": [],
+    "suspect": [],
+    "findings": [],
+    "recommended_show_cmds": [
+      "show bgp summary",
+      "show bfd neighbors"
+    ],
+    "optional_active_cmds": []
+  }
+]

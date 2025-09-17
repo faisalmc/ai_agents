@@ -1,0 +1,43 @@
+
+Sun Jul  6 06:36:40.706 UTC
+I/f: GigabitEthernet0/0/0/3, Location: 0/0/CPU0
+Dest: 100.64.231.2
+Src: 100.64.231.1
+ State: UP for 0d:0h:0m:32s, number of times UP: 1
+ Session type: PR/V4/SH
+Received parameters:
+ Version: 1, desired tx interval: 2 s, required rx interval: 2 s
+ Required echo rx interval: 1 ms, multiplier: 5, diag: None
+ My discr: 2148532226, your discr: 2148532226, state UP, D/F/P/C/A: 0/0/0/1/0
+Transmitted parameters:
+ Version: 1, desired tx interval: 2 s, required rx interval: 2 s
+ Required echo rx interval: 1 ms, multiplier: 5, diag: None
+ My discr: 2148532226, your discr: 2148532226, state UP, D/F/P/C/A: 0/0/0/1/0
+Timer Values:
+ Local negotiated async tx interval: 2 s
+ Remote negotiated async tx interval: 2 s
+ Desired echo tx interval: 500 ms, local negotiated echo tx interval: 500 ms
+ Echo detection time: 2500 ms(500 ms*5), async detection time: 10 s(2 s*5)
+Local Stats:
+ Intervals between async packets:
+   Tx: Number of intervals=19, min=2 ms, max=1959 ms, avg=1627 ms
+       Last packet transmitted 1740 ms ago
+   Rx: Number of intervals=18, min=2 ms, max=1956 ms, avg=1720 ms
+       Last packet received 1687 ms ago
+ Intervals between echo packets:
+   Tx: Number of intervals=0, min=0 s, max=0 s, avg=0 s
+       Last packet transmitted 148 ms ago
+   Rx: Number of intervals=0, min=0 s, max=0 s, avg=0 s
+       Last packet received 147 ms ago
+ Latency of echo packets (time between tx and rx):
+   Number of packets: 0, min=0 ms, max=0 ms, avg=0 ms
+Session owner information:
+                            Desired               Adjusted
+  Client               Interval   Multiplier Interval   Multiplier
+  -------------------- --------------------- ---------------------
+  bgp-default          500 ms     5          2 s        5         
+
+
+
+
+RP/0/RP0/CPU0:B-ASBR-1#

@@ -17,7 +17,7 @@
         }
       },
       {
-        "summary": "BFD session is currently up with expected parameters.",
+        "summary": "BFD session is currently up.",
         "evidence_ref": {
           "command_key": "show_bfd_session",
           "path": "commands.show_bfd_session.data.interface.GigabitEthernet0/0/0/3.dest_ip_address.100.64.231.2.state"
@@ -29,10 +29,19 @@
       {
         "signal": "bgp",
         "severity": "info",
-        "summary": "All BGP neighbors are established.",
+        "summary": "All BGP neighbors are in the Established state.",
         "evidence_ref": {
           "command_key": "show_ip_bgp_neighbor_brief",
           "path": "commands.show_ip_bgp_neighbor_brief.data.metrics.bgp_neighbors_by_state.established"
+        }
+      },
+      {
+        "signal": "bfd",
+        "severity": "info",
+        "summary": "BFD session is up with expected parameters.",
+        "evidence_ref": {
+          "command_key": "show_bfd_session_detail",
+          "path": "commands.show_bfd_session_detail.data.status.value"
         }
       }
     ],
@@ -53,7 +62,7 @@
     "status_reason": "BGP neighbors show a mix of established and idle states.",
     "ok": [
       {
-        "summary": "BFD session is up and configured correctly.",
+        "summary": "BFD session is operational and configured correctly.",
         "evidence_ref": {
           "command_key": "show_bfd_session",
           "path": "commands.show_bfd_session.data.interface.GigabitEthernet0/0/0/1.dest_ip_address.100.64.231.1.state"

@@ -1,16 +1,41 @@
 {
-  "network_summary": "No devices analyzed.",
+  "network_summary": "2 devices are currently in an unknown state. Both B-ASBR-1 and C-ASBR-1 lack command output to assess their BGP and BFD configurations.",
   "status_rollup": {
     "healthy": 0,
     "degraded": 0,
     "error": 0,
-    "unknown": 0
+    "unknown": 2
   },
   "top_incidents": [],
-  "notable_devices": [],
+  "notable_devices": [
+    {
+      "host": "B-ASBR-1",
+      "status": "unknown",
+      "note": "No command output available to assess BGP and BFD states.",
+      "evidence": {
+        "host": "B-ASBR-1",
+        "path": "commands.<cmd_key>.<...>"
+      }
+    },
+    {
+      "host": "C-ASBR-1",
+      "status": "unknown",
+      "note": "No command output available to assess BGP and BFD configurations.",
+      "evidence": {
+        "host": "C-ASBR-1",
+        "path": "commands.<cmd_key>.<...>"
+      }
+    }
+  ],
   "remediation_themes": [],
-  "trusted_followup_cmds": [],
-  "unvalidated_followup_cmds": [],
+  "trusted_followup_cmds": [
+    "show bgp summary",
+    "show bgp neighbor",
+    "show bfd neighbors"
+  ],
+  "unvalidated_followup_cmds": [
+    "show bgp neighbor-group TO_B_ASBR"
+  ],
   "optional_active_probes": [],
   "task_status": "unknown"
 }

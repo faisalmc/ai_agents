@@ -21,69 +21,36 @@
     "last_packet_received_ms": 1687
   },
   "tables": {
-    "parameters": [
-      {
-        "Client": "bgp-default",
-        "Desired Interval": "500 ms",
-        "Desired Multiplier": 5,
-        "Adjusted Interval": "2 s",
-        "Adjusted Multiplier": 5
-      }
-    ],
     "timers": [
       {
-        "Local negotiated async tx interval": "2 s",
-        "Remote negotiated async tx interval": "2 s",
-        "Desired echo tx interval": "500 ms",
-        "Local negotiated echo tx interval": "500 ms",
-        "Echo detection time": "2500 ms",
-        "Async detection time": "10 s"
+        "local_negotiated_async_tx_interval": "2 s",
+        "remote_negotiated_async_tx_interval": "2 s",
+        "desired_echo_tx_interval": "500 ms",
+        "local_negotiated_echo_tx_interval": "500 ms",
+        "echo_detection_time": "2500 ms",
+        "async_detection_time": "10 s"
       }
     ],
-    "local_stats": [
+    "parameters": [
       {
-        "Tx Intervals": {
-          "Number of intervals": 19,
-          "Min": "2 ms",
-          "Max": "1959 ms",
-          "Avg": "1627 ms",
-          "Last packet transmitted": "1740 ms ago"
-        },
-        "Rx Intervals": {
-          "Number of intervals": 18,
-          "Min": "2 ms",
-          "Max": "1956 ms",
-          "Avg": "1720 ms",
-          "Last packet received": "1687 ms ago"
-        },
-        "Echo Tx Intervals": {
-          "Number of intervals": 0,
-          "Min": "0 s",
-          "Max": "0 s",
-          "Avg": "0 s",
-          "Last packet transmitted": "148 ms ago"
-        },
-        "Echo Rx Intervals": {
-          "Number of intervals": 0,
-          "Min": "0 s",
-          "Max": "0 s",
-          "Avg": "0 s",
-          "Last packet received": "147 ms ago"
-        },
-        "Latency of echo packets": {
-          "Number of packets": 0,
-          "Min": "0 ms",
-          "Max": "0 ms",
-          "Avg": "0 ms"
-        }
+        "version": 1,
+        "desired_tx_interval": "2 s",
+        "required_rx_interval": "2 s",
+        "required_echo_rx_interval": "1 ms",
+        "multiplier": 5,
+        "diag": "None",
+        "my_discr": 2148532226,
+        "your_discr": 2148532226,
+        "state": "UP",
+        "d_f_p_c_a": "0/0/0/1/0"
       }
     ]
   },
   "evidence": [
     "L5: State: UP for 0d:0h:0m:32s, number of times UP: 1",
     "L6: Session type: PR/V4/SH",
-    "L7: My discr: 2148532226, your discr: 2148532226, state UP",
-    "L8: Local negotiated async tx interval: 2 s",
-    "L9: Remote negotiated async tx interval: 2 s"
+    "L20: Local negotiated async tx interval: 2 s",
+    "L21: Remote negotiated async tx interval: 2 s",
+    "L22: Desired echo tx interval: 500 ms, local negotiated echo tx interval: 500 ms"
   ]
 }

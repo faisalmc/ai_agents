@@ -5,7 +5,7 @@
     "bfd",
     "bgp"
   ],
-  "generated_at": 1757488178,
+  "generated_at": 1758025681,
   "facts_version": 1,
   "coverage": {
     "genie_ok": 1,
@@ -20,8 +20,8 @@
       "topic": "bfd",
       "platform_hint": "cisco-ios-xr",
       "source": "genie",
-      "parsed_path": "/app/doo/configs.5/taREMOVED18.bfd/agent7/3-analyze/1-parsed/B-ASBR-1/cisco-ios-xr__show_bfd_session.json",
-      "evidence_text_path": "/app/doo/configs.5/taREMOVED18.bfd/agent7/3-analyze/0-md-index/B-ASBR-1/002__show_bfd_session.txt",
+      "parsed_path": "/app/doo/configs.5/task-18.bfd/agent7/3-analyze/1-parsed/B-ASBR-1/cisco-ios-xr__show_bfd_session.json",
+      "evidence_text_path": "/app/doo/configs.5/task-18.bfd/agent7/3-analyze/0-md-index/B-ASBR-1/002__show_bfd_session.txt",
       "parser_ok": true,
       "data": {
         "interface": {
@@ -68,86 +68,84 @@
       "platform_hint": "cisco-ios-xr",
       "source": "llm",
       "parsed_path": "",
-      "evidence_text_path": "/app/doo/configs.5/taREMOVED18.bfd/agent7/3-analyze/0-md-index/B-ASBR-1/003__show_bfd_session_detail.txt",
+      "evidence_text_path": "/app/doo/configs.5/task-18.bfd/agent7/3-analyze/0-md-index/B-ASBR-1/003__show_bfd_session_detail.txt",
       "parser_ok": false,
       "data": {
-        "summary": "BFD session is currently up with specific parameters and statistics.",
+        "summary": "The BFD session is currently up with a state of UP for 32 seconds.",
         "status": {
           "name": "bfd_session",
           "value": "up",
           "confidence": "high",
-          "confidence_reason": "The state is explicitly stated as UP."
+          "confidence_reason": "The output explicitly states the session state as UP."
         },
         "metrics": {
           "desired_tx_interval_seconds": 2,
           "required_rx_interval_seconds": 2,
           "required_echo_rx_interval_ms": 1,
           "multiplier": 5,
-          "async_detection_time_seconds": 10,
           "echo_detection_time_ms": 2500,
+          "async_detection_time_seconds": 10,
           "local_negotiated_async_tx_interval_seconds": 2,
           "remote_negotiated_async_tx_interval_seconds": 2,
           "desired_echo_tx_interval_ms": 500,
           "local_negotiated_echo_tx_interval_ms": 500,
           "last_packet_transmitted_ms": 1740,
-          "last_packet_received_ms": 1687
+          "last_packet_received_ms": 1687,
+          "last_echo_packet_transmitted_ms": 148,
+          "last_echo_packet_received_ms": 147
         },
         "tables": {
           "parameters": [
             {
-              "Client": "bgp-default",
-              "Desired Interval": "500 ms",
-              "Desired Multiplier": 5,
-              "Adjusted Interval": "2 s",
-              "Adjusted Multiplier": 5
-            }
-          ],
-          "timers": [
-            {
-              "Local negotiated async tx interval": "2 s",
-              "Remote negotiated async tx interval": "2 s",
-              "Desired echo tx interval": "500 ms",
-              "Local negotiated echo tx interval": "500 ms",
-              "Echo detection time": "2500 ms",
-              "Async detection time": "10 s"
+              "Version": "1",
+              "desired_tx_interval": "2 s",
+              "required_rx_interval": "2 s",
+              "required_echo_rx_interval": "1 ms",
+              "multiplier": "5",
+              "diag": "None"
             }
           ],
           "local_stats": [
             {
-              "Tx Intervals": {
+              "async_tx_intervals": {
                 "Number of intervals": 19,
-                "Min": "2 ms",
-                "Max": "1959 ms",
-                "Avg": "1627 ms",
-                "Last packet transmitted": "1740 ms ago"
+                "min": "2 ms",
+                "max": "1959 ms",
+                "avg": "1627 ms"
               },
-              "Rx Intervals": {
+              "async_rx_intervals": {
                 "Number of intervals": 18,
-                "Min": "2 ms",
-                "Max": "1956 ms",
-                "Avg": "1720 ms",
-                "Last packet received": "1687 ms ago"
+                "min": "2 ms",
+                "max": "1956 ms",
+                "avg": "1720 ms"
               },
-              "Echo Tx Intervals": {
+              "echo_tx_intervals": {
                 "Number of intervals": 0,
-                "Min": "0 s",
-                "Max": "0 s",
-                "Avg": "0 s",
-                "Last packet transmitted": "148 ms ago"
+                "min": "0 s",
+                "max": "0 s",
+                "avg": "0 s"
               },
-              "Echo Rx Intervals": {
+              "echo_rx_intervals": {
                 "Number of intervals": 0,
-                "Min": "0 s",
-                "Max": "0 s",
-                "Avg": "0 s",
-                "Last packet received": "147 ms ago"
+                "min": "0 s",
+                "max": "0 s",
+                "avg": "0 s"
               },
-              "Latency of echo packets": {
+              "latency_of_echo_packets": {
                 "Number of packets": 0,
-                "Min": "0 ms",
-                "Max": "0 ms",
-                "Avg": "0 ms"
+                "min": "0 ms",
+                "max": "0 ms",
+                "avg": "0 ms"
               }
+            }
+          ],
+          "session_owner": [
+            {
+              "Client": "bgp-default",
+              "Desired Interval": "500 ms",
+              "Desired Multiplier": "5",
+              "Adjusted Interval": "2 s",
+              "Adjusted Multiplier": "5"
             }
           ]
         },
@@ -160,83 +158,81 @@
         ]
       },
       "llm_data": {
-        "summary": "BFD session is currently up with specific parameters and statistics.",
+        "summary": "The BFD session is currently up with a state of UP for 32 seconds.",
         "status": {
           "name": "bfd_session",
           "value": "up",
           "confidence": "high",
-          "confidence_reason": "The state is explicitly stated as UP."
+          "confidence_reason": "The output explicitly states the session state as UP."
         },
         "metrics": {
           "desired_tx_interval_seconds": 2,
           "required_rx_interval_seconds": 2,
           "required_echo_rx_interval_ms": 1,
           "multiplier": 5,
-          "async_detection_time_seconds": 10,
           "echo_detection_time_ms": 2500,
+          "async_detection_time_seconds": 10,
           "local_negotiated_async_tx_interval_seconds": 2,
           "remote_negotiated_async_tx_interval_seconds": 2,
           "desired_echo_tx_interval_ms": 500,
           "local_negotiated_echo_tx_interval_ms": 500,
           "last_packet_transmitted_ms": 1740,
-          "last_packet_received_ms": 1687
+          "last_packet_received_ms": 1687,
+          "last_echo_packet_transmitted_ms": 148,
+          "last_echo_packet_received_ms": 147
         },
         "tables": {
           "parameters": [
             {
-              "Client": "bgp-default",
-              "Desired Interval": "500 ms",
-              "Desired Multiplier": 5,
-              "Adjusted Interval": "2 s",
-              "Adjusted Multiplier": 5
-            }
-          ],
-          "timers": [
-            {
-              "Local negotiated async tx interval": "2 s",
-              "Remote negotiated async tx interval": "2 s",
-              "Desired echo tx interval": "500 ms",
-              "Local negotiated echo tx interval": "500 ms",
-              "Echo detection time": "2500 ms",
-              "Async detection time": "10 s"
+              "Version": "1",
+              "desired_tx_interval": "2 s",
+              "required_rx_interval": "2 s",
+              "required_echo_rx_interval": "1 ms",
+              "multiplier": "5",
+              "diag": "None"
             }
           ],
           "local_stats": [
             {
-              "Tx Intervals": {
+              "async_tx_intervals": {
                 "Number of intervals": 19,
-                "Min": "2 ms",
-                "Max": "1959 ms",
-                "Avg": "1627 ms",
-                "Last packet transmitted": "1740 ms ago"
+                "min": "2 ms",
+                "max": "1959 ms",
+                "avg": "1627 ms"
               },
-              "Rx Intervals": {
+              "async_rx_intervals": {
                 "Number of intervals": 18,
-                "Min": "2 ms",
-                "Max": "1956 ms",
-                "Avg": "1720 ms",
-                "Last packet received": "1687 ms ago"
+                "min": "2 ms",
+                "max": "1956 ms",
+                "avg": "1720 ms"
               },
-              "Echo Tx Intervals": {
+              "echo_tx_intervals": {
                 "Number of intervals": 0,
-                "Min": "0 s",
-                "Max": "0 s",
-                "Avg": "0 s",
-                "Last packet transmitted": "148 ms ago"
+                "min": "0 s",
+                "max": "0 s",
+                "avg": "0 s"
               },
-              "Echo Rx Intervals": {
+              "echo_rx_intervals": {
                 "Number of intervals": 0,
-                "Min": "0 s",
-                "Max": "0 s",
-                "Avg": "0 s",
-                "Last packet received": "147 ms ago"
+                "min": "0 s",
+                "max": "0 s",
+                "avg": "0 s"
               },
-              "Latency of echo packets": {
+              "latency_of_echo_packets": {
                 "Number of packets": 0,
-                "Min": "0 ms",
-                "Max": "0 ms",
-                "Avg": "0 ms"
+                "min": "0 ms",
+                "max": "0 ms",
+                "avg": "0 ms"
               }
+            }
+          ],
+          "session_owner": [
+            {
+              "Client": "bgp-default",
+              "Desired Interval": "500 ms",
+              "Desired Multiplier": "5",
+              "Adjusted Interval": "2 s",
+              "Adjusted Multiplier": "5"
             }
           ]
         },
@@ -255,7 +251,7 @@
       "platform_hint": "cisco-ios-xr",
       "source": "llm",
       "parsed_path": "",
-      "evidence_text_path": "/app/doo/configs.5/taREMOVED18.bfd/agent7/3-analyze/0-md-index/B-ASBR-1/001__show_ip_bgp_neighbor_brief.txt",
+      "evidence_text_path": "/app/doo/configs.5/task-18.bfd/agent7/3-analyze/0-md-index/B-ASBR-1/001__show_ip_bgp_neighbor_brief.txt",
       "parser_ok": false,
       "data": {
         "summary": "The BGP neighbor summary shows four established neighbors.",

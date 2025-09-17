@@ -1,1 +1,40 @@
-[]
+[
+  {
+    "hostname": "B-ASBR-1",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "bfd"
+    ],
+    "status": "unknown",
+    "status_reason": "No command output available to assess BGP and BFD states.",
+    "ok": [],
+    "suspect": [],
+    "findings": [],
+    "recommended_show_cmds": [
+      "show bgp summary",
+      "show bgp neighbor",
+      "show bfd neighbors"
+    ],
+    "optional_active_cmds": []
+  },
+  {
+    "hostname": "C-ASBR-1",
+    "platform": "ios-xr",
+    "signals_seen": [
+      "bgp",
+      "bfd"
+    ],
+    "status": "unknown",
+    "status_reason": "No command output available to assess BGP and BFD configurations.",
+    "ok": [],
+    "suspect": [],
+    "findings": [],
+    "recommended_show_cmds": [
+      "show bgp summary",
+      "show bgp neighbor-group TO_B_ASBR",
+      "show bfd neighbors"
+    ],
+    "optional_active_cmds": []
+  }
+]

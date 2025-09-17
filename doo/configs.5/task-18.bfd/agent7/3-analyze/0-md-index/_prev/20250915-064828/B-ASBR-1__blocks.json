@@ -7,7 +7,7 @@
     "sanitized_command": "show ip bgp neighbor brief",
     "cmd_key": "show_ip_bgp_neighbor_brief",
     "output_text_sha1": "a1d149a8844fc6abd3dfcc12cf560e1d182d0899",
-    "text_path": "/app/doo/configs.5/taREMOVED18.bfd/agent7/3-analyze/0-md-index/B-ASBR-1/001__show_ip_bgp_neighbor_brief.txt",
+    "text_path": "/app/doo/configs.5/task-18.bfd/agent7/3-analyze/0-md-index/B-ASBR-1/001__show_ip_bgp_neighbor_brief.txt",
     "start_line": 5,
     "end_line": 19
   },
@@ -19,7 +19,7 @@
     "sanitized_command": "show bfd session",
     "cmd_key": "show_bfd_session",
     "output_text_sha1": "c02b4df16deb7695de7cb6a9cac8d0146977b2ab",
-    "text_path": "/app/doo/configs.5/taREMOVED18.bfd/agent7/3-analyze/0-md-index/B-ASBR-1/002__show_bfd_session.txt",
+    "text_path": "/app/doo/configs.5/task-18.bfd/agent7/3-analyze/0-md-index/B-ASBR-1/002__show_bfd_session.txt",
     "start_line": 21,
     "end_line": 35
   },
@@ -31,7 +31,7 @@
     "sanitized_command": "show bfd session detail",
     "cmd_key": "show_bfd_session_detail",
     "output_text_sha1": "f996d8dccedce0a5be3b154b4d775542bff69d79",
-    "text_path": "/app/doo/configs.5/taREMOVED18.bfd/agent7/3-analyze/0-md-index/B-ASBR-1/003__show_bfd_session_detail.txt",
+    "text_path": "/app/doo/configs.5/task-18.bfd/agent7/3-analyze/0-md-index/B-ASBR-1/003__show_bfd_session_detail.txt",
     "start_line": 37,
     "end_line": 84
   }

@@ -11,7 +11,7 @@
     {
       "scope": "pair",
       "summary": "BGP neighbors in mixed states.",
-      "impact": "C-ASBR-1 BGP connections.",
+      "impact": "C-ASBR-1 BGP connectivity.",
       "devices": [
         "C-ASBR-1"
       ],
@@ -36,21 +36,23 @@
     {
       "host": "C-ASBR-1",
       "status": "degraded",
-      "note": "BGP neighbors show 4 idle and 2 established.",
+      "note": "BFD session is up, but 4 BGP neighbors are idle.",
       "evidence": {
         "host": "C-ASBR-1",
-        "path": "commands.show_ip_bgp_neighbor_brief.data.metrics.bgp_neighbors_by_state"
+        "path": "commands.show_bfd_session.data.interface.GigabitEthernet0/0/0/1.dest_ip_address.100.64.231.1.state"
       }
     }
   ],
   "remediation_themes": [
-    "Investigate idle BGP neighbors on C-ASBR-1."
+    "Investigate BGP configuration on C-ASBR-1."
   ],
   "trusted_followup_cmds": [
     "show bgp summary",
     "show bfd neighbors"
   ],
-  "unvalidated_followup_cmds": [],
+  "unvalidated_followup_cmds": [
+    "show ip bgp neighbor detail"
+  ],
   "optional_active_probes": [
     "ping 100.64.231.1",
     "traceroute 100.64.231.1"

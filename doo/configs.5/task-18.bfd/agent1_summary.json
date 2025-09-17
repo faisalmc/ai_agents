@@ -1,98 +1,109 @@
 [
 {
-    "hostname": "B-ASBR-1",
-    "provider": "Beta",
-    "customer": null,
-    "role": "ASBR",
-    "platform_hint": "cisco-ios-xr",
-    "vendor": "cisco",
-    "config_intents": [
-        "Establish BGP AS 200 with IPv4 and IPv6 unicast address families",
-        "Configure BFD with minimum-interval 500, multiplier 5, and fast-detect for neighbor-group TO_C_ASBR"
-    ],
-    "expected_state": [
-        {
-            "signal": "bgp",
-            "observation_goals": [
-                "BGP process is running",
-                "Neighbor-group TO_C_ASBR configured with remote AS 300",
-                "IPv4 and IPv6 unicast address families enabled"
-            ],
-            "suggested_show": [
-                { "cmd": "show bgp summary", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" },
-                { "cmd": "show bgp neighbor-group TO_C_ASBR", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr" }
-            ],
-            "candidate_show": [
-                { "cmd": "show run | section ^router bgp", "provenance": "llm", "confidence": "low", "platform": "cisco-ios-xr", "note": "Partial output" }
-            ]
-        },
-        {
-            "signal": "bfd",
-            "observation_goals": [
-                "BFD configured with minimum-interval 500 and multiplier 5",
-                "BFD fast-detect enabled"
-            ],
-            "suggested_show": [
-                { "cmd": "show bfd neighbors", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
-            ]
-        }
-    ]
+  "hostname": "B-ASBR-1",
+  "provider": "Beta",
+  "customer": null,
+  "role": "ASBR",
+  "platform_hint": "cisco-ios-xr",
+  "vendor": "cisco",
+  "config_intents": [
+    "Enable BGP with AS 200 for IPv4 and IPv6 unicast",
+    "Configure BFD for fast detection with specified parameters",
+    "Establish neighbor relationships with remote AS 300"
+  ],
+  "expected_state": [
+    {
+      "signal": "bgp",
+      "observation_goals": [
+        "BGP process is running",
+        "Neighbors to remote AS 300 should be Established",
+        "AFI/SAFI for both IPv4 and IPv6 unicast active"
+      ],
+      "suggested_show": [
+        { "cmd": "show bgp summary", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" },
+        { "cmd": "show bgp ipv4 unicast summary", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr" },
+        { "cmd": "show bgp ipv6 unicast summary", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": [
+        { "cmd": "show run | section ^router bgp", "provenance": "llm", "confidence": "low", "platform": "cisco-ios-xr", "note": "IOS-style pipe may not work on XR" }
+      ]
+    },
+    {
+      "signal": "bfd",
+      "observation_goals": [
+        "BFD sessions are established",
+        "BFD parameters match configured values"
+      ],
+      "suggested_show": [
+        { "cmd": "show bfd neighbors", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": []
+    }
+  ]
 },
 {
-    "hostname": "C-ASBR-1",
-    "provider": "Charlie",
-    "customer": null,
-    "role": "ASBR",
-    "platform_hint": "cisco-ios-xr",
-    "vendor": "cisco",
-    "config_intents": [
-        "Establish BGP AS 300 with IPv4 and IPv6 unicast address families",
-        "Configure BFD with minimum-interval 500, multiplier 5, and fast-detect for neighbor-group TO_B_ASBR"
-    ],
-    "expected_state": [
-        {
-            "signal": "bgp",
-            "observation_goals": [
-                "BGP process running for AS 300",
-                "IPv4 and IPv6 unicast address families configured"
-            ],
-            "suggested_show": [
-                { "cmd": "show bgp summary", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
-            ],
-            "candidate_show": []
-        },
-        {
-            "signal": "bfd",
-            "observation_goals": [
-                "BFD configured with minimum-interval 500, multiplier 5, and fast-detect for neighbor-group TO_B_ASBR"
-            ],
-            "suggested_show": [
-                { "cmd": "show bfd neighbors", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
-            ],
-            "candidate_show": []
-        }
-    ]
-},
-{
-  "hostname": "Operational-Checks: show_cmds.ini",
-  "role": "validation-commands",
-  "checks": [
-    {"intent": "Show BGP configuration", "command": "show running-config router bgp", "protocol": "BGP"},
-    {"intent": "BGP neighbors summary", "command": "show ip bgp neighbor brief", "protocol": "BGP"},
-    {"intent": "BFD sessions summary", "command": "show bfd session", "protocol": "BFD"},
-    {"intent": "Detailed BFD sessions", "command": "show bfd session detail", "protocol": "BFD"},
-    {"intent": "Show version information", "command": "show ver", "protocol": "General"}
+  "hostname": "C-ASBR-1",
+  "provider": "Charlie",
+  "customer": null,
+  "role": "ASBR",
+  "platform_hint": "cisco-ios-xr",
+  "vendor": "cisco",
+  "config_intents": [
+    "Enable BGP with AS 300 for IPv4 and IPv6 unicast",
+    "Configure BFD for fast detection with minimum interval and multiplier",
+    "Establish neighbor relationships with specified remote AS"
+  ],
+  "expected_state": [
+    {
+      "signal": "bgp",
+      "observation_goals": [
+        "BGP process is running",
+        "Neighbors should be Established",
+        "AFI/SAFI ipv4 and ipv6 unicast active",
+        "BFD settings applied correctly"
+      ],
+      "suggested_show": [
+        { "cmd": "show bgp summary", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" },
+        { "cmd": "show bgp ipv4 unicast summary", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr" },
+        { "cmd": "show bgp ipv6 unicast summary", "provenance": "llm", "confidence": "med", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": [
+        { "cmd": "show run | section ^router bgp", "provenance": "llm", "confidence": "low", "platform": "cisco-ios-xr", "note": "IOS-style pipe may not work on XR" }
+      ]
+    },
+    {
+      "signal": "bfd",
+      "observation_goals": [
+        "BFD sessions are operational",
+        "BFD minimum interval and multiplier are configured"
+      ],
+      "suggested_show": [
+        { "cmd": "show bfd neighbors", "provenance": "llm", "confidence": "high", "platform": "cisco-ios-xr" }
+      ],
+      "candidate_show": []
+    }
   ]
 },
 {
   "hostname": "Operational-Checks: show_cmds.ini",
   "role": "validation-commands",
   "checks": [
-    {"intent": "Show BGP configuration", "command": "show running-config router bgp", "protocol": "BGP"},
-    {"intent": "BGP neighbors summary", "command": "show ip bgp neighbor brief", "protocol": "BGP"},
-    {"intent": "BFD sessions summary", "command": "show bfd session", "protocol": "BFD"},
-    {"intent": "Detailed BFD sessions", "command": "show bfd session detail", "protocol": "BFD"},
-    {"intent": "Show version information", "command": "show ver", "protocol": "N/A"}
+    {"intent": "Show BGP configuration", "command": "show run router bgp", "protocol": "BGP"},
+    {"intent": "Show brief BGP neighbor status", "command": "show ip bgp neighbor brief", "protocol": "BGP"},
+    {"intent": "Show BFD session status", "command": "show bfd session", "protocol": "BFD"},
+    {"intent": "Show detailed BFD session information", "command": "show bfd session detail", "protocol": "BFD"},
+    {"intent": "Show device version", "command": "show version", "protocol": "General"}
+  ]
+},
+{
+  "hostname": "Operational-Checks: show_cmds.ini",
+  "role": "validation-commands",
+  "checks": [
+    {"intent": "Show BGP configuration", "command": "show run router bgp", "protocol": "BGP"},
+    {"intent": "Show brief BGP neighbor status", "command": "show ip bgp neighbor brief", "protocol": "BGP"},
+    {"intent": "Show BFD session status", "command": "show bfd session", "protocol": "BFD"},
+    {"intent": "Show detailed BFD session information", "command": "show bfd session detail", "protocol": "BFD"},
+    {"intent": "Show device version", "command": "show version", "protocol": "General"}
   ]
 }
 ]

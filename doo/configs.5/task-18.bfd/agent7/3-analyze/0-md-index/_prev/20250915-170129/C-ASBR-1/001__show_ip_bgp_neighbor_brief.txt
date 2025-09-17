@@ -1,0 +1,12 @@
+
+Sun Jul  6 06:40:51.217 UTC
+
+Neighbor         Spk    AS  Description                         Up/Down  NBRState
+3.0.101.1         0   300                                         2d19h Idle        
+3.0.101.2         0   300                                         2d19h Idle        
+3.0.101.3         0   300                                         2d19h Idle        
+3.0.101.4         0   300                                         2d19h Idle        
+100.64.231.1      0   200                                      00:00:32 Established 
+2620:fc7:64:231::1
+                  0   200                                      00:00:45 Established 
+RP/0/RP0/CPU0:C-ASBR-1#
