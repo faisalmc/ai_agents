@@ -91,7 +91,15 @@ def analyze_log_core(config_dir: str, task_id: str, hostname: str) -> Dict:
     llm_result = analyze_log_with_llm(full_log)
 
     try:
-        summary = json.loads(llm_result)
+        cleaned = llm_result.strip()
+        # Remove Markdown fences if present
+        if cleaned.startswith("```"):
+            cleaned = cleaned.strip("`")        # remove backticks
+            if cleaned.lower().startswith("json"):
+                cleaned = cleaned[4:].strip()   # drop 'json' label
+
+        summary = json.loads(cleaned)
+        # summary = json.loads(llm_result)
         print("[DEBUG] (core) Parsed valid JSON from LLM.", flush=True)
     except json.JSONDecodeError as e:
         print(f"[ERROR] (core) Could not parse JSON from LLM: {e}", flush=True)
@@ -167,7 +175,16 @@ def analyze_log_entry(task_path, task_name, hostname, channel_id):
     llm_result = analyze_log_with_llm(full_log)
 
     try:
-        summary = json.loads(llm_result)
+        cleaned = llm_result.strip()
+
+        # Remove Markdown fences if present
+        if cleaned.startswith("```"):
+            cleaned = cleaned.strip("`")        # remove backticks
+            if cleaned.lower().startswith("json"):
+                cleaned = cleaned[4:].strip()   # drop 'json' label
+
+        summary = json.loads(cleaned)
+        # summary = json.loads(llm_result)
         print("[DEBUG] Parsed valid JSON from LLM.", flush=True)
     except json.JSONDecodeError as e:
         print(f"[ERROR] Could not parse JSON from LLM: {e}", flush=True)
