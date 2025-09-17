@@ -375,6 +375,10 @@ def handle_app_mention(body, say, logger):
             tsk = ctx.get("task_id", "")
             host_hint = ctx.get("host") or _SELECTED_TRIAGE_HOST.get(post_thread or "", "selected host")
 
+            # NEW: capture the moment we dispatch, to detect fresh file writes
+            import time as _time
+            dispatch_ts = _time.time()
+
             run_url = f"{AGENT_8_URL}/triage/run_shows"
             payload = {"session_id": session_id, "host": host_hint, "commands": commands}
             resp = _post_json(run_url, payload, timeout=90)
@@ -399,7 +403,7 @@ def handle_app_mention(body, say, logger):
                 )
             )
 
-            # Watch for new logs for this host, then auto-run analysis and post findings
+
             def _watch_and_analyze():
                 import os, time
 
@@ -420,39 +424,55 @@ def handle_app_mention(body, say, logger):
                 show_md    = os.path.join(base, "2-capture", "show_logs",    f"{hst}.md")
                 grading_md = os.path.join(base, "2-capture", "grading_logs", f"{hst}.md")
 
-                # Poll up to 2 minutes for fresh output
+                # Helper: return True if the file exists, non-empty, and is freshly written after dispatch_ts
+                def _is_fresh(path: str, after_ts: float) -> bool:
+                    try:
+                        st = os.stat(path)
+                        if st.st_size <= 0:
+                            return False
+                        # mtime must be strictly newer than when we dispatched
+                        return st.st_mtime > after_ts
+                    except FileNotFoundError:
+                        return False
+                    except Exception:
+                        return False
+
+                # Poll up to 2 minutes for a *freshly-updated* file
                 deadline = time.time() + 120
+                chosen = None
                 while time.time() < deadline:
-                    if (os.path.isfile(grading_md) and os.path.getsize(grading_md) > 0) or \
-                    (os.path.isfile(show_md)    and os.path.getsize(show_md)    > 0):
+                    # Prefer grading if present, else full show log
+                    if _is_fresh(grading_md, dispatch_ts):
+                        chosen = grading_md
                         break
-                    time.sleep(3)
-                else:
+                    if _is_fresh(show_md, dispatch_ts):
+                        chosen = show_md
+                        break
+                    time.sleep(1.5)
+
+                if not chosen:
                     try:
                         say(channel=pchan, thread_ts=pthr,
-                            text=f"⌛ Still waiting for output from `{hst}`…")
+                            text=f"⌛ Still waiting for fresh output from `{hst}`…")
                     except Exception:
                         pass
                     return
 
                 # 1) Post ONLY the sections for the commands we just ran (or a clean error/raw preview)
                 try:
-                    existing = grading_md if (os.path.isfile(grading_md) and os.path.getsize(grading_md) > 0) else show_md
-                    _post_show_snippets(say, pchan, pthr, existing, commands, hst)
+                    _post_show_snippets(say, pchan, pthr, chosen, commands, hst)
                 except Exception:
                     pass
 
                 # 2) Let user know we’re analyzing just this host
                 try:
-                    say(channel=pchan, thread_ts=pthr,
-                        text=f"🔎 Analyzing `{hst}` (scoped)…")
+                    say(channel=pchan, thread_ts=pthr, text=f"🔎 Analyzing `{hst}` (scoped)…")
                 except Exception:
                     pass
 
                 # 3) Host-scoped analyze: ask Agent-7 to process only this host
                 try:
                     res = run_a7_analyze_host(cfg2, tsk2, hst)
-                    # Prefer server-built slack_overview.json (host-scoped); otherwise fallback to overview renderer
                     if not _post_a7_llm_overview_if_available(
                         say, pchan, pthr, res.get("slack_overview_path")
                     ):
@@ -472,6 +492,7 @@ def handle_app_mention(body, say, logger):
                     except Exception:
                         pass
                     
+            # Watch for new logs for this host, then auto-run analysis and post findings
             # def _watch_and_analyze():
             #     import os, time
 
@@ -488,24 +509,15 @@ def handle_app_mention(body, say, logger):
 
             #     base = os.path.join(REPO_ROOT, cfg2, tsk2, "agent7")
 
-            #     # Prefer canonical v2 path, but accept legacy flat path as fallback
-            #     candidate_show = [
-            #         os.path.join(base, "2-capture", "show_logs", f"{hst}.md"),
-            #         os.path.join(base, "show_logs", f"{hst}.md"),
-            #     ]
-            #     candidate_grade = [
-            #         os.path.join(base, "2-capture", "grading_logs", f"{hst}.md"),
-            #         os.path.join(base, "grading_logs", f"{hst}.md"),
-            #     ]
-
-            #     show_md    = next((p for p in candidate_show  if os.path.isfile(p)), candidate_show[0])
-            #     grading_md = next((p for p in candidate_grade if os.path.isfile(p)), candidate_grade[0])
+            #     # Canonical paths only (Agent-8 dispatches to agent7/2-capture/)
+            #     show_md    = os.path.join(base, "2-capture", "show_logs",    f"{hst}.md")
+            #     grading_md = os.path.join(base, "2-capture", "grading_logs", f"{hst}.md")
 
             #     # Poll up to 2 minutes for fresh output
             #     deadline = time.time() + 120
             #     while time.time() < deadline:
             #         if (os.path.isfile(grading_md) and os.path.getsize(grading_md) > 0) or \
-            #            (os.path.isfile(show_md)    and os.path.getsize(show_md)    > 0):
+            #         (os.path.isfile(show_md)    and os.path.getsize(show_md)    > 0):
             #             break
             #         time.sleep(3)
             #     else:
@@ -516,9 +528,9 @@ def handle_app_mention(body, say, logger):
             #             pass
             #         return
 
-            #     # 1) Post ONLY the sections for the commands we just ran
+            #     # 1) Post ONLY the sections for the commands we just ran (or a clean error/raw preview)
             #     try:
-            #         existing = grading_md if os.path.isfile(grading_md) else show_md
+            #         existing = grading_md if (os.path.isfile(grading_md) and os.path.getsize(grading_md) > 0) else show_md
             #         _post_show_snippets(say, pchan, pthr, existing, commands, hst)
             #     except Exception:
             #         pass
@@ -530,7 +542,7 @@ def handle_app_mention(body, say, logger):
             #     except Exception:
             #         pass
 
-            #     # 3) Host-scoped analyze (Option-C): ask Agent-7 to process only this host
+            #     # 3) Host-scoped analyze: ask Agent-7 to process only this host
             #     try:
             #         res = run_a7_analyze_host(cfg2, tsk2, hst)
             #         # Prefer server-built slack_overview.json (host-scoped); otherwise fallback to overview renderer
@@ -552,6 +564,7 @@ def handle_app_mention(body, say, logger):
             #                 text=f"⚠️ Analysis step hit an error: `{e}`")
             #         except Exception:
             #             pass
+                    
             
 
             import threading
