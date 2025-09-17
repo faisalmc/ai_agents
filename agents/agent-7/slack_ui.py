@@ -91,6 +91,8 @@ def build_overview_blocks(
     triage_picker_limit: int = 8,
 ) -> List[Dict[str, Any]]:
     cross = cross or {}
+    full_analysis_mode = bool(cross)
+
     per_device = per_device or []
 
     print(" ---------------------")
@@ -101,7 +103,7 @@ def build_overview_blocks(
 
 
     blocks: List[Dict[str, Any]] = []
-    blocks.append(_mk_section(f"*Agent-7 Overview*\n*Config:* `{config_dir}` • *Task:* `{task_dir}`"))
+    blocks.append(_mk_section(f"*Agent Overview*\n*Config:* `{config_dir}` • *Task:* `{task_dir}`"))
 
     # (1) Network summary (if present)
     net_sum = (cross.get("network_summary") or "").strip()
@@ -124,24 +126,35 @@ def build_overview_blocks(
             s = (row.get("status") or "unknown").lower()
             cnt[s] = cnt.get(s, 0) + 1
         roll = cnt
-    blocks.append(_mk_section(
-        f"*Status rollup:* healthy `{roll.get('healthy',0)}` • "
-        f"degraded `{roll.get('degraded',0)}` • error `{roll.get('error',0)}` • "
-        f"unknown `{roll.get('unknown',0)}`"
-    ))
+
+    if full_analysis_mode:
+        blocks.append(_mk_section(
+            f"*Status rollup:* healthy `{roll.get('healthy',0)}` • "
+            f"degraded `{roll.get('degraded',0)}` • error `{roll.get('error',0)}` • "
+            f"unknown `{roll.get('unknown',0)}`"
+        ))
 
     # Visual separator after rollup
     blocks.append(_mk_divider())
 
     # (3) Notable devices (from cross)
-    notable = cross.get("notable_devices") or []
-    if isinstance(notable, list) and notable:
-        lines = []
-        for nd in notable[:5]:
-            lines.append(f"• `{nd.get('host','?')}` — *{nd.get('status','unknown')}*: {nd.get('note','')}")
-        blocks.append(_mk_section("*Notable devices:*\n" + "\n".join(lines)))
-        blocks.append(_mk_divider())
+    # notable = cross.get("notable_devices") or []
+    # if isinstance(notable, list) and notable:
+    #     lines = []
+    #     for nd in notable[:5]:
+    #         lines.append(f"• `{nd.get('host','?')}` — *{nd.get('status','unknown')}*: {nd.get('note','')}")
+    #     blocks.append(_mk_section("*Notable devices:*\n" + "\n".join(lines)))
+    #     blocks.append(_mk_divider())
 
+    if full_analysis_mode:
+        notable = cross.get("notable_devices") or []
+        if isinstance(notable, list) and notable:
+            lines = []
+            for nd in notable[:5]:
+                lines.append(f"• `{nd.get('host','?')}` — *{nd.get('status','unknown')}*: {nd.get('note','')}")
+            blocks.append(_mk_section("*Notable devices:*\n" + "\n".join(lines)))
+            blocks.append(_mk_divider())
+            
     # (4) Per-device mini cards (ok/suspect; fallback to findings)
     if per_device:
         upto = min(len(per_device), 5)
@@ -190,20 +203,23 @@ def build_overview_blocks(
     blocks.append(_mk_divider())
 
     # (5) Cross-device summary
-    task_status = cross.get("task_status", "unknown")
-    blocks.append(_mk_section(f"*Network status:* *{task_status}*"))
+    # (5) Cross-device summary
+    if full_analysis_mode and cross.get("task_status"):
+        task_status = cross["task_status"]
+        blocks.append(_mk_section(f"*Network status:* *{task_status}*"))
 
     incidents = cross.get("top_incidents") or []
-    if incidents:
-        lines = []
-        for inc in incidents[:6]:
-            scope   = inc.get("scope", "scope")
-            summary = inc.get("summary", "")
-            devs    = ", ".join((inc.get("devices") or [])[:6])
-            lines.append(f"• *[{scope}]* {summary} — _{devs}_")
-        blocks.append(_mk_section("*Top incidents:*\n" + "\n".join(lines)))
-    else:
-        blocks.append(_mk_section("_No cross-device incidents detected._"))
+    if full_analysis_mode:
+        if incidents:
+            lines = []
+            for inc in incidents[:6]:
+                scope   = inc.get("scope", "scope")
+                summary = inc.get("summary", "")
+                devs    = ", ".join((inc.get("devices") or [])[:6])
+                lines.append(f"• *[{scope}]* {summary} — _{devs}_")
+            blocks.append(_mk_section("*Top incidents:*\n" + "\n".join(lines)))
+        else:
+            blocks.append(_mk_section("_No cross-device incidents detected._"))
 
     themes = cross.get("remediation_themes") or []
     if themes:
@@ -225,7 +241,8 @@ def build_overview_blocks(
     # 6a) Attach artifacts (first row)
     action_elems: List[Dict[str, Any]] = []
 
-    if include_attach_button:
+    if full_analysis_mode and include_attach_button:
+    # if include_attach_button:
         payload = json.dumps({"config_dir": config_dir, "task_dir": task_dir})
         blocks.append({
             "type": "actions",
@@ -240,10 +257,11 @@ def build_overview_blocks(
         })
 
     # 6b) Friendly lead-in + Start triage row (next line)
-    if include_triage_button:
-        # short human lead-in
-        blocks.append(_mk_divider())
-        blocks.append(_mk_section("*Want to troubleshoot further?* \n Pick a host and start a focused triage session."))
+    if full_analysis_mode:
+        if include_triage_button:
+            # short human lead-in
+            blocks.append(_mk_divider())
+            blocks.append(_mk_section("*Want to troubleshoot further?* \n Pick a host and start a focused triage session."))
 
         # Host options: top degraded/error first (cap by triage_picker_limit)
         host_candidates = _top_degraded_hosts(per_device, limit=triage_picker_limit)
