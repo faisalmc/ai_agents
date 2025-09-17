@@ -271,7 +271,8 @@ def _mk_host_ini(host: str, commands: List[str]) -> str:
         c = (c or "").strip()
         if not c:
             continue
-        lines.append(f"show = {c}")
+        # lines.append(f"show = {c}")
+        lines.append(f"{c}")
     return "\n".join(lines) + "\n"
 
 # ---- Endpoints ----
