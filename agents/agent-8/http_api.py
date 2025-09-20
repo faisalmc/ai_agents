@@ -7,7 +7,7 @@ import httpx
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
-from agents.agent_8 import triage_llm, commands_trusted, command_history
+from . import triage_llm, commands_trusted, command_history
 
 app = FastAPI(title="Agent-8 Triage API", version="0.1.0")
 
