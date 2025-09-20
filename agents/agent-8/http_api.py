@@ -7,7 +7,10 @@ import httpx
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
-from . import triage_llm, commands_trusted, command_history
+# Simple local imports (all modules live in the same folder)
+import triage_llm
+import commands_trusted
+import triage_history
 
 app = FastAPI(title="Agent-8 Triage API", version="0.1.0")
 
@@ -285,7 +288,6 @@ def _mk_host_ini(host: str, commands: List[str]) -> str:
         c = (c or "").strip()
         if not c:
             continue
-        # lines.append(f"show = {c}")
         lines.append(f"{c}")
     return "\n".join(lines) + "\n"
 
@@ -493,8 +495,8 @@ def triage_analyze_command(req: AnalyzeCommandReq):
         raise HTTPException(status_code=400, detail=f"no output found for command {req.command}")
     cmd_output = m.group(1).strip()
 
-    # 2. Call LLM for analysis
-    history = command_history.load_steps(s["config_dir"], s["task_dir"], req.session_id)
+    # 2. Call LLM for analysis (pass recent steps from triage_history)
+    history = triage_history.collect_recent_steps(req.session_id, limit=10)
     llm_result = triage_llm.triage_llm_analyze(
         host=req.host,
         commands=[req.command],
@@ -514,7 +516,7 @@ def triage_analyze_command(req: AnalyzeCommandReq):
         cmd = rec.get("command", "").strip()
         if not cmd:
             continue
-        vendor = _norm_vendor("cisco")   # placeholder; later from facts
+        vendor = _norm_vendor("cisco")      # placeholder; later from facts
         platform = _norm_platform("iosxr")  # placeholder; later from facts
         tech = rec.get("tech", ["misc"])
 
@@ -528,17 +530,15 @@ def triage_analyze_command(req: AnalyzeCommandReq):
             commands_trusted.promote(cmd, vendor, platform, tech)
             promoted.append(cmd)
 
-    # 4. Save in history
-    command_history.append_step(
-        config_dir=s["config_dir"],
-        task_dir=s["task_dir"],
+    # 4. Save in triage history
+    triage_history.append_step(
         session_id=req.session_id,
         host=req.host,
-        commands=[req.command],
+        cmds=[req.command],
         analysis=analysis_text,
         direction=direction,
         trusted=trusted_cmds,
-        unvalidated=unvalidated_cmds
+        unvalidated=unvalidated_cmds,
     )
 
     return AnalyzeCommandResp(
