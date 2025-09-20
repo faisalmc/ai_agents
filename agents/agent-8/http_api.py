@@ -7,6 +7,8 @@ import httpx
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
+from agents.agent_8 import triage_llm, commands_trusted, command_history
+
 app = FastAPI(title="Agent-8 Triage API", version="0.1.0")
 
 # ---- Environment ----
@@ -90,6 +92,18 @@ class ReAnalyzeResp(BaseModel):
     accepted: bool
     agent7_response: Optional[Dict[str, Any]] = None
 
+# --- New models for agent-8 triage --#
+class AnalyzeCommandReq(BaseModel):
+    session_id: str
+    host: str
+    command: str
+
+class AnalyzeCommandResp(BaseModel):
+    analysis_text: str
+    direction: str
+    trusted_commands: List[str]
+    unvalidated_commands: List[str]
+    promoted: List[str]
 
 # ---- Agent-knowledge loaders & trial history (compatible) ----
 from pathlib import Path
@@ -448,6 +462,92 @@ def triage_reanalyze(req: ReAnalyzeReq):
         a7_resp = {"error": f"agent-7 analyze failed: {e}"}
 
     return ReAnalyzeResp(accepted=accepted, agent7_response=a7_resp)
+
+# --- --- #
+# --- --- #
+# --- agent-8 triage functions --- #
+
+@app.post("/triage/analyze_command", response_model=AnalyzeCommandResp)
+def triage_analyze_command(req: AnalyzeCommandReq):
+    """
+    Read the captured show_log for a single command, run LLM analysis,
+    decide trusted vs unvalidated follow-ups, and update history.
+    """
+    s = _require_session(req.session_id)
+
+    # 1. Locate the show_log file
+    md_path = os.path.join(
+        REPO_ROOT, s["config_dir"], s["task_dir"],
+        "agent7", "2-capture", "show_logs", f"{req.host}.md"
+    )
+    if not os.path.isfile(md_path):
+        raise HTTPException(status_code=404, detail=f"show_log not found for {req.host}")
+
+    body = Path(md_path).read_text(encoding="utf-8")
+
+    # Extract section for this command
+    import re
+    pat = rf"(?mis)^##\s*{re.escape(req.command)}\s*\n+```(.*?)```"
+    m = re.search(pat, body)
+    if not m:
+        raise HTTPException(status_code=400, detail=f"no output found for command {req.command}")
+    cmd_output = m.group(1).strip()
+
+    # 2. Call LLM for analysis
+    history = command_history.load_steps(s["config_dir"], s["task_dir"], req.session_id)
+    llm_result = triage_llm.triage_llm_analyze(
+        host=req.host,
+        commands=[req.command],
+        outputs=[cmd_output],
+        history=history
+    )
+
+    analysis_text = llm_result.get("analysis_text", "")
+    direction = llm_result.get("direction", "")
+    recommended = llm_result.get("recommended", [])
+    execution_judgment = llm_result.get("execution_judgment", {})
+
+    trusted_cmds, unvalidated_cmds, promoted = [], [], []
+
+    # 3. Bucket recommended commands
+    for rec in recommended:
+        cmd = rec.get("command", "").strip()
+        if not cmd:
+            continue
+        vendor = _norm_vendor("cisco")   # placeholder; later from facts
+        platform = _norm_platform("iosxr")  # placeholder; later from facts
+        tech = rec.get("tech", ["misc"])
+
+        if commands_trusted.is_trusted(cmd, vendor, platform):
+            trusted_cmds.append(cmd)
+        else:
+            unvalidated_cmds.append(cmd)
+
+        # Promotion: if LLM judged the executed command as OK
+        if execution_judgment.get(req.command) == "ok" and cmd.startswith("show "):
+            commands_trusted.promote(cmd, vendor, platform, tech)
+            promoted.append(cmd)
+
+    # 4. Save in history
+    command_history.append_step(
+        config_dir=s["config_dir"],
+        task_dir=s["task_dir"],
+        session_id=req.session_id,
+        host=req.host,
+        commands=[req.command],
+        analysis=analysis_text,
+        direction=direction,
+        trusted=trusted_cmds,
+        unvalidated=unvalidated_cmds
+    )
+
+    return AnalyzeCommandResp(
+        analysis_text=analysis_text,
+        direction=direction,
+        trusted_commands=trusted_cmds,
+        unvalidated_commands=unvalidated_cmds,
+        promoted=promoted
+    )
 
 # ---- Local dev ----
 if __name__ == "__main__":

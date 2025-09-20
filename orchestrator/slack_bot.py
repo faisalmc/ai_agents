@@ -1,6 +1,6 @@
 # orchestrator/slack_bot.py
 import os, json, importlib.util, re
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 
@@ -18,21 +18,9 @@ from agent7_client import (
 # --- New: minimal HTTP helper (no external client file) ---
 import requests
 
-# --- New: minimal HTTP helper (no external client file) ---
-import requests
+# --- agent-8 triage (analyze 1 command)
+from agent8_client import analyze_command
 
-def _post_json(url: str, payload: dict, timeout: int = 30) -> dict:
-    try:
-        r = requests.post(url, json=payload, timeout=timeout)
-        r.raise_for_status()
-        # Always try to parse JSON regardless of headers; fall back to text.
-        try:
-            return r.json()
-        except Exception:
-            return {"ok": True, "raw": r.text}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
-    
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
 SLACK_APP_TOKEN = os.environ["SLACK_APP_TOKEN"]
 BOT_NAME = os.getenv("ORCHESTRATOR_BOT_NAME", "agent")
@@ -61,6 +49,78 @@ _A8_SESSION_LAST_BY_CHANNEL: Dict[str, str] = {}  # NEW: fallback when thread ma
 _A8_CTX_BY_THREAD: Dict[str, Dict[str, str]] = {}
 
 _A8_CTX_BY_SESSION: Dict[str, Dict[str, str]] = {}   # key = session_id, value = {config_dir, task_id, host, thread_ts, channel}
+
+# --- Core watch-and-analyze flow ---
+def _watch_and_analyze(say, pchan: str, pthr: str,
+                       session_id: str, hst: str,
+                       commands: List[str], chosen: str):
+    """
+    After run_shows has dispatched commands, wait for the .md log file,
+    then call Agent-8 /triage/analyze_command for each command and format results into Slack.
+    """
+    try:
+        import time, os
+
+        # Session data for locating correct config/task dirs
+        sess = _SESS.get(session_id, {})
+        cfg = sess.get("config_dir")
+        tsk = sess.get("task_dir")
+
+        # Path to the show_logs markdown file that Agent-4 will produce
+        md_path = os.path.join(
+            REPO_ROOT, cfg, tsk,
+            "agent7", "2-capture", "show_logs", f"{hst}.md"
+        )
+
+        # Wait (poll) for up to 60s for the .md log to appear
+        waited = 0
+        while not os.path.isfile(md_path) and waited < 60:
+            time.sleep(2)
+            waited += 2
+
+        if not os.path.isfile(md_path):
+            say(channel=pchan, thread_ts=pthr,
+                text=f"⚠️ No show_log found for `{hst}` after waiting.")
+            return
+
+        # For each executed command, ask Agent-8 to analyze
+        for cmd in commands:
+            res = analyze_command(
+                session_id=session_id,
+                host=hst,
+                command=cmd
+            )
+
+            # Build Slack message content
+            summary = res.get("analysis_text") or "(no analysis)"
+            direction = res.get("direction") or ""
+            trusted = res.get("trusted_commands") or []
+            unvalidated = res.get("unvalidated_commands") or []
+
+            out = [f"*Analysis for `{cmd}` on `{hst}`:*", summary]
+            if direction:
+                out.append(f"*Direction:* {direction}")
+            if trusted:
+                out.append(f"*Trusted commands:* " + ", ".join(f"`{c}`" for c in trusted))
+            if unvalidated:
+                out.append(f"*Unvalidated commands:* " + ", ".join(f"`{c}`" for c in unvalidated))
+
+            say(channel=pchan, thread_ts=pthr, text="\n\n".join(out))
+
+    except Exception as e:
+        say(channel=pchan, thread_ts=pthr,
+            text=f"⚠️ Analysis failed: `{e}`")
+                
+def _post_json(url: str, payload: dict, timeout: int = 30) -> dict:
+    try:
+        r = requests.post(url, json=payload, timeout=timeout)
+        r.raise_for_status()
+        try:
+            return r.json()
+        except Exception:
+            return {"ok": True, "raw": r.text}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
 
 # -------- small helpers --------
 def _help_text() -> str:
@@ -403,174 +463,14 @@ def handle_app_mention(body, say, logger):
                 )
             )
 
-
-            def _watch_and_analyze():
-                import os, time
-
-                # Prefer the session context (always points to the original triage thread)
-                c = _A8_CTX_BY_SESSION.get(session_id, {})
-                cfg2 = c.get("config_dir", cfg)
-                tsk2 = c.get("task_id", tsk)
-                hst  = c.get("host", host_hint)
-                pthr = c.get("thread_ts", post_thread) or post_thread
-                pchan = c.get("channel", post_channel) or post_channel
-
-                if not (cfg2 and tsk2 and hst):
-                    return
-
-                base = os.path.join(REPO_ROOT, cfg2, tsk2, "agent7")
-
-                # Canonical paths only (Agent-8 dispatches to agent7/2-capture/)
-                show_md    = os.path.join(base, "2-capture", "show_logs",    f"{hst}.md")
-                grading_md = os.path.join(base, "2-capture", "grading_logs", f"{hst}.md")
-
-                # Helper: return True if the file exists, non-empty, and is freshly written after dispatch_ts
-                def _is_fresh(path: str, after_ts: float) -> bool:
-                    try:
-                        st = os.stat(path)
-                        if st.st_size <= 0:
-                            return False
-                        # mtime must be strictly newer than when we dispatched
-                        return st.st_mtime > after_ts
-                    except FileNotFoundError:
-                        return False
-                    except Exception:
-                        return False
-
-                # Poll up to 2 minutes for a *freshly-updated* file
-                deadline = time.time() + 120
-                chosen = None
-                while time.time() < deadline:
-                    # Prefer grading if present, else full show log
-                    if _is_fresh(grading_md, dispatch_ts):
-                        chosen = grading_md
-                        break
-                    if _is_fresh(show_md, dispatch_ts):
-                        chosen = show_md
-                        break
-                    time.sleep(1.5)
-
-                if not chosen:
-                    try:
-                        say(channel=pchan, thread_ts=pthr,
-                            text=f"⌛ Still waiting for fresh output from `{hst}`…")
-                    except Exception:
-                        pass
-                    return
-
-                # 1) Post ONLY the sections for the commands we just ran (or a clean error/raw preview)
-                try:
-                    _post_show_snippets(say, pchan, pthr, chosen, commands, hst)
-                except Exception:
-                    pass
-
-                # 2) Let user know we’re analyzing just this host
-                try:
-                    say(channel=pchan, thread_ts=pthr, text=f"🔎 Analyzing `{hst}` (scoped)…")
-                except Exception:
-                    pass
-
-                # 3) Host-scoped analyze: ask Agent-7 to process only this host
-                try:
-                    res = run_a7_analyze_host(cfg2, tsk2, hst)
-                    if not _post_a7_llm_overview_if_available(
-                        say, pchan, pthr, res.get("slack_overview_path")
-                    ):
-                        _post_a7_overview(
-                            say=say,
-                            channel=pchan,
-                            thread_ts=pthr,
-                            config_dir=cfg2,
-                            task_id=tsk2,
-                            per_device_path=res.get("per_device_json_path"),
-                            cross_device_path=res.get("cross_device_json_path"),
-                        )
-                except Exception as e:
-                    try:
-                        say(channel=pchan, thread_ts=pthr,
-                            text=f"⚠️ Analysis step hit an error: `{e}`")
-                    except Exception:
-                        pass
-                    
-            # Watch for new logs for this host, then auto-run analysis and post findings
-            # def _watch_and_analyze():
-            #     import os, time
-
-            #     # Prefer the session context (always points to the original triage thread)
-            #     c = _A8_CTX_BY_SESSION.get(session_id, {})
-            #     cfg2 = c.get("config_dir", cfg)
-            #     tsk2 = c.get("task_id", tsk)
-            #     hst  = c.get("host", host_hint)
-            #     pthr = c.get("thread_ts", post_thread) or post_thread
-            #     pchan = c.get("channel", post_channel) or post_channel
-
-            #     if not (cfg2 and tsk2 and hst):
-            #         return
-
-            #     base = os.path.join(REPO_ROOT, cfg2, tsk2, "agent7")
-
-            #     # Canonical paths only (Agent-8 dispatches to agent7/2-capture/)
-            #     show_md    = os.path.join(base, "2-capture", "show_logs",    f"{hst}.md")
-            #     grading_md = os.path.join(base, "2-capture", "grading_logs", f"{hst}.md")
-
-            #     # Poll up to 2 minutes for fresh output
-            #     deadline = time.time() + 120
-            #     while time.time() < deadline:
-            #         if (os.path.isfile(grading_md) and os.path.getsize(grading_md) > 0) or \
-            #         (os.path.isfile(show_md)    and os.path.getsize(show_md)    > 0):
-            #             break
-            #         time.sleep(3)
-            #     else:
-            #         try:
-            #             say(channel=pchan, thread_ts=pthr,
-            #                 text=f"⌛ Still waiting for output from `{hst}`…")
-            #         except Exception:
-            #             pass
-            #         return
-
-            #     # 1) Post ONLY the sections for the commands we just ran (or a clean error/raw preview)
-            #     try:
-            #         existing = grading_md if (os.path.isfile(grading_md) and os.path.getsize(grading_md) > 0) else show_md
-            #         _post_show_snippets(say, pchan, pthr, existing, commands, hst)
-            #     except Exception:
-            #         pass
-
-            #     # 2) Let user know we’re analyzing just this host
-            #     try:
-            #         say(channel=pchan, thread_ts=pthr,
-            #             text=f"🔎 Analyzing `{hst}` (scoped)…")
-            #     except Exception:
-            #         pass
-
-            #     # 3) Host-scoped analyze: ask Agent-7 to process only this host
-            #     try:
-            #         res = run_a7_analyze_host(cfg2, tsk2, hst)
-            #         # Prefer server-built slack_overview.json (host-scoped); otherwise fallback to overview renderer
-            #         if not _post_a7_llm_overview_if_available(
-            #             say, pchan, pthr, res.get("slack_overview_path")
-            #         ):
-            #             _post_a7_overview(
-            #                 say=say,
-            #                 channel=pchan,
-            #                 thread_ts=pthr,
-            #                 config_dir=cfg2,
-            #                 task_id=tsk2,
-            #                 per_device_path=res.get("per_device_json_path"),
-            #                 cross_device_path=res.get("cross_device_json_path"),
-            #             )
-            #     except Exception as e:
-            #         try:
-            #             say(channel=pchan, thread_ts=pthr,
-            #                 text=f"⚠️ Analysis step hit an error: `{e}`")
-            #         except Exception:
-            #             pass
-                    
-            
-
+            # FIX: launch watcher thread with proper args
             import threading
-            threading.Thread(target=_watch_and_analyze, daemon=True).start()
+            threading.Thread(
+                target=_watch_and_analyze,
+                args=(say, post_channel, post_thread, session_id, host_hint, commands, ini_path),
+                daemon=True
+            ).start()
             return
-
             
         # ---- Default path: send free-text to Agent-8 /triage/ingest ----
         ingest_url = f"{AGENT_8_URL}/triage/ingest"

@@ -43,3 +43,13 @@ def reanalyze(session_id: str, host: str) -> Dict[str, Any]:
         "session_id": session_id,
         "host": host,
     })
+
+# --- agent-8 triage client --- #
+
+def analyze_command(session_id: str, host: str, command: str, output: str) -> Dict[str, Any]:
+    return _post("/triage/analyze_command", {
+        "session_id": session_id,
+        "host": host,
+        "command": command,
+        # "output": output,
+    })
