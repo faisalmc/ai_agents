@@ -499,7 +499,7 @@ def triage_analyze_command(req: AnalyzeCommandReq):
     history = triage_history.collect_recent_steps(req.session_id, limit=10)
     llm_result = triage_llm.triage_llm_analyze(
         host=req.host,
-        commands=[req.command],
+        cmds=[req.command],
         outputs=[cmd_output],
         history=history
     )
