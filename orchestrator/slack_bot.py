@@ -59,57 +59,72 @@ def _watch_and_analyze(say, pchan: str, pthr: str,
     then call Agent-8 /triage/analyze_command for each command and format results into Slack.
     """
     try:
-        import time, os
+        import os, time
 
-        # Session data for locating correct config/task dirs
-        sess = _SESS.get(session_id, {})
-        cfg = sess.get("config_dir")
-        tsk = sess.get("task_dir")
+        # 1) Get config/task from the orchestrator's own session context
+        ctx = _A8_CTX_BY_SESSION.get(session_id, {})  # <- orchestrator-owned, not Agent-8
+        cfg = ctx.get("config_dir")
+        tsk = ctx.get("task_id")
 
-        # Path to the show_logs markdown file that Agent-4 will produce
+        # Fallback: derive cfg/tsk from the INI path if context is missing
+        if (not cfg or not tsk) and chosen:
+            try:
+                rel = os.path.relpath(chosen, REPO_ROOT)  # e.g. configs.5/task-18.bfd/agent7/1-plan/triage_...
+                parts = rel.split(os.sep)
+                if len(parts) >= 2:
+                    cfg = cfg or parts[0]
+                    tsk = tsk or parts[1]
+            except Exception:
+                pass
+
+        if not cfg or not tsk:
+            say(channel=pchan, thread_ts=pthr,
+                text="⚠️ Cannot locate capture path for analysis (missing session context). "
+                     "Please click *Start triage* again.")
+            return
+
+        # 2) Path where Agent-4 writes the show log
         md_path = os.path.join(
-            REPO_ROOT, cfg, tsk,
-            "agent7", "2-capture", "show_logs", f"{hst}.md"
+            REPO_ROOT, cfg, tsk, "agent7", "2-capture", "show_logs", f"{hst}.md"
         )
 
-        # Wait (poll) for up to 60s for the .md log to appear
+        # 3) Wait (poll) up to 90s for the .md to appear
         waited = 0
-        while not os.path.isfile(md_path) and waited < 60:
+        while not os.path.isfile(md_path) and waited < 90:
             time.sleep(2)
             waited += 2
 
         if not os.path.isfile(md_path):
             say(channel=pchan, thread_ts=pthr,
-                text=f"⚠️ No show_log found for `{hst}` after waiting.")
+                text=f"⚠️ No show_log found for `{hst}` at:\n`{md_path}`")
             return
 
-        # For each executed command, ask Agent-8 to analyze
+        # 4) Ask Agent-8 to analyze each command (Agent-8 reads the file locally)
         for cmd in commands:
-            res = analyze_command(
-                session_id=session_id,
-                host=hst,
-                command=cmd
-            )
+            try:
+                res = analyze_command(session_id=session_id, host=hst, command=cmd)
 
-            # Build Slack message content
-            summary = res.get("analysis_text") or "(no analysis)"
-            direction = res.get("direction") or ""
-            trusted = res.get("trusted_commands") or []
-            unvalidated = res.get("unvalidated_commands") or []
+                summary = res.get("analysis_text") or "(no analysis)"
+                direction = res.get("direction") or ""
+                trusted = res.get("trusted_commands") or []
+                unvalidated = res.get("unvalidated_commands") or []
 
-            out = [f"*Analysis for `{cmd}` on `{hst}`:*", summary]
-            if direction:
-                out.append(f"*Direction:* {direction}")
-            if trusted:
-                out.append(f"*Trusted commands:* " + ", ".join(f"`{c}`" for c in trusted))
-            if unvalidated:
-                out.append(f"*Unvalidated commands:* " + ", ".join(f"`{c}`" for c in unvalidated))
+                out = [f"*Analysis for `{cmd}` on `{hst}`:*", summary]
+                if direction:
+                    out.append(f"*Direction:* {direction}")
+                if trusted:
+                    out.append(f"*Trusted commands:* " + ", ".join(f"`{c}`" for c in trusted))
+                if unvalidated:
+                    out.append(f"*Unvalidated commands:* " + ", ".join(f"`{c}`" for c in unvalidated))
 
-            say(channel=pchan, thread_ts=pthr, text="\n\n".join(out))
+                say(channel=pchan, thread_ts=pthr, text="\n\n".join(out))
+            except Exception as e:
+                say(channel=pchan, thread_ts=pthr,
+                    text=f"⚠️ Analysis failed for `{cmd}`: `{e}`")
 
     except Exception as e:
-        say(channel=pchan, thread_ts=pthr,
-            text=f"⚠️ Analysis failed: `{e}`")
+        say(channel=pchan, thread_ts=pthr, text=f"⚠️ Analysis failed: `{e}`")
+    
                 
 def _post_json(url: str, payload: dict, timeout: int = 30) -> dict:
     try:
@@ -895,14 +910,6 @@ def handle_start_triage(ack, body, say, logger):
         "thread_ts": thread_ts or "",
         "channel": channel or "",
     }
-
-    # Save context for this thread (used by run-path watcher)
-    if thread_ts:
-        _A8_CTX_BY_THREAD[thread_ts] = {
-            "config_dir": config_dir,
-            "task_id": task_id,
-            "host": host,
-        }
 
     say(channel=channel, thread_ts=thread_ts,
         text=f"🧭 Starting triage on `{host}` (config `{config_dir}`, task `{task_id}`)…\n"
