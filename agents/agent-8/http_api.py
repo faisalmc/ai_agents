@@ -490,10 +490,16 @@ def triage_analyze_command(req: AnalyzeCommandReq):
     # Extract section for this command
     import re
     pat = rf"(?mis)^##\s*{re.escape(req.command)}\s*\n+```(.*?)```"
-    m = re.search(pat, body)
-    if not m:
-        raise HTTPException(status_code=400, detail=f"no output found for command {req.command}")
-    cmd_output = m.group(1).strip()
+    matches = re.findall(pat, body)
+    if matches:
+        cmd_output = matches[-1].strip()  # take last match
+    else:
+        # fallback: take the last fenced block in the whole file
+        blocks = re.findall(r"(?s)```(.*?)```", body)
+        if blocks:
+            cmd_output = blocks[-1].strip()
+        else:
+            cmd_output = f"(no captured output found in {md_path})"
 
     # 2. Call LLM for analysis (pass recent steps from triage_history)
     history = triage_history.collect_recent_steps(req.session_id, limit=10)
