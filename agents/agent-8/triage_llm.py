@@ -33,35 +33,45 @@ def build_prompt(host: str, cmds: List[str], outputs: List[str],
 
     Includes:
     - Host name
-    - Commands just run + their outputs
+    - Commands just run + their outputs (the current request always has 1)
     - Recent triage history (for context)
+    - STRICT rules to avoid config-mode suggestions or unrelated analysis
     """
     prompt = []
-    prompt.append(f"You are analyzing device: {host}")
-    prompt.append("Here are the command outputs:")
+    prompt.append(f"You are analyzing network device: {host}.")
+    prompt.append("You are given fresh CLI outputs below. Base your analysis ONLY on these outputs.")
+    prompt.append("Do NOT reuse conclusions from prior steps unless they are consistent with the outputs in this message.")
+    prompt.append("Recommend ONLY read-only 'show' commands. Never recommend configuration mode commands.")
+    prompt.append("If you believe configuration is needed, instead recommend a 'show' command that would validate the hypothesis.")
+    prompt.append("If the output indicates an error (e.g., '% Invalid input', 'Unknown command'), your analysis_text should say so and execution_judgment must be 'error' for that command.")
+    prompt.append("Be concise and practical.")
 
+    prompt.append("\nHere are the command outputs:")
     for cmd, out in zip(cmds, outputs):
         prompt.append(f"\nCOMMAND: {cmd}\nOUTPUT:\n{out}\n")
 
     if history:
-        prompt.append("\nRecent triage history:")
-        for step in history[-3:]:  # include last 3 steps
-            prompt.append(f"- {step.get('commands', [])}: {step.get('analysis','')}")
+        prompt.append("\nRecent triage history (last 3 steps, for context only):")
+        for step in history[-3:]:
+            prompt.append(f"- ran: {step.get('commands', [])} → {step.get('analysis','')}")
 
     prompt.append(
         """
-Return JSON only with this format:
+Return JSON only with this exact shape:
 {
-  "analysis_text": "<short plain analysis of outputs>",
-  "direction": "<guidance for next steps>",
+  "analysis_text": "<short plain analysis derived strictly from the outputs above>",
+  "direction": "<next diagnostic steps in plain English; no config>",
   "recommended": [
-    {"command": "<cmd1>", "tech": "<bucket like bgp/ospf/interfaces>", "trust_hint": "low"},
-    {"command": "<cmd2>", "tech": "interfaces", "trust_hint": "low"}
+    {"command": "<read-only show cmd 1>", "tech": "bgp|interfaces|ospf|routing|misc", "trust_hint": "low"},
+    {"command": "<read-only show cmd 2>", "tech": "interfaces", "trust_hint": "low"}
   ],
   "execution_judgment": {
-    "<cmd1>": "ok" | "partial" | "error"
+    "<the command you just analyzed>": "ok" | "partial" | "error"
   }
 }
+- The 'recommended' list MUST contain only read-only 'show' commands.
+- If the output indicates an invalid or failed command, set execution_judgment to "error".
+- Do not invent facts not present in the outputs.
 """
     )
     return "\n".join(prompt)

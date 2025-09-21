@@ -98,3 +98,25 @@ def collect_recent_steps(session_id: str, limit: int = 5,
                 continue
 
     return steps[-limit:]
+
+
+# --- Debug logging helpers (safe, optional) ---
+def _ensure_dir_for_file(file_path: str) -> None:
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+def debug_write_text(session_id: str, filename: str, content: str,
+                     base_dir: str = DEFAULT_DIR) -> None:
+    """
+    Writes a text blob for debugging under:
+      <DEFAULT_DIR>/debug/<session_id>/<filename>
+    """
+    debug_dir = os.path.join(base_dir, "debug", session_id)
+    os.makedirs(debug_dir, exist_ok=True)
+    path = os.path.join(debug_dir, filename)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(content)
+
+def debug_write_json(session_id: str, filename: str, obj: dict,
+                     base_dir: str = DEFAULT_DIR) -> None:
+    from json import dumps
+    debug_write_text(session_id, filename, dumps(obj, indent=2), base_dir)
