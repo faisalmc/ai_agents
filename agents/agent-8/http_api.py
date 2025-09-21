@@ -506,7 +506,17 @@ def triage_analyze_command(req: AnalyzeCommandReq):
         cmd_output = f"(empty output for {req.command} at {md_path})"
 
     # 2. Call LLM for analysis (pass recent steps from triage_history)
-    history = triage_history.collect_recent_steps(req.session_id, limit=10)
+    # Detect if the captured output is an error — if so, skip history
+    is_error = any(err in cmd_output for err in [
+        "% Invalid input", "Unknown command", "Incomplete command", "Ambiguous command"
+    ])
+
+    if is_error:
+        history = []  # drop history for invalid/failed commands
+    else:
+        history = triage_history.collect_recent_steps(req.session_id, limit=10)
+    # history = triage_history.collect_recent_steps(req.session_id, limit=10)
+
     llm_result = triage_llm.triage_llm_analyze(
         host=req.host,
         cmds=[req.command],
