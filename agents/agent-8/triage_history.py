@@ -47,6 +47,7 @@ def append_step(session_id: str, host: str, cmds: list,
         "unvalidated": unvalidated,
     }
     path = os.path.join(base_dir, f"{session_id}.jsonl")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "a", encoding="utf-8") as f:
         f.write(json.dumps(record) + "\n")
 
@@ -70,6 +71,8 @@ def append_solved_case(session_id: str, summary: dict,
     summary["session_id"] = session_id
     summary["ts"] = datetime.utcnow().isoformat()
     path = os.path.join(base_dir, "solved_cases.jsonl")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    
     with open(path, "a", encoding="utf-8") as f:
         f.write(json.dumps(summary) + "\n")
 
