@@ -91,16 +91,33 @@ def call_llm_json(prompt: str) -> Dict:
             {"role": "user", "content": prompt},
         ]
         raw = call_llm(messages, temperature=LLM_TEMPERATURE)
+        # --- log raw exchange ---
+        ts = datetime.datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        path = pathlib.Path(debug_dir) / f"llm_debug_{ts}.json"
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump({
+                "messages": messages,
+                "raw": raw
+            }, f, indent=2)
+
         return json.loads(raw)
+
     except Exception as e:
-        # fallback: return empty structure
+        # --- also log failures ---
+        ts = datetime.datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        path = pathlib.Path(debug_dir) / f"llm_debug_error_{ts}.json"
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump({
+                "error": str(e),
+                "prompt": prompt
+            }, f, indent=2)
+
         return {
             "analysis_text": f"LLM call failed: {e}",
             "direction": "",
             "recommended": [],
             "execution_judgment": {}
         }
-
 
 def triage_llm_analyze(host: str, cmds: List[str], outputs: List[str],
                        history: List[Dict]) -> Dict:
