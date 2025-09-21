@@ -14,7 +14,17 @@ try:
 except Exception:
     call_llm = None  # degrade gracefully
 
+LLM_TEMPERATURE = float(os.getenv("A8_LLM_TEMPERATURE", "0.1"))
 
+# A focused system prompt to keep replies concise and JSON-only
+SYSTEM_PROMPT = (
+    "You are a senior network troubleshooting assistant. "
+    "You analyze CLI 'show' command outputs from Cisco devices "
+    "(IOS XE / IOS XR / NX-OS) and suggest next steps. "
+    "Always return STRICT JSON only (no prose, no markdown, no backticks). "
+    "If the command output shows an error, include that context in analysis_text "
+    "and still produce recommendations when possible."
+)
 
 def build_prompt(host: str, cmds: List[str], outputs: List[str],
                  history: List[Dict]) -> str:
@@ -63,7 +73,14 @@ def call_llm_json(prompt: str) -> Dict:
     Returns a dict, or empty structure if parsing fails.
     """
     try:
-        raw = call_llm(prompt)
+        if call_llm is None:
+            raise RuntimeError("LLM API not available")
+
+        messages = [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": prompt},
+        ]
+        raw = call_llm(messages, temperature=LLM_TEMPERATURE)
         return json.loads(raw)
     except Exception as e:
         # fallback: return empty structure
