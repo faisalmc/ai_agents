@@ -589,7 +589,8 @@ def triage_analyze_command(req: AnalyzeCommandReq):
         session_id=req.session_id,
         host=req.host,
         cmds=[req.command],
-        analysis=analysis_text,
+        # use pass2 if available, else fall back to pass1
+        analysis=analysis_pass2 or analysis_pass1,
         direction=direction,
         trusted=trusted_cmds,
         unvalidated=unvalidated_cmds,
@@ -597,7 +598,7 @@ def triage_analyze_command(req: AnalyzeCommandReq):
 
     return AnalyzeCommandResp(
         analysis_pass1=analysis_pass1,
-        analysis_pass2=analysis_pass2,   # comment this out if you want to drop Pass-2 entirely
+        analysis_pass2=analysis_pass2,   # comment this out if drop Pass-2 entirely
         direction=direction,
         trusted_commands=trusted_cmds,
         unvalidated_commands=unvalidated_cmds,
