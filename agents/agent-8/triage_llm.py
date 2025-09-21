@@ -4,7 +4,7 @@
 # It builds a clear prompt, calls the LLM, and parses
 # the JSON reply into a simple Python dict.
 
-import json, os
+import json, os, pathlib
 from typing import List, Dict
 from datetime import datetime, timezone
 
@@ -13,6 +13,10 @@ try:
     from shared.llm_api import call_llm  # type: ignore
 except Exception:
     call_llm = None  # degrade gracefully
+
+# debug directory for LLM logs
+debug_dir = "shared/_agent_knowledge/llm_debug"
+os.makedirs(debug_dir, exist_ok=True)
 
 LLM_TEMPERATURE = float(os.getenv("A8_LLM_TEMPERATURE", "0.1"))
 
