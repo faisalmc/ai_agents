@@ -102,7 +102,9 @@ class AnalyzeCommandReq(BaseModel):
     command: str
 
 class AnalyzeCommandResp(BaseModel):
-    analysis_text: str
+    # NEW: include both passes
+    analysis_pass1: str
+    analysis_pass2: Optional[str] = None   # safe to comment out later
     direction: str
     trusted_commands: List[str]
     unvalidated_commands: List[str]
@@ -505,29 +507,61 @@ def triage_analyze_command(req: AnalyzeCommandReq):
     if not cmd_output:
         cmd_output = f"(empty output for {req.command} at {md_path})"
 
-    # 2. Call LLM for analysis (pass recent steps from triage_history)
-    # Detect if the captured output is an error — if so, skip history
+    # # 2. Call LLM for analysis (pass recent steps from triage_history)
+    # # Detect if the captured output is an error — if so, skip history
+    # is_error = any(err in cmd_output for err in [
+    #     "% Invalid input", "Unknown command", "Incomplete command", "Ambiguous command"
+    # ])
+
+    # if is_error:
+    #     history = []  # drop history for invalid/failed commands
+    # else:
+    #     history = triage_history.collect_recent_steps(req.session_id, limit=10)
+    # # history = triage_history.collect_recent_steps(req.session_id, limit=10)
+
+    # llm_result = triage_llm.triage_llm_analyze(
+    #     host=req.host,
+    #     cmds=[req.command],
+    #     outputs=[cmd_output],
+    #     history=history
+    # )
+
+    # analysis_text = llm_result.get("analysis_text", "")
+    # direction = llm_result.get("direction", "")
+    # recommended = llm_result.get("recommended", [])
+    # execution_judgment = llm_result.get("execution_judgment", {})
+
+    # 2. Call LLM for analysis (two passes)
+    # --- Pass-1: single-step, no history ---
+    llm_pass1 = triage_llm.triage_llm_analyze(
+        host=req.host,
+        cmds=[req.command],
+        outputs=[cmd_output],
+        history=[]   # empty
+    )
+    analysis_pass1 = llm_pass1.get("analysis_text", "")
+
+    # --- Pass-2: with history (optional) ---
     is_error = any(err in cmd_output for err in [
         "% Invalid input", "Unknown command", "Incomplete command", "Ambiguous command"
     ])
-
     if is_error:
         history = []  # drop history for invalid/failed commands
     else:
         history = triage_history.collect_recent_steps(req.session_id, limit=10)
-    # history = triage_history.collect_recent_steps(req.session_id, limit=10)
 
-    llm_result = triage_llm.triage_llm_analyze(
+    llm_pass2 = triage_llm.triage_llm_analyze(
         host=req.host,
         cmds=[req.command],
         outputs=[cmd_output],
         history=history
     )
+    analysis_pass2 = llm_pass2.get("analysis_text", "")
 
-    analysis_text = llm_result.get("analysis_text", "")
-    direction = llm_result.get("direction", "")
-    recommended = llm_result.get("recommended", [])
-    execution_judgment = llm_result.get("execution_judgment", {})
+    # --- Direction / Recommendations come from Pass-2 (contextual) ---
+    direction = llm_pass2.get("direction", "")
+    recommended = llm_pass2.get("recommended", [])
+    execution_judgment = llm_pass2.get("execution_judgment", {})
 
     trusted_cmds, unvalidated_cmds, promoted = [], [], []
 
@@ -562,7 +596,8 @@ def triage_analyze_command(req: AnalyzeCommandReq):
     )
 
     return AnalyzeCommandResp(
-        analysis_text=analysis_text,
+        analysis_pass1=analysis_pass1,
+        analysis_pass2=analysis_pass2,   # comment this out if you want to drop Pass-2 entirely
         direction=direction,
         trusted_commands=trusted_cmds,
         unvalidated_commands=unvalidated_cmds,

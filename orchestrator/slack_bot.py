@@ -104,12 +104,39 @@ def _watch_and_analyze(say, pchan: str, pthr: str,
             try:
                 res = analyze_command(session_id=session_id, host=hst, command=cmd)
 
-                summary = res.get("analysis_text") or "(no analysis)"
+                # Raw fenced output (always first)
+                # Use the same snippet extraction as _post_show_snippets but inline
+                import re
+                body = _read_text(md_path)
+                preview = ""
+                if body:
+                    pat = rf"(?mis)^##\s*{re.escape(cmd)}\s*\n+```(.*?)```"
+                    m = re.search(pat, body)
+                    if m:
+                        preview = m.group(1).strip()
+                    else:
+                        blocks = re.findall(r"(?s)```(.*?)```", body)
+                        if blocks:
+                            preview = blocks[-1].strip()
+                if not preview:
+                    preview = f"(no captured output for `{cmd}` in log)"
+
+                # Analyses
+                analysis1 = res.get("analysis_pass1") or "(no analysis)"
+                analysis2 = res.get("analysis_pass2") or None   # Optional
+
                 direction = res.get("direction") or ""
                 trusted = res.get("trusted_commands") or []
                 unvalidated = res.get("unvalidated_commands") or []
 
-                out = [f"*Analysis for `{cmd}` on `{hst}`:*", summary]
+                # Build Slack text
+                out = []
+                out.append(f"*📄 Output for `{cmd}` on `{hst}`:*\n```{preview}```")
+                out.append(f"*🟢 Pass-1 (single-step):*\n{analysis1}")
+                # comment this block to disable Pass-2 entirely
+                if analysis2:   
+                    out.append(f"*🔵 Pass-2 (with history):*\n{analysis2}")
+                    # # comment above block to disable Pass-2 entirely
                 if direction:
                     out.append(f"*Direction:* {direction}")
                 if trusted:
@@ -118,6 +145,7 @@ def _watch_and_analyze(say, pchan: str, pthr: str,
                     out.append(f"*Unvalidated commands:* " + ", ".join(f"`{c}`" for c in unvalidated))
 
                 say(channel=pchan, thread_ts=pthr, text="\n\n".join(out))
+
             except Exception as e:
                 say(channel=pchan, thread_ts=pthr,
                     text=f"⚠️ Analysis failed for `{cmd}`: `{e}`")
