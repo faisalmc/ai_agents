@@ -4,7 +4,7 @@
 # It builds a clear prompt, calls the LLM, and parses
 # the JSON reply into a simple Python dict.
 
-import json
+import json, os
 from typing import List, Dict
 from datetime import datetime
 
