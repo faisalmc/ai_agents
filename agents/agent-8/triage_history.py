@@ -9,9 +9,8 @@ import os
 import json
 from datetime import datetime
 
-# Base directory for history files
-DEFAULT_DIR = "shared/_agent_knowledge/triage_history"
-
+# Base directory for history files (shared across all agents)
+DEFAULT_DIR = "/app/shared/_agent_knowledge/triage_history"
 
 def _ensure_dir(path: str) -> None:
     """Make sure the folder exists (treat path as a directory)."""

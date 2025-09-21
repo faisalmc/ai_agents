@@ -14,8 +14,8 @@ try:
 except Exception:
     call_llm = None  # degrade gracefully
 
-# debug directory for LLM logs
-debug_dir = "shared/_agent_knowledge/llm_debug"
+# debug directory for LLM logs (shared across all agents)
+debug_dir = "/app/shared/_agent_knowledge/llm_debug"
 os.makedirs(debug_dir, exist_ok=True)
 
 LLM_TEMPERATURE = float(os.getenv("A8_LLM_TEMPERATURE", "0.1"))
