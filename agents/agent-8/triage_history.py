@@ -14,8 +14,8 @@ DEFAULT_DIR = "shared/_agent_knowledge/triage_history"
 
 
 def _ensure_dir(path: str) -> None:
-    """Make sure the folder for a file exists."""
-    os.makedirs(os.path.dirname(path), exist_ok=True)
+    """Make sure the folder exists (treat path as a directory)."""
+    os.makedirs(path, exist_ok=True)
 
 
 def append_step(session_id: str, host: str, cmds: list,
