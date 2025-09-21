@@ -6,7 +6,7 @@
 
 import json, os
 from typing import List, Dict
-from datetime import datetime
+from datetime import datetime, timezone
 
 # helper function call_llm(prompt: str) -> str 
 try:
@@ -92,7 +92,7 @@ def call_llm_json(prompt: str) -> Dict:
         ]
         raw = call_llm(messages, temperature=LLM_TEMPERATURE)
         # --- log raw exchange ---
-        ts = datetime.datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         path = pathlib.Path(debug_dir) / f"llm_debug_{ts}.json"
         with open(path, "w", encoding="utf-8") as f:
             json.dump({
@@ -104,7 +104,7 @@ def call_llm_json(prompt: str) -> Dict:
 
     except Exception as e:
         # --- also log failures ---
-        ts = datetime.datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         path = pathlib.Path(debug_dir) / f"llm_debug_error_{ts}.json"
         with open(path, "w", encoding="utf-8") as f:
             json.dump({
