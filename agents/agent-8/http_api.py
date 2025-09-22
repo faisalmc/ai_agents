@@ -493,19 +493,10 @@ def triage_analyze_command(req: AnalyzeCommandReq):
 
     body = Path(md_path).read_text(encoding="utf-8")
 
-    # # Extract section for this command.
-    # import re
-    # pat = rf"(?mis)^##\s*{re.escape(req.command)}\s*\n+```(.*?)```"
-    # matches = re.findall(pat, body)
-    # if matches:
-    #     cmd_output = matches[-1].strip()  # take the last matching section
-    # else:
-    #     # fallback: take the last fenced block in the whole file
-    #     blocks = re.findall(r"(?s)```(.*?)```", body)
-    #     if blocks:
-    #         cmd_output = blocks[-1].strip()
-    #     else:
-    #         cmd_output = f"(no captured output found in {md_path})"
+    # --- Debug A: what we’re looking for
+    print(f"[DEBUG] analyze_command: session={req.session_id}, host={req.host}")
+    print(f"[DEBUG] Command requested = {req.command}")
+    print(f"[DEBUG] md_path = {md_path}")
 
     # Use shared helper
     cmd_output = extract_cmd_output(body, req.command)
@@ -516,63 +507,47 @@ def triage_analyze_command(req: AnalyzeCommandReq):
 
     raw_output = cmd_output   # capture before LLM passes
 
-    # # 2. Call LLM for analysis (pass recent steps from triage_history)
-    # # Detect if the captured output is an error — if so, skip history
-    # is_error = any(err in cmd_output for err in [
-    #     "% Invalid input", "Unknown command", "Incomplete command", "Ambiguous command"
-    # ])
+    # --- Debug B: after extraction
+    print(f"[DEBUG] Extracted cmd_output (first 200 chars):\n{cmd_output[:200]}")
+    print("-" * 60)
 
-    # if is_error:
-    #     history = []  # drop history for invalid/failed commands
-    # else:
-    #     history = triage_history.collect_recent_steps(req.session_id, limit=10)
-    # # history = triage_history.collect_recent_steps(req.session_id, limit=10)
-
-    # llm_result = triage_llm.triage_llm_analyze(
-    #     host=req.host,
-    #     cmds=[req.command],
-    #     outputs=[cmd_output],
-    #     history=history
-    # )
-
-    # analysis_text = llm_result.get("analysis_text", "")
-    # direction = llm_result.get("direction", "")
-    # recommended = llm_result.get("recommended", [])
-    # execution_judgment = llm_result.get("execution_judgment", {})
 
     # 2. Call LLM for analysis (two passes)
     # --- Pass-1: single-step, no history ---
+    cmds = [req.command]
+    outputs = [cmd_output]
+    history_pass1 = []   # always empty
+    print(f"[DEBUG] Pass-1 INPUT → cmds={cmds}, outputs_len={len(outputs[0])}, history={history_pass1}")
     llm_pass1 = triage_llm.triage_llm_analyze(
         host=req.host,
-        cmds=[req.command],
-        outputs=[cmd_output],
-        history=[]   # empty
+        cmds=cmds,
+        outputs=outputs,
+        history=history_pass1
     )
     analysis_pass1 = llm_pass1.get("analysis_text", "")
-    print("# --- Pass-1: single-step, no history ---")
-    print(f"cmd_output = {cmd_output}\n")
-    print(f"history = {history}\n")
+    print(f"[DEBUG] Pass-1 OUTPUT → analysis_text={analysis_pass1[:200]}")
+    print("-" * 60)
 
     # --- Pass-2: with history (optional) ---
     is_error = any(err in cmd_output for err in [
         "% Invalid input", "Unknown command", "Incomplete command", "Ambiguous command"
     ])
     if is_error:
-        history = []  # drop history for invalid/failed commands
+        history_pass2 = []
     else:
-        history = triage_history.collect_recent_steps(req.session_id, limit=10)
+        history_pass2 = triage_history.collect_recent_steps(req.session_id, limit=10)
 
+    print(f"[DEBUG] Pass-2 INPUT → cmds={cmds}, outputs_len={len(outputs[0])}, history_len={len(history_pass2)}")
     llm_pass2 = triage_llm.triage_llm_analyze(
         host=req.host,
-        cmds=[req.command],
-        outputs=[cmd_output],
-        history=history
+        cmds=cmds,
+        outputs=outputs,
+        history=history_pass2
     )
     analysis_pass2 = llm_pass2.get("analysis_text", "")
-    print("# --- Pass-2: multi-step, with history ---")
-    print(f"cmd_output = {cmd_output}\n")
-    print(f"history = {history}\n")
-
+    print(f"[DEBUG] Pass-2 OUTPUT → analysis_text={analysis_pass2[:200]}")
+    print("-" * 60)
+      
     # --- Direction / Recommendations come from Pass-2 (contextual) ---
     direction = llm_pass2.get("direction", "")
     recommended = llm_pass2.get("recommended", [])
