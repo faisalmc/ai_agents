@@ -443,6 +443,9 @@ def triage_run_shows(req: RunShowsReq):
         }
     )
 
+    print(f"[DEBUG] triage_run_shows: wrote INI {ini_path}")
+    print(f"[DEBUG] triage_run_shows: dispatched={dispatched}, agent4_response={a4_resp}")
+    
     return RunShowsResp(plan_ini_path=ini_path, dispatched=dispatched, agent4_response=a4_resp)
 
 # ----- 
