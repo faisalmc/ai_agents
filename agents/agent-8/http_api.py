@@ -103,6 +103,7 @@ class AnalyzeCommandReq(BaseModel):
 
 class AnalyzeCommandResp(BaseModel):
     # NEW: include both passes
+    raw_output: str                     # NEW
     analysis_pass1: str
     analysis_pass2: Optional[str] = None   # safe to comment out later
     direction: str
@@ -507,6 +508,8 @@ def triage_analyze_command(req: AnalyzeCommandReq):
     if not cmd_output:
         cmd_output = f"(empty output for {req.command} at {md_path})"
 
+    raw_output = cmd_output   # capture before LLM passes
+
     # # 2. Call LLM for analysis (pass recent steps from triage_history)
     # # Detect if the captured output is an error — if so, skip history
     # is_error = any(err in cmd_output for err in [
@@ -597,6 +600,7 @@ def triage_analyze_command(req: AnalyzeCommandReq):
     )
 
     return AnalyzeCommandResp(
+        raw_output=raw_output,                 # <<< NEW
         analysis_pass1=analysis_pass1,
         analysis_pass2=analysis_pass2,   # comment this out if drop Pass-2 entirely
         direction=direction,
