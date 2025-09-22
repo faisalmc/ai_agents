@@ -12,6 +12,9 @@ import triage_llm
 import commands_trusted
 import triage_history
 
+# shared/helpers.py
+from shared.helpers import extract_cmd_output   
+
 app = FastAPI(title="Agent-8 Triage API", version="0.1.0")
 
 # ---- Environment ----
@@ -490,19 +493,22 @@ def triage_analyze_command(req: AnalyzeCommandReq):
 
     body = Path(md_path).read_text(encoding="utf-8")
 
-    # Extract section for this command.
-    import re
-    pat = rf"(?mis)^##\s*{re.escape(req.command)}\s*\n+```(.*?)```"
-    matches = re.findall(pat, body)
-    if matches:
-        cmd_output = matches[-1].strip()  # take the last matching section
-    else:
-        # fallback: take the last fenced block in the whole file
-        blocks = re.findall(r"(?s)```(.*?)```", body)
-        if blocks:
-            cmd_output = blocks[-1].strip()
-        else:
-            cmd_output = f"(no captured output found in {md_path})"
+    # # Extract section for this command.
+    # import re
+    # pat = rf"(?mis)^##\s*{re.escape(req.command)}\s*\n+```(.*?)```"
+    # matches = re.findall(pat, body)
+    # if matches:
+    #     cmd_output = matches[-1].strip()  # take the last matching section
+    # else:
+    #     # fallback: take the last fenced block in the whole file
+    #     blocks = re.findall(r"(?s)```(.*?)```", body)
+    #     if blocks:
+    #         cmd_output = blocks[-1].strip()
+    #     else:
+    #         cmd_output = f"(no captured output found in {md_path})"
+
+    # Use shared helper
+    cmd_output = extract_cmd_output(body, req.command)
 
     # extra: ensure we don’t pass an empty string
     if not cmd_output:

@@ -21,6 +21,9 @@ import requests
 # --- agent-8 triage (analyze 1 command)
 from agent8_client import analyze_command
 
+# shared/helpers.py
+from shared.helpers import extract_cmd_output   
+
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
 SLACK_APP_TOKEN = os.environ["SLACK_APP_TOKEN"]
 BOT_NAME = os.getenv("ORCHESTRATOR_BOT_NAME", "agent")
@@ -108,16 +111,17 @@ def _watch_and_analyze(say, pchan: str, pthr: str,
                 # Use the same snippet extraction as _post_show_snippets but inline
                 import re
                 body = _read_text(md_path)
-                preview = ""
-                if body:
-                    pat = rf"(?mis)^##\s*{re.escape(cmd)}\s*\n+```(.*?)```"
-                    m = re.search(pat, body)
-                    if m:
-                        preview = m.group(1).strip()
-                    else:
-                        blocks = re.findall(r"(?s)```(.*?)```", body)
-                        if blocks:
-                            preview = blocks[-1].strip()
+                preview = extract_cmd_output(body, cmd)
+                # preview = ""
+                # if body:
+                #     pat = rf"(?mis)^##\s*{re.escape(cmd)}\s*\n+```(.*?)```"
+                #     m = re.search(pat, body)
+                #     if m:
+                #         preview = m.group(1).strip()
+                #     else:
+                #         blocks = re.findall(r"(?s)```(.*?)```", body)
+                #         if blocks:
+                #             preview = blocks[-1].strip()
                 if not preview:
                     preview = f"(no captured output for `{cmd}` in log)"
 
