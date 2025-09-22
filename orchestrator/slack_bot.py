@@ -510,13 +510,13 @@ def handle_app_mention(body, say, logger):
                 )
             )
 
-            # FIX: launch watcher thread with proper args
-            import threading
-            threading.Thread(
-                target=_watch_and_analyze,
-                args=(say, post_channel, post_thread, session_id, host_hint, commands, ini_path),
-                daemon=True
-            ).start()
+            # # FIX: launch watcher thread with proper args
+            # import threading
+            # threading.Thread(
+            #     target=_watch_and_analyze,
+            #     args=(say, post_channel, post_thread, session_id, host_hint, commands, ini_path),
+            #     daemon=True
+            # ).start()
             return
             
         # ---- Default path: send free-text to Agent-8 /triage/ingest ----
