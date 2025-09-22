@@ -702,7 +702,7 @@ def capture_done(req: CaptureDoneReq):
                     "session_id": session_id,
                     "host": host,
                     "command": cmd,
-                    "preview": resp.raw_output[:300],  # safe preview
+                    "preview": resp.raw_output[:1000],  # safe preview
                     "analysis_pass1": resp.analysis_pass1,
                     "analysis_pass2": resp.analysis_pass2,
                     "direction": resp.direction,
