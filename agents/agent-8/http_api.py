@@ -549,6 +549,9 @@ def triage_analyze_command(req: AnalyzeCommandReq):
         history=[]   # empty
     )
     analysis_pass1 = llm_pass1.get("analysis_text", "")
+    print("# --- Pass-1: single-step, no history ---")
+    print(cmd_output = {cmd_output}\n")
+    print(history = {history}\n")
 
     # --- Pass-2: with history (optional) ---
     is_error = any(err in cmd_output for err in [
@@ -566,6 +569,9 @@ def triage_analyze_command(req: AnalyzeCommandReq):
         history=history
     )
     analysis_pass2 = llm_pass2.get("analysis_text", "")
+    print("# --- Pass-2: multi-step, with history ---")
+    print(cmd_output = {cmd_output}\n")
+    print(history = {history}\n")
 
     # --- Direction / Recommendations come from Pass-2 (contextual) ---
     direction = llm_pass2.get("direction", "")
