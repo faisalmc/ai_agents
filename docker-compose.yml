@@ -176,7 +176,7 @@ services:
     environment:
       PYTHONPATH: /app:/app/shared
       REPO_ROOT: ${DOO_DIR}
-      ORCH_CALLBACK_URL: http://orchestrator-bot:8099/agent8/callback   # callback to orchestrator
+      ORCH_CALLBACK_URL: http://orchestrator-bot:8099   # callback to orchestrator
     volumes:
       - ./:/app
     ports: ["8008:8008"]
