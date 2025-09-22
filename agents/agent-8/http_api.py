@@ -22,6 +22,7 @@ REPO_ROOT   = os.getenv("REPO_ROOT", "/app/doo")
 AGENT_4_URL = os.getenv("AGENT_4_URL")   # e.g. http://agent-4:8004
 AGENT_7_URL = os.getenv("AGENT_7_URL")   # e.g. http://agent-7:8007
 SESSION_TTL_MIN = int(os.getenv("A8_SESSION_TTL_MIN", "240"))  # default 4h
+ORCH_CALLBACK_URL = os.getenv("ORCH_CALLBACK_URL") # for callback to orchestrator to post slack messages when analysis done
 
 # ---- Minimal in-memory session store (TTL) ----
 _SESS: Dict[str, Dict[str, Any]] = {}
@@ -113,6 +114,15 @@ class AnalyzeCommandResp(BaseModel):
     trusted_commands: List[str]
     unvalidated_commands: List[str]
     promoted: List[str]
+
+
+class CaptureDoneReq(BaseModel):
+    # Callback from agent-4 when .md for show command is done
+    config_dir: str
+    task_id: str
+    devices: Optional[List[str]] = None
+    out_subdir: str
+    status: str
 
 # ---- Agent-knowledge loaders & trial history (compatible) ----
 from pathlib import Path
@@ -445,7 +455,7 @@ def triage_run_shows(req: RunShowsReq):
 
     print(f"[DEBUG] triage_run_shows: wrote INI {ini_path}")
     print(f"[DEBUG] triage_run_shows: dispatched={dispatched}, agent4_response={a4_resp}")
-    
+
     return RunShowsResp(plan_ini_path=ini_path, dispatched=dispatched, agent4_response=a4_resp)
 
 # ----- 
@@ -598,6 +608,119 @@ def triage_analyze_command(req: AnalyzeCommandReq):
         unvalidated_commands=unvalidated_cmds,
         promoted=promoted
     )
+
+
+
+@app.post("/capture-done")
+def capture_done(req: CaptureDoneReq):
+    """
+    Callback from Agent-4 after capture-only finishes.
+    Agent-8 will immediately kick off triage/analyze for each device,
+    then post results back to Orchestrator if ORCH_CALLBACK_URL is set.
+    """
+    # Try to locate the session
+    session = None
+    session_id = None
+    for sid, s in list(_SESS.items()):
+        if s.get("config_dir") == req.config_dir and s.get("task_dir") == req.task_id:
+            session = s
+            session_id = sid
+            break
+
+    if not session:
+        print(f"[agent-8:/capture-done] WARN: no active session found for {req.config_dir}/{req.task_id}", flush=True)
+        return {"ok": False, "error": "no session found"}
+
+    host = session.get("host")
+    if not host:
+        return {"ok": False, "error": "session host missing"}
+
+    results = []
+    ORCH_CALLBACK_URL = os.getenv("ORCH_CALLBACK_URL")
+
+    # If Agent-4 already flagged an error, skip analysis and forward it
+    if getattr(req, "status", "done") != "done":
+        err_msg = getattr(req, "error", "capture failed")
+        print(f"[agent-8:/capture-done] WARN: capture reported error → {err_msg}", flush=True)
+        results.append({"command": None, "error": err_msg})
+
+        if ORCH_CALLBACK_URL:
+            try:
+                payload = {
+                    "channel": session.get("channel"),
+                    "thread_ts": session.get("thread_ts"),
+                    "session_id": session_id,
+                    "host": host,
+                    "command": None,
+                    "analysis_pass1": None,
+                    "analysis_pass2": None,
+                    "direction": None,
+                    "trusted_commands": [],
+                    "unvalidated_commands": [],
+                    "preview": f"Capture error: {err_msg}",
+                }
+                with httpx.Client(timeout=30.0) as cli:
+                    r = cli.post(f"{ORCH_CALLBACK_URL}/agent8/callback", json=payload)
+                r.raise_for_status()
+                print("[agent-8:/capture-done] Posted capture error to Orchestrator", flush=True)
+            except Exception as e:
+                print(f"[agent-8:/capture-done] WARN: failed to post error to Orchestrator: {e}", flush=True)
+
+        return {"ok": False, "error": err_msg, "results": results}
+
+    # Path to captured .md file
+    md_path = os.path.join(
+        REPO_ROOT, req.config_dir, req.task_id, req.out_subdir, "show_logs", f"{host}.md"
+    )
+    if not os.path.isfile(md_path):
+        print(f"[agent-8:/capture-done] WARN: md file not found at {md_path}", flush=True)
+        return {"ok": False, "error": "no show_log yet"}
+
+    # Extract commands executed (fall back if none found)
+    body = Path(md_path).read_text(encoding="utf-8")
+    lines = [l.strip() for l in body.splitlines() if l.strip().startswith("show ")]
+    if not lines:
+        lines = ["show running-config"]
+
+    # Analyze and post each command
+    for cmd in lines:
+        try:
+            resp = triage_analyze_command(
+                AnalyzeCommandReq(session_id=session_id, host=host, command=cmd)
+            )
+
+            result = {
+                "command": cmd,
+                "analysis": resp.analysis_pass2 or resp.analysis_pass1,
+            }
+            results.append(result)
+
+            if ORCH_CALLBACK_URL:
+                payload = {
+                    "channel": session.get("channel"),
+                    "thread_ts": session.get("thread_ts"),
+                    "session_id": session_id,
+                    "host": host,
+                    "command": cmd,
+                    "preview": resp.raw_output[:300],  # safe preview
+                    "analysis_pass1": resp.analysis_pass1,
+                    "analysis_pass2": resp.analysis_pass2,
+                    "direction": resp.direction,
+                    "trusted_commands": resp.trusted_commands,
+                    "unvalidated_commands": resp.unvalidated_commands,
+                }
+                try:
+                    with httpx.Client(timeout=30.0) as cli:
+                        r = cli.post(f"{ORCH_CALLBACK_URL}/agent8/callback", json=payload)
+                    r.raise_for_status()
+                    print(f"[agent-8:/capture-done] Posted analysis for {cmd} to Orchestrator", flush=True)
+                except Exception as e:
+                    print(f"[agent-8:/capture-done] WARN: failed to post to Orchestrator: {e}", flush=True)
+
+        except Exception as e:
+            results.append({"command": cmd, "error": str(e)})
+
+    return {"ok": True, "results": results}
 
 # ---- Local dev ----
 if __name__ == "__main__":

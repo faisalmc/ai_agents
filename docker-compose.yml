@@ -58,12 +58,29 @@ services:
     # command: python agents/agent-router/llm_clients/agent_b_push_configs.py
     restart: unless-stopped
 
+  # orchestrator_bot:
+  #   build: ./orchestrator
+  #   container_name: orchestrator-bot
+  #   env_file: .env
+  #   environment:
+  #     - ORCH_URL=http://agent-2:8001/deploy   # <-- add this
+  #     - PYTHONUNBUFFERED=1
+  #     - ORCHESTRATOR_BOT_NAME=${ORCHESTRATOR_BOT_NAME:-agent}
+  #   volumes:
+  #     - ./agents:/app/agents
+  #     - ./shared:/app/shared
+  #     - ./doo:/app/doo
+  #   depends_on:
+  #     - agent_2
+  #   command: ["python","-u","slack_bot.py"]
+  #   restart: unless-stopped
+
   orchestrator_bot:
     build: ./orchestrator
     container_name: orchestrator-bot
     env_file: .env
     environment:
-      - ORCH_URL=http://agent-2:8001/deploy   # <-- add this
+      - ORCH_URL=http://agent-2:8001/deploy
       - PYTHONUNBUFFERED=1
       - ORCHESTRATOR_BOT_NAME=${ORCHESTRATOR_BOT_NAME:-agent}
     volumes:
@@ -72,10 +89,10 @@ services:
       - ./doo:/app/doo
     depends_on:
       - agent_2
-    command: ["python","-u","slack_bot.py"]
+    ports:
+      - "8099:8099"        # <— NEW: expose orchestrator HTTP
+    command: ["python","-u","run_orchestrator.py"]  # <— instead of slack_bot.py
     restart: unless-stopped
-
-      # - AGENT2_URL=${AGENT2_URL:-http://agent_2:8001}
 
   agent_3:
     build: .
@@ -159,6 +176,7 @@ services:
     environment:
       PYTHONPATH: /app:/app/shared
       REPO_ROOT: ${DOO_DIR}
+      ORCH_CALLBACK_URL: http://orchestrator-bot:8099/agent8/callback   # callback to orchestrator
     volumes:
       - ./:/app
     ports: ["8008:8008"]
