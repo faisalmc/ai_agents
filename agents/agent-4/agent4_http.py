@@ -29,7 +29,7 @@ class CaptureOnlyReq(BaseModel):
     config_dir: str
     task_id: str
     overlay_ini_relpath: str | None = None   # e.g., "show_cmds.agent7.ini" relative to the task folder
-    out_subdir: str = "agent7"
+    out_subdir: str = "agent8"
     devices: list[str] | None = None
     no_grading_logs: bool = True
 

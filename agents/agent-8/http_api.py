@@ -514,6 +514,23 @@ def triage_analyze_command(req: AnalyzeCommandReq):
     # Use shared helper
     cmd_output = extract_cmd_output(body, req.command)
 
+    # --- Append to session transcript for escalation ---
+    try:
+        session_log_dir = os.path.join(
+            REPO_ROOT, s["config_dir"], s["task_dir"], "agent8"
+        )
+        os.makedirs(session_log_dir, exist_ok=True)
+        transcript_path = os.path.join(session_log_dir, f"triage_session_{req.session_id}.md")
+
+        with open(transcript_path, "a", encoding="utf-8") as fh:
+            fh.write(f"\n\n### Host: {req.host} | Command: {req.command}\n")
+            fh.write(raw_output.strip() + "\n")
+        print(f"[DEBUG] Appended command output to {transcript_path}", flush=True)
+    except Exception as e:
+        print(f"[agent-8/analyze_command] WARN: could not append transcript: {e}", flush=True)
+    # ---  ---
+
+
     # extra: ensure we don’t pass an empty string
     if not cmd_output:
         cmd_output = f"(empty output for {req.command} at {md_path})"
