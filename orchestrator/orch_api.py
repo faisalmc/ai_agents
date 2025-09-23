@@ -14,7 +14,7 @@ from slack_bot import app as slack_app
 app = FastAPI(title="Orchestrator Callback API", version="0.1.0")
 
 # Reuse the WebClient the same way Slack Bolt does (same bot token)
-slack_client: WebClient = slack_app.client  # type: ignore
+slack_client: WebClient = slack_app.client 
 
 class Agent8AnalysisPayload(BaseModel):
     channel: str
@@ -35,12 +35,12 @@ def health():
 
 @app.post("/agent8/callback")
 def agent8_callback(body: Agent8AnalysisPayload):
-    # Compose the same message format you already use in slack_bot.py
+    # composing the same message format that was already used in slack_bot.py
     parts = []
     if body.preview:
         parts.append(f"*📄 Output for `{body.command}` on `{body.host}`:*\n```{body.preview}```")
     if body.analysis_pass1:
-        parts.append(f"*🟢 Pass-1 (single-step):*\n{body.analysis_pass1}")
+        parts.append(f"*🟢 Pass-1 (single-command):*\n{body.analysis_pass1}")
     if body.analysis_pass2:
         parts.append(f"*🔵 Pass-2 (with history):*\n{body.analysis_pass2}")
     if body.direction:
@@ -53,7 +53,35 @@ def agent8_callback(body: Agent8AnalysisPayload):
     text = "\n\n".join(parts) if parts else f"Analysis for `{body.command}` on `{body.host}`"
 
     try:
-        slack_client.chat_postMessage(channel=body.channel, thread_ts=body.thread_ts, text=text)
-        return {"ok": True}
+            slack_client.chat_postMessage(
+                channel=body.channel,
+                thread_ts=body.thread_ts,
+                text=text,  # still keep plain text for fallback -- adding blocks for Escalate & Close
+                blocks=[
+                    {"type": "section", "text": {"type": "mrkdwn", "text": text}},
+                    {
+                        "type": "actions",
+                        "elements": [
+                            {
+                                "type": "button",
+                                "text": {"type": "plain_text", "text": "📧 Escalate"},
+                                "style": "primary",
+                                "value": f"escalate|{body.session_id}|{body.host}|{body.command}",
+                                "action_id": "escalate_action",
+                            },
+                            {
+                                "type": "button",
+                                "text": {"type": "plain_text", "text": "✔ Close issue"},
+                                "style": "danger",
+                                "value": f"close|{body.session_id}|{body.host}",
+                                "action_id": "close_action",
+                            },
+                        ],
+                    },
+                ],
+            )
+            return {"ok": True}
+        # slack_client.chat_postMessage(channel=body.channel, thread_ts=body.thread_ts, text=text)
+        # return {"ok": True}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Slack post failed: {e}")
