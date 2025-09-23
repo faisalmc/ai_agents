@@ -522,6 +522,7 @@ def triage_analyze_command(req: AnalyzeCommandReq):
     # Use shared helper
     cmd_output = extract_cmd_output(body, req.command)
 
+    raw_output = cmd_output   # capture before LLM passes
     # --- Append to session transcript for escalation ---
     try:
         session_log_dir = os.path.join(
@@ -542,8 +543,6 @@ def triage_analyze_command(req: AnalyzeCommandReq):
     # extra: ensure we don’t pass an empty string
     if not cmd_output:
         cmd_output = f"(empty output for {req.command} at {md_path})"
-
-    raw_output = cmd_output   # capture before LLM passes
 
     # --- Debug B: after extraction
     print(f"[DEBUG] Extracted cmd_output (first 200 chars):\n{cmd_output[:200]}")
