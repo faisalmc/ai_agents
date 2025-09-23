@@ -292,6 +292,14 @@ def _agent7_plan_dir(config_dir: str, task_dir: str) -> str:
     os.makedirs(plan, exist_ok=True)
     return plan
 
+def _agent8_plan_dir(config_dir: str, task_dir: str) -> str:
+    # Reuse Agent-8 canonical layout so artifacts land in one place
+    base = os.path.join(REPO_ROOT, config_dir, task_dir, "agent8")
+    plan = os.path.join(base, "1-plan")
+    os.makedirs(plan, exist_ok=True)
+    return plan
+
+
 def _write_text(path: str, content: str) -> None:
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8") as fh:
@@ -408,7 +416,7 @@ def triage_run_shows(req: RunShowsReq):
         raise HTTPException(status_code=400, detail="no commands provided")
 
     # 1) Write per-host INI under Agent-7 plan dir (shared tree)
-    plan_dir = _agent7_plan_dir(s["config_dir"], s["task_dir"])
+    plan_dir = _agent8_plan_dir(s["config_dir"], s["task_dir"])
     ini_name = f"triage_{host_use}__{req.session_id[:8]}.ini"
     ini_path = os.path.join(plan_dir, ini_name)
     _write_text(ini_path, _mk_host_ini(host_use, req.commands or []))
@@ -426,7 +434,7 @@ def triage_run_shows(req: RunShowsReq):
                 "config_dir": s["config_dir"],
                 "task_id": s["task_dir"],
                 "overlay_ini_relpath": overlay_rel,
-                "out_subdir": "agent7/2-capture",
+                "out_subdir": "agent8/2-capture",
                 "devices": [host_use],
                 "no_grading_logs": True,
             }
