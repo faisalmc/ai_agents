@@ -507,7 +507,7 @@ def triage_analyze_command(req: AnalyzeCommandReq):
     # 1. Locate the show_log file
     md_path = os.path.join(
         REPO_ROOT, s["config_dir"], s["task_dir"],
-        "agent7", "2-capture", "show_logs", f"{req.host}.md"
+        "agent8", "2-capture", "show_logs", f"{req.host}.md"
     )
     if not os.path.isfile(md_path):
         raise HTTPException(status_code=404, detail=f"show_log not found for {req.host}")
