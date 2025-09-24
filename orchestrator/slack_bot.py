@@ -958,6 +958,8 @@ def handle_escalate(ack, body, say, logger):
     ack()
 
     try:
+        import urllib.parse
+
         # Extract channel + thread
         channel = body.get("container", {}).get("channel_id") or body.get("channel", {}).get("id")
         thread_ts = body.get("container", {}).get("message_ts") or body.get("message", {}).get("ts")
@@ -975,21 +977,29 @@ def handle_escalate(ack, body, say, logger):
         host       = payload.get("host", "")
         session_id = payload.get("session_id", "")
 
-        # Build mailto link
+        # --- Build email subject + body (URL-encoded) ---
         subject = f"Escalation - {task_id} - {host}"
-        body_txt = (
-            f"Escalation Report%0D%0A%0D%0A"
-            f"Config: {config_dir}%0D%0A"
-            f"Task: {task_id}%0D%0A"
-            f"Host: {host}%0D%0A"
-            f"Session: {session_id}%0D%0A%0D%0A"
-            f"Slack thread: https://slack.com/app_redirect?channel={channel}&message_ts={thread_ts}%0D%0A%0D%0A"
-            f"Summary: Triage session requires L3 investigation. "
-            f"Full CLI outputs are available in the attached Slack thread."
-        )
-        mailto_url = f"mailto:?subject={subject}&body={body_txt}"
+        body_lines = [
+            "Escalation Report",
+            "",
+            f"Config: {config_dir}",
+            f"Task: {task_id}",
+            f"Host: {host}",
+            f"Session: {session_id}",
+            "",
+            f"Slack thread: https://slack.com/app_redirect?channel={channel}&message_ts={thread_ts}",
+            "",
+            "Summary: Triage session requires L3 investigation.",
+            "Full CLI outputs are available in the attached Slack thread."
+        ]
+        body_txt = "\n".join(body_lines)
 
-        # Post back to thread
+        subject_enc = urllib.parse.quote(subject)
+        body_enc = urllib.parse.quote(body_txt)
+
+        mailto_url = f"mailto:?subject={subject_enc}&body={body_enc}"
+
+        # --- Post back to Slack thread with clickable link ---
         say(
             channel=channel,
             thread_ts=thread_ts,
@@ -1000,9 +1010,6 @@ def handle_escalate(ack, body, say, logger):
         logger.error(f"agent8_escalate error: {e}")
         say(channel=channel, thread_ts=thread_ts,
             text=f"⚠️ Escalation failed: {e}")
-
-
-
 
 
 # Optional: silence generic "message" events
