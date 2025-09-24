@@ -948,18 +948,24 @@ def handle_start_triage(ack, body, say, logger):
              f"_Tip:_ reply in this thread: `@{BOT_NAME} triage <what you’re seeing>`")
     
 
+
+# Optional: silence generic "message" events
+@app.event("message")
+def ignore_plain_messages(body, logger):
+    pass
+
+
 # -------- NEW: Escalate button --------
 @app.action("agent8_escalate")
 def handle_escalate(ack, body, say, logger):
     """
     Handle Escalate button → posts a mailto: link into the thread.
-    This does not send email directly; it opens the user's local mail client.
+    This does not send email directly; it opens the user's local mail client
+    when they click the link in Slack.
     """
     ack()
 
     try:
-        import urllib.parse
-
         # Extract channel + thread
         channel = body.get("container", {}).get("channel_id") or body.get("channel", {}).get("id")
         thread_ts = body.get("container", {}).get("message_ts") or body.get("message", {}).get("ts")
@@ -977,45 +983,35 @@ def handle_escalate(ack, body, say, logger):
         host       = payload.get("host", "")
         session_id = payload.get("session_id", "")
 
-        # --- Build email subject + body (URL-encoded) ---
+        # --- Build mailto link ---
         subject = f"Escalation - {task_id} - {host}"
-        body_lines = [
-            "Escalation Report",
-            "",
-            f"Config: {config_dir}",
-            f"Task: {task_id}",
-            f"Host: {host}",
-            f"Session: {session_id}",
-            "",
-            f"Slack thread: https://slack.com/app_redirect?channel={channel}&message_ts={thread_ts}",
-            "",
-            "Summary: Triage session requires L3 investigation.",
-            "Full CLI outputs are available in the attached Slack thread."
-        ]
-        body_txt = "\n".join(body_lines)
+        body_txt = (
+            f"Escalation Report%0D%0A%0D%0A"
+            f"Config: {config_dir}%0D%0A"
+            f"Task: {task_id}%0D%0A"
+            f"Host: {host}%0D%0A"
+            f"Session: {session_id}%0D%0A%0D%0A"
+            f"Slack thread: https://slack.com/app_redirect?channel={channel}&message_ts={thread_ts}%0D%0A%0D%0A"
+            f"Summary: Triage session requires L3 investigation. "
+            f"Full CLI outputs are available in the attached Slack thread."
+        )
+        mailto_url = f"mailto:?subject={subject}&body={body_txt}"
 
-        subject_enc = urllib.parse.quote(subject)
-        body_enc = urllib.parse.quote(body_txt)
-
-        mailto_url = f"mailto:?subject={subject_enc}&body={body_enc}"
-
-        # --- Post back to Slack thread with clickable link ---
+        # --- Post back to thread with a clean link ---
         say(
             channel=channel,
             thread_ts=thread_ts,
-            text=f"📧 Click to escalate via email:\n<{mailto_url}|Open mail draft>"
+            text=(
+                "📧 Escalate this issue:\n"
+                f"<{mailto_url}|Open email draft>"
+            )
         )
 
     except Exception as e:
         logger.error(f"agent8_escalate error: {e}")
         say(channel=channel, thread_ts=thread_ts,
             text=f"⚠️ Escalation failed: {e}")
-
-
-# Optional: silence generic "message" events
-@app.event("message")
-def ignore_plain_messages(body, logger):
-    pass
+        
 
 if __name__ == "__main__":
     print("[DEBUG] Orchestrator Slack bot starting...")
