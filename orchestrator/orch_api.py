@@ -67,7 +67,7 @@ def agent8_callback(body: Agent8AnalysisPayload):
                                 "text": {"type": "plain_text", "text": "📧 Escalate"},
                                 "style": "primary",
                                 "value": f"escalate|{body.session_id}|{body.host}|{body.command}",
-                                "action_id": "escalate_action",
+                                "action_id": "agent8_escalate",
                             },
                             {
                                 "type": "button",
