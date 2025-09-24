@@ -23,6 +23,9 @@ from agent8_client import analyze_command
 
 # shared/helpers.py
 from shared.helpers import extract_cmd_output   
+# for email / Escalate
+from urllib.parse import quote
+
 
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
 SLACK_APP_TOKEN = os.environ["SLACK_APP_TOKEN"]
