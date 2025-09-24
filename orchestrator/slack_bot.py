@@ -958,86 +958,104 @@ def ignore_plain_messages(body, logger):
     pass
 
 
-# -------- NEW: Escalate button (opens local mail client) --------
+# -------- NEW: Escalate button --------
 @app.action("agent8_escalate")
-def handle_escalate(ack, body, client, say, logger):
+def handle_escalate(ack, body, say, logger):
     """
-    Posts a properly URL-encoded mailto: link that opens the user's default
-    mail client with subject/body prefilled. We include a recipient because
-    many Slack clients ignore mailto:?subject=... with no 'to' address.
+    Handle Escalate button → post a proper mailto: button + context into the thread.
+    This does NOT send email; Slack opens the user's default mail client with
+    subject/body prefilled.
     """
     ack()
+    from urllib.parse import quote
+
+    # Optional: who receives the escalation. Set ESCALATE_TO env (comma-separated allowed).
+    # Fallback keeps a sensible default so the mail client definitely opens.
+    ESCALATE_TO = os.getenv("ESCALATE_TO", "noc@example.com").strip() or "noc@example.com"
 
     try:
-        # Channel / thread
-        channel = body.get("container", {}).get("channel_id") or body.get("channel", {}).get("id")
-        thread_ts = body.get("container", {}).get("message_ts") or body.get("message", {}).get("ts")
+        # --- Locate channel / thread ---
+        channel   = body.get("container", {}).get("channel_id") or body.get("channel", {}).get("id") or ""
+        thread_ts = body.get("container", {}).get("message_ts") or body.get("message", {}).get("ts") or ""
 
-        # Button value payload
+        # --- Parse button payload (may be empty in current posts) ---
         payload = {}
         try:
-            val = (body.get("actions") or [{}])[0].get("value") or "{}"
-            payload = json.loads(val)
+            payload = json.loads((body.get("actions") or [{}])[0].get("value") or "{}")
         except Exception:
-            pass
+            payload = {}
 
-        config_dir = payload.get("config_dir", "")
-        task_id    = payload.get("task_dir", "")
-        host       = payload.get("host", "")
-        session_id = payload.get("session_id", "")
+        # --- Fill missing fields from orchestrator memory for this thread ---
+        ctx        = _A8_CTX_BY_THREAD.get(thread_ts, {}) if thread_ts else {}
+        config_dir = payload.get("config_dir") or ctx.get("config_dir") or ""
+        task_id    = payload.get("task_dir")  or ctx.get("task_id")  or ""
+        host       = payload.get("host")      or ctx.get("host")      or _SELECTED_TRIAGE_HOST.get(thread_ts, "")
+        session_id = payload.get("session_id") or _A8_SESSION_BY_THREAD.get(thread_ts, "")
 
-        # Who to email (DL or fallback). You can set ESCALATION_TO in env, comma-separated.
-        to_addr = os.getenv("ESCALATION_TO", "").strip()
-        if not to_addr:
-            # RFC-safe placeholder so Slack treats mailto as valid
-            to_addr = "undisclosed-recipients:;"
+        # --- Build subject + body (plain text, then URL-encode) ---
+        subject = f"Escalation - {task_id or 'task'} - {host or 'host'}"
+        body_lines = [
+            "Escalation Report",
+            "",
+            f"Config: {config_dir}",
+            f"Task: {task_id}",
+            f"Host: {host}",
+            f"Session: {session_id}",
+            "",
+            f"Slack thread: https://slack.com/app_redirect?channel={channel}&message_ts={thread_ts}",
+            "",
+            "Summary: Triage session requires L3 investigation. Full CLI outputs are available in the attached Slack thread.",
+        ]
+        body_txt = "\n".join(body_lines)
 
-        # Slack thread deep link
-        thread_link = f"https://slack.com/app_redirect?channel={channel}&message_ts={thread_ts}"
-
-        # Subject/body (plain text), then URL-encode
-        subject_plain = f"Escalation - {task_id} - {host}"
-        body_plain = (
-            "Escalation Report\r\n\r\n"
-            f"Config: {config_dir}\r\n"
-            f"Task: {task_id}\r\n"
-            f"Host: {host}\r\n"
-            f"Session: {session_id}\r\n\r\n"
-            f"Slack thread: {thread_link}\r\n\r\n"
-            "Summary: Triage session requires L3 investigation. "
-            "Full CLI outputs are available in the attached Slack thread."
+        mailto_url = (
+            f"mailto:{quote(ESCALATE_TO)}"
+            f"?subject={quote(subject)}"
+            f"&body={quote(body_txt)}"
         )
 
-        subject_enc = quote(subject_plain, safe="")
-        body_enc    = quote(body_plain,    safe="")
-
-        mailto_url = f"mailto:{to_addr}?subject={subject_enc}&body={body_enc}"
-
-        # Post a clean, clickable link using blocks (mrkdwn supports <url|label>)
+        # --- Post a proper button with the mailto: URL + a small context footer ---
         blocks = [
-            {"type": "section",
-             "text": {"type": "mrkdwn", "text": "📧 *Escalate this issue*"}},
-            {"type": "section",
-             "text": {"type": "mrkdwn", "text": f"<{mailto_url}|Open email draft>"}},
-            {"type": "context",
-             "elements": [
-                 {"type": "mrkdwn",
-                  "text": f"*Config:* `{config_dir}` • *Task:* `{task_id}` • *Host:* `{host}`"}]
-            }
+            {
+                "type": "section",
+                "text": {"type": "mrkdwn", "text": "*✉️ Escalate this issue*"},
+            },
+            {
+                "type": "actions",
+                "elements": [
+                    {
+                        "type": "button",
+                        "text": {"type": "plain_text", "text": "Open email draft"},
+                        "style": "primary",
+                        "url": mailto_url,              # ← Slack opens default mail client
+                    },
+                ],
+            },
+            {
+                "type": "context",
+                "elements": [
+                    {"type": "mrkdwn", "text": f"Config: `{config_dir}` • Task: `{task_id}` • Host: `{host}`"},
+                ],
+            },
         ]
 
-        client.chat_postMessage(channel=channel, thread_ts=thread_ts,
-                                text="Escalate this issue", blocks=blocks)
+        # Also include text fallback (for clients that don’t render blocks)
+        text_fallback = f"Escalate this issue → {mailto_url}"
+
+        say(channel=channel, thread_ts=thread_ts, text=text_fallback, blocks=blocks)
+
+        # Debug log (helps if something still shows empty)
+        logger.info(
+            f"[agent8_escalate] cfg={config_dir} task={task_id} host={host} "
+            f"sess={session_id} mailto={mailto_url}"
+        )
 
     except Exception as e:
         logger.error(f"agent8_escalate error: {e}")
-        # Best-effort fallback text
         try:
-            say(channel=channel, thread_ts=thread_ts,
-                text=f"⚠️ Escalation failed: {e}")
+            say(channel=channel, thread_ts=thread_ts, text=f"⚠️ Escalation failed: {e}")
         except Exception:
             pass
-
 
 if __name__ == "__main__":
     print("[DEBUG] Orchestrator Slack bot starting...")
