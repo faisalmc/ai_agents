@@ -2,7 +2,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
-import os
+import os, json
 
 # We’ll reuse Slack client that slack_bolt already uses via the App
 from slack_bolt import App
@@ -22,6 +22,8 @@ class Agent8AnalysisPayload(BaseModel):
     session_id: str
     host: str
     command: str
+    config_dir: Optional[str] = None
+    task_id: Optional[str] = None
     preview: Optional[str] = None
     analysis_pass1: Optional[str] = None
     analysis_pass2: Optional[str] = None
@@ -52,36 +54,44 @@ def agent8_callback(body: Agent8AnalysisPayload):
 
     text = "\n\n".join(parts) if parts else f"Analysis for `{body.command}` on `{body.host}`"
 
+    # Single JSON blob we’ll hand to Slack actions (Escalate / Close)
+    btn_value = json.dumps({
+        "config_dir": body.config_dir or "",
+        "task_dir": body.task_id or "",
+        "host": body.host or "",
+        "session_id": body.session_id or "",
+        "channel": body.channel,
+        "thread_ts": body.thread_ts,
+    })
+
     try:
-            slack_client.chat_postMessage(
-                channel=body.channel,
-                thread_ts=body.thread_ts,
-                text=text,  # still keep plain text for fallback -- adding blocks for Escalate & Close
-                blocks=[
-                    {"type": "section", "text": {"type": "mrkdwn", "text": text}},
-                    {
-                        "type": "actions",
-                        "elements": [
-                            {
-                                "type": "button",
-                                "text": {"type": "plain_text", "text": "📧 Escalate"},
-                                "style": "primary",
-                                "value": f"escalate|{body.session_id}|{body.host}|{body.command}",
-                                "action_id": "agent8_escalate",
-                            },
-                            {
-                                "type": "button",
-                                "text": {"type": "plain_text", "text": "✔ Close issue"},
-                                "style": "danger",
-                                "value": f"close|{body.session_id}|{body.host}",
-                                "action_id": "close_action",
-                            },
-                        ],
-                    },
-                ],
-            )
-            return {"ok": True}
-        # slack_client.chat_postMessage(channel=body.channel, thread_ts=body.thread_ts, text=text)
-        # return {"ok": True}
+        slack_client.chat_postMessage(
+            channel=body.channel,
+            thread_ts=body.thread_ts,
+            text=text,  # fallback text
+            blocks=[
+                {"type": "section", "text": {"type": "mrkdwn", "text": text}},
+                {
+                    "type": "actions",
+                    "elements": [
+                        {
+                            "type": "button",
+                            "text": {"type": "plain_text", "text": "📧 Escalate"},
+                            "style": "primary",
+                            "value": btn_value,
+                            "action_id": "agent8_escalate",
+                        },
+                        {
+                            "type": "button",
+                            "text": {"type": "plain_text", "text": "✔ Close issue"},
+                            "style": "danger",
+                            "value": btn_value,
+                            "action_id": "agent8_close_issue",
+                        },
+                    ],
+                },
+            ],
+        )
+        return {"ok": True}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Slack post failed: {e}")
