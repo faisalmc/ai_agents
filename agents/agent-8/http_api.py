@@ -601,13 +601,29 @@ def triage_analyze_command(req: AnalyzeCommandReq):
         platform = _norm_platform("iosxr")  # placeholder; later from facts
         tech = rec.get("tech", ["misc"])
 
+        # --- classify as trusted vs unvalidated ---
         if commands_trusted.is_trusted(cmd, vendor, platform):
             trusted_cmds.append(cmd)
         else:
             unvalidated_cmds.append(cmd)
 
-        # Promotion: if LLM judged the executed command as OK
-        if execution_judgment.get(req.command) == "ok" and cmd.startswith("show "):
+        # --- Promotion logic ---
+        # A command is considered successful if:
+        #   1. It has no common CLI error markers, AND
+        #   2. Its output is not empty
+        error_markers = [
+            "% Invalid input", "Unknown command",
+            "Incomplete command", "Ambiguous command"
+        ]
+        has_error = any(m in raw_output for m in error_markers)
+        ran_ok = (not has_error) and bool(raw_output.strip())
+
+        # Promote if either:
+        #   • LLM judged it ok, OR
+        #   • CLI actually ran_ok (our own check)
+        if cmd.startswith("show ") and (
+            execution_judgment.get(req.command) == "ok" or ran_ok
+        ):
             commands_trusted.promote(cmd, vendor, platform, tech)
             promoted.append(cmd)
 
@@ -632,8 +648,6 @@ def triage_analyze_command(req: AnalyzeCommandReq):
         unvalidated_commands=unvalidated_cmds,
         promoted=promoted
     )
-
-
 
 @app.post("/capture-done")
 def capture_done(req: CaptureDoneReq):
@@ -732,6 +746,7 @@ def capture_done(req: CaptureDoneReq):
                     "direction": resp.direction,
                     "trusted_commands": resp.trusted_commands,
                     "unvalidated_commands": resp.unvalidated_commands,
+                    "promoted": resp.promoted,   # <<< ADDED
                 }
                 try:
                     with httpx.Client(timeout=30.0) as cli:

@@ -30,6 +30,7 @@ class Agent8AnalysisPayload(BaseModel):
     direction: Optional[str] = None
     trusted_commands: Optional[List[str]] = None
     unvalidated_commands: Optional[List[str]] = None
+    promoted: Optional[List[str]] = None   # <<< ADDED for trusted commands
 
 @app.get("/health")
 def health():
@@ -47,10 +48,16 @@ def agent8_callback(body: Agent8AnalysisPayload):
         parts.append(f"*🔵 Pass-2 (with history):*\n{body.analysis_pass2}")
     if body.direction:
         parts.append(f"*Direction:* {body.direction}")
+    # if body.trusted_commands:
+    #     parts.append("*Trusted commands:* " + ", ".join(f"`{c}`" for c in body.trusted_commands))
+    # if body.unvalidated_commands:
+    #     parts.append("*Unvalidated commands:* " + ", ".join(f"`{c}`" for c in body.unvalidated_commands))
     if body.trusted_commands:
         parts.append("*Trusted commands:* " + ", ".join(f"`{c}`" for c in body.trusted_commands))
     if body.unvalidated_commands:
         parts.append("*Unvalidated commands:* " + ", ".join(f"`{c}`" for c in body.unvalidated_commands))
+    if hasattr(body, "promoted") and body.promoted:   # <<< NEW
+        parts.append("*Promoted to trusted (just ran ok):* " + ", ".join(f"`{c}`" for c in body.promoted))
 
     text = "\n\n".join(parts) if parts else f"Analysis for `{body.command}` on `{body.host}`"
 

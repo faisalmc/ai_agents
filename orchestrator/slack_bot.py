@@ -135,6 +135,7 @@ def _watch_and_analyze(say, pchan: str, pthr: str,
                 direction = res.get("direction") or ""
                 trusted = res.get("trusted_commands") or []
                 unvalidated = res.get("unvalidated_commands") or []
+                promoted = res.get("promoted") or []   # <<< ADDED for trusted/unvalidated commands
 
                 # Build Slack text
                 out = []
@@ -150,6 +151,8 @@ def _watch_and_analyze(say, pchan: str, pthr: str,
                     out.append(f"*Trusted commands:* " + ", ".join(f"`{c}`" for c in trusted))
                 if unvalidated:
                     out.append(f"*Unvalidated commands:* " + ", ".join(f"`{c}`" for c in unvalidated))
+                if promoted:   # <<< ADDED for trusted/unvalidated commands
+                    out.append("*Promoted to trusted (just ran ok):* " + ", ".join(f"`{c}`" for c in promoted))
 
                 say(channel=pchan, thread_ts=pthr, text="\n\n".join(out))
 
