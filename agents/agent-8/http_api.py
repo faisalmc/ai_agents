@@ -662,8 +662,13 @@ def capture_done(req: CaptureDoneReq):
     Agent-8 will immediately kick off triage/analyze for each device,
     then post results back to Orchestrator if ORCH_CALLBACK_URL is set.
     """
+    # Debug: check callback URL
+    print(f"[agent-8:/capture-done] START — ORCH_CALLBACK_URL={ORCH_CALLBACK_URL}", flush=True)
+    if not ORCH_CALLBACK_URL:
+        print("[agent-8:/capture-done] ERROR: ORCH_CALLBACK_URL is not set!", flush=True)
+        return {"ok": False, "error": "ORCH_CALLBACK_URL not set"}
+
     # Try to locate the session
-    print(f"[agent-8: START of /capture-done] ")
     session = None
     session_id = None
     for sid, s in list(_SESS.items()):
