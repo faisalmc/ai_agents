@@ -747,12 +747,12 @@ def capture_done(req: CaptureDoneReq):
 
     # Analyze and post each command
     for cmd in lines:
-        print(f"\n\n-----[triage_analyze_command] in [def capture_done]-----\n\n\----\n", flush=True)
+        print(f"\n\n-----[triage_analyze_command] in [def capture_done]-----\n\\n\----\n", flush=True)
         try:
             resp = triage_analyze_command(
                 AnalyzeCommandReq(session_id=session_id, host=host, command=cmd)
             )
-            print(f"\n----# Analyze and post each command:--\n----{ORCH_CALLBACK_URL}/agent8/callback\n\n")
+            print(f"\n\n\n----# Analyze and post each command:--\n----{ORCH_CALLBACK_URL}/agent8/callback\n\n")
 
             result = {
                 "command": cmd,
@@ -787,6 +787,7 @@ def capture_done(req: CaptureDoneReq):
         except Exception as e:
             results.append({"command": cmd, "error": str(e)})
 
+    print(f"\n\n-----end of [def capture_done]-----\n\n\----\n", flush=True)
     return {"ok": True, "results": results}
 
 # ---- Local dev ----
