@@ -671,8 +671,13 @@ def capture_done(req: CaptureDoneReq):
     # Try to locate the session
     session = None
     session_id = None
+
     for sid, s in list(_SESS.items()):
-        if s.get("config_dir") == req.config_dir and s.get("task_dir") == req.task_id:
+        if s.get("config_dir") != req.config_dir:
+            continue
+        task_val = s.get("task_dir")
+        # accept either "task_id" or "task_dir" from request
+        if task_val == getattr(req, "task_id", None) or task_val == getattr(req, "task_dir", None):
             session = s
             session_id = sid
             break
