@@ -787,7 +787,7 @@ def capture_done(req: CaptureDoneReq):
         except Exception as e:
             results.append({"command": cmd, "error": str(e)})
 
-    print(f"\n\n-----end of [def capture_done]-----\n\n\----\n", flush=True)
+    print(f"\n\n-----end of [def capture_done]-----\n\--- \n"results": {results}n\----\n", flush=True)
     return {"ok": True, "results": results}
 
 # ---- Local dev ----
