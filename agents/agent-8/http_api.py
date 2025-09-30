@@ -749,6 +749,7 @@ def capture_done(req: CaptureDoneReq):
             resp = triage_analyze_command(
                 AnalyzeCommandReq(session_id=session_id, host=host, command=cmd)
             )
+            print(f"\n----# Analyze and post each command:--\n----{ORCH_CALLBACK_URL}/agent8/callback\n\n")
 
             result = {
                 "command": cmd,
@@ -771,6 +772,7 @@ def capture_done(req: CaptureDoneReq):
                     "unvalidated_commands": resp.unvalidated_commands,
                     "promoted": resp.promoted,   # <<< ADDED
                 }
+                print(f"\n----if ORCH_CALLBACK_URL:--\n----{ORCH_CALLBACK_URL}/agent8/callback\n\n")
                 try:
                     with httpx.Client(timeout=30.0) as cli:
                         r = cli.post(f"{ORCH_CALLBACK_URL}/agent8/callback", json=payload)
