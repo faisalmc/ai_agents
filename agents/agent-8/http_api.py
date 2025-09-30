@@ -681,7 +681,6 @@ def capture_done(req: CaptureDoneReq):
         return {"ok": False, "error": "session host missing"}
 
     results = []
-    ORCH_CALLBACK_URL = os.getenv("ORCH_CALLBACK_URL")
 
     # If Agent-4 already flagged an error, skip analysis and forward it
     if getattr(req, "status", "done") != "done":
