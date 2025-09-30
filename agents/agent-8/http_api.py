@@ -618,10 +618,9 @@ def triage_analyze_command(req: AnalyzeCommandReq):
         tech = rec.get("tech", ["misc"])[0]
 
         trust_val = commands_trusted.is_trusted(cmd, vendor, platform)
-        print(f"[DEBUG:triage] is_trusted({cmd}, {vendor}, {platform}) returned {trust_val} ({type(trust_val)})", flush=True)
-        
-        ok, _ = commands_trusted.is_trusted(cmd, vendor, platform)
-        if ok:
+        print(f"[DEBUG:triage] is_trusted({cmd}, {vendor}, {platform}) → {trust_val} ({type(trust_val)})", flush=True)
+
+        if trust_val:
             trusted_cmds.append(cmd)
         else:
             unvalidated_cmds.append(cmd)
