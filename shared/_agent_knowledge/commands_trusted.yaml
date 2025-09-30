@@ -20,5 +20,15 @@ cisco:
       - "show interface status"
     routing:
       - "show ip route summary vrf all"
-# Add other vendors/platforms incrementally via promotion (not by hand).
+  iosxr:
+    bgp:
+      - "show bgp summary"
+      - "show bgp neighbors"
+    interfaces:
+      - "show interfaces"
+      - "show ipv4 interface brief"
+    routing:
+      - "show route"
+      - "show route summary"
 
+# Add other vendors/platforms incrementally via promotion (not by hand).
