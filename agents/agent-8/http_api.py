@@ -663,6 +663,7 @@ def capture_done(req: CaptureDoneReq):
     then post results back to Orchestrator if ORCH_CALLBACK_URL is set.
     """
     # Try to locate the session
+    print(f"[agent-8: START of /capture-done] ")
     session = None
     session_id = None
     for sid, s in list(_SESS.items()):
