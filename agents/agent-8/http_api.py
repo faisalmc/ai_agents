@@ -703,13 +703,20 @@ def capture_done(req: CaptureDoneReq):
                     "unvalidated_commands": [],
                     "preview": f"Capture error: {err_msg}",
                 }
-                with httpx.Client(timeout=30.0) as cli:
-                    r = cli.post(f"{ORCH_CALLBACK_URL}/agent8/callback", json=payload)
-                r.raise_for_status()
-                print("[agent-8:/capture-done] Posted capture error to Orchestrator", flush=True)
-            except Exception as e:
-                print(f"[agent-8:/capture-done] WARN: failed to post error to Orchestrator: {e}", flush=True)
 
+                print(f"[DEBUG] capture_done → posting payload to {ORCH_CALLBACK_URL}/agent8/callback", flush=True)
+                print(f"[DEBUG] Payload keys = {list(payload.keys())}", flush=True)
+
+                try:
+                    with httpx.Client(timeout=30.0) as cli:
+                        r = cli.post(f"{ORCH_CALLBACK_URL}/agent8/callback", json=payload)
+                    print(f"[DEBUG] HTTP status = {r.status_code}", flush=True)
+                    print(f"[DEBUG] HTTP response text = {r.text[:200]}", flush=True)
+                    r.raise_for_status()
+                    print(f"[agent-8:/capture-done] Posted analysis for {cmd} to Orchestrator", flush=True)
+                except Exception as e:
+                    print(f"[agent-8:/capture-done] ERROR posting to Orchestrator: {e}", flush=True)
+                    
         return {"ok": False, "error": err_msg, "results": results}
 
     # Path to captured .md file
