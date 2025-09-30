@@ -516,6 +516,8 @@ def triage_analyze_command(req: AnalyzeCommandReq):
     Read the captured show_log for a single command, run LLM analysis,
     decide trusted vs unvalidated follow-ups, and update history.
     """
+    print(f"\n----# def triage/analyze_command:--\n----")
+
     s = _require_session(req.session_id)
 
     # 1. Locate the show_log file
