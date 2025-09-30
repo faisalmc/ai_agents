@@ -355,23 +355,37 @@ def triage_start(req: StartReq):
 @app.post("/triage/ingest", response_model=IngestResp)
 def triage_ingest(req: IngestReq):
     """
-    Accept free-text, return structured suggestions from trusted AK.
+    Accept free-text, return structured suggestions from LLM + trusted AK.
     """
     s = _require_session(req.session_id)
     s["history"].append({"role": "user", "text": req.user_text, "ts": _now()})
 
-    # (Optional) you could attach vendor/platform hints later from facts
     vendor_hint = None
     platform_hint = None
 
+    proposed: List[ProposedCmd] = []
+
+    # --- Step 1: ask LLM for suggestions ---
+    try:
+        llm_resp = triage_llm.triage_llm_propose(
+            user_text=req.user_text,
+            vendor=vendor_hint,
+            platform=platform_hint
+        )
+        for rec in llm_resp.get("recommended", []):
+            cmd = rec.get("command", "").strip()
+            if cmd:
+                proposed.append(ProposedCmd(command=cmd, source="llm", trust_hint="low"))
+    except Exception as e:
+        print(f"[agent-8/triage_ingest] WARN: LLM propose failed: {e}", flush=True)
+
+    # --- Step 2: also pull from KB/YAML ---
     picks = _select_trusted_by_text(req.user_text, vendor_hint, platform_hint, limit=4)
-    proposed: List[ProposedCmd] = [
-        ProposedCmd(command=p["command"], source="kb", trust_hint="high") for p in picks
-    ]
+    for p in picks:
+        proposed.append(ProposedCmd(command=p["command"], source="kb", trust_hint="high"))
 
     guidance = "Here are safe commands based on what you described. You can run them or type a custom command."
 
-    # Log proposal into trial history (no success/parse yet)
     _append_trial_event(
         s["config_dir"], s["task_dir"],
         {
@@ -382,7 +396,7 @@ def triage_ingest(req: IngestReq):
             "platform": platform_hint,
             "user_text": req.user_text,
             "proposed": [pc.command for pc in proposed],
-            "source": "kb",
+            "source": "llm+kb",
             "type": "proposal"
         }
     )
@@ -597,32 +611,24 @@ def triage_analyze_command(req: AnalyzeCommandReq):
         cmd = rec.get("command", "").strip()
         if not cmd:
             continue
-        vendor = _norm_vendor("cisco")      # placeholder; later from facts
-        platform = _norm_platform("iosxr")  # placeholder; later from facts
-        tech = rec.get("tech", ["misc"])
+        vendor = _norm_vendor("cisco")
+        platform = _norm_platform("iosxr")
+        tech = rec.get("tech", ["misc"])[0]
 
-        # --- classify as trusted vs unvalidated ---
-        if commands_trusted.is_trusted(cmd, vendor, platform):
+        ok, _ = commands_trusted.is_trusted(cmd, vendor, platform)
+        if ok:
             trusted_cmds.append(cmd)
         else:
             unvalidated_cmds.append(cmd)
 
-        # --- Promotion logic ---
-        # A command is considered successful if:
-        #   1. It has no common CLI error markers, AND
-        #   2. Its output is not empty
-        error_markers = [
-            "% Invalid input", "Unknown command",
-            "Incomplete command", "Ambiguous command"
-        ]
+        # --- Promotion check for THIS cmd ---
+        error_markers = ["% Invalid input", "Unknown command",
+                         "Incomplete command", "Ambiguous command"]
         has_error = any(m in raw_output for m in error_markers)
         ran_ok = (not has_error) and bool(raw_output.strip())
 
-        # Promote if either:
-        #   • LLM judged it ok, OR
-        #   • CLI actually ran_ok (our own check)
         if cmd.startswith("show ") and (
-            execution_judgment.get(req.command) == "ok" or ran_ok
+            rec.get("judgment") == "ok" or ran_ok
         ):
             commands_trusted.promote(cmd, vendor, platform, tech)
             promoted.append(cmd)
