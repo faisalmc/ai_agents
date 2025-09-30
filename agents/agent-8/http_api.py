@@ -689,34 +689,34 @@ def capture_done(req: CaptureDoneReq):
         results.append({"command": None, "error": err_msg})
 
         if ORCH_CALLBACK_URL:
+            payload = {
+                "channel": session.get("channel"),
+                "thread_ts": session.get("thread_ts"),
+                "session_id": session_id,
+                "host": host,
+                "command": None,
+                "analysis_pass1": None,
+                "analysis_pass2": None,
+                "direction": None,
+                "trusted_commands": [],
+                "unvalidated_commands": [],
+                "preview": f"Capture error: {err_msg}",
+            }
+
+            print(f"[DEBUG] capture_done → posting payload to {ORCH_CALLBACK_URL}/agent8/callback", flush=True)
+            print(f"[DEBUG] Payload keys = {list(payload.keys())}", flush=True)
+
             try:
-                payload = {
-                    "channel": session.get("channel"),
-                    "thread_ts": session.get("thread_ts"),
-                    "session_id": session_id,
-                    "host": host,
-                    "command": None,
-                    "analysis_pass1": None,
-                    "analysis_pass2": None,
-                    "direction": None,
-                    "trusted_commands": [],
-                    "unvalidated_commands": [],
-                    "preview": f"Capture error: {err_msg}",
-                }
+                with httpx.Client(timeout=30.0) as cli:
+                    r = cli.post(f"{ORCH_CALLBACK_URL}/agent8/callback", json=payload)
+                print(f"[DEBUG] HTTP status = {r.status_code}", flush=True)
+                print(f"[DEBUG] HTTP response text = {r.text[:200]}", flush=True)
+                r.raise_for_status()
+                print(f"[agent-8:/capture-done] Posted capture error to Orchestrator", flush=True)
+            except Exception as e:
+                print(f"[agent-8:/capture-done] ERROR posting to Orchestrator: {e}", flush=True)
 
-                print(f"[DEBUG] capture_done → posting payload to {ORCH_CALLBACK_URL}/agent8/callback", flush=True)
-                print(f"[DEBUG] Payload keys = {list(payload.keys())}", flush=True)
-
-                try:
-                    with httpx.Client(timeout=30.0) as cli:
-                        r = cli.post(f"{ORCH_CALLBACK_URL}/agent8/callback", json=payload)
-                    print(f"[DEBUG] HTTP status = {r.status_code}", flush=True)
-                    print(f"[DEBUG] HTTP response text = {r.text[:200]}", flush=True)
-                    r.raise_for_status()
-                    print(f"[agent-8:/capture-done] Posted analysis for {cmd} to Orchestrator", flush=True)
-                except Exception as e:
-                    print(f"[agent-8:/capture-done] ERROR posting to Orchestrator: {e}", flush=True)
-                    
+        # <<< must be at this level, not inside inner try
         return {"ok": False, "error": err_msg, "results": results}
 
     # Path to captured .md file
@@ -764,8 +764,8 @@ def capture_done(req: CaptureDoneReq):
                 try:
                     with httpx.Client(timeout=30.0) as cli:
                         r = cli.post(f"{ORCH_CALLBACK_URL}/agent8/callback", json=payload)
+                    print(f"[DEBUG] Posted analysis payload for {cmd} (HTTP {r.status_code})", flush=True)
                     r.raise_for_status()
-                    print(f"[agent-8:/capture-done] Posted analysis for {cmd} to Orchestrator", flush=True)
                 except Exception as e:
                     print(f"[agent-8:/capture-done] WARN: failed to post to Orchestrator: {e}", flush=True)
 
