@@ -747,6 +747,7 @@ def capture_done(req: CaptureDoneReq):
 
     # Analyze and post each command
     for cmd in lines:
+        print(f"\n\n-----[triage_analyze_command] in [def capture_done]-----\n\n\----\n", flush=True)
         try:
             resp = triage_analyze_command(
                 AnalyzeCommandReq(session_id=session_id, host=host, command=cmd)
