@@ -80,9 +80,10 @@ def is_trusted(cmd: str, vendor: str, platform: str,
     for cmds in buckets.values():
         for c in (cmds or []):
             if normalize_command(c) == needle:
+                print(f"[DEBUG:is_trusted] vendor={v}, platform={p}, cmd={needle} → returning True", flush=True)
                 return True
+    print(f"[DEBUG:is_trusted] vendor={v}, platform={p}, cmd={needle} → returning False", flush=True)
     return False
-
 
 # -------- mutations --------
 def promote(cmd: str, vendor: str, platform: str, tech: Union[str, List[str], None],

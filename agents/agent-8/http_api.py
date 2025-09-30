@@ -617,6 +617,9 @@ def triage_analyze_command(req: AnalyzeCommandReq):
         platform = _norm_platform("iosxr")
         tech = rec.get("tech", ["misc"])[0]
 
+        trust_val = commands_trusted.is_trusted(cmd, vendor, platform)
+        print(f"[DEBUG:triage] is_trusted({cmd}, {vendor}, {platform}) returned {trust_val} ({type(trust_val)})", flush=True)
+        
         ok, _ = commands_trusted.is_trusted(cmd, vendor, platform)
         if ok:
             trusted_cmds.append(cmd)
