@@ -608,7 +608,7 @@ def triage_analyze_command(req: AnalyzeCommandReq):
 
     trusted_cmds, unvalidated_cmds, promoted = [], [], []
 
-    # 3. Bucket recommended commands (NO promotion here)
+    # 3. Bucket recommended commands (from Pass-2, no promotion here)
     for rec in recommended:
         cmd = (rec.get("command") or "").strip()
         if not cmd:
@@ -616,7 +616,7 @@ def triage_analyze_command(req: AnalyzeCommandReq):
 
         vendor = _norm_vendor("cisco")
         platform = _norm_platform("iosxr")
-        tech = commands_trusted.norm_tech(rec.get("tech"))  # safe string/list handling
+        tech = commands_trusted.norm_tech(rec.get("tech"))
 
         trust_val = commands_trusted.is_trusted(cmd, vendor, platform)
         print(f"[DEBUG:triage] is_trusted({cmd}, {vendor}, {platform}) → {trust_val} ({type(trust_val)})", flush=True)
@@ -626,19 +626,26 @@ def triage_analyze_command(req: AnalyzeCommandReq):
         else:
             unvalidated_cmds.append(cmd)
 
-    # --- Promotion: ONLY the actually executed command (if it ran OK) ---
-    error_markers = ["% Invalid input", "Unknown command", "Incomplete command", "Ambiguous command"]
-    has_error = any(m in (raw_output or "") for m in error_markers)
-    ran_ok = (not has_error) and bool((raw_output or "").strip())
+    # --- Promotion: ONLY use LLM Pass-1 recommended commands ---
+    for rec in llm_pass1.get("recommended", []):
+        cmd = (rec.get("command") or "").strip()
+        if not cmd or not cmd.lower().startswith("show "):
+            continue
 
-    if ran_ok and (req.command or "").strip().lower().startswith("show "):
         vendor = _norm_vendor("cisco")
         platform = _norm_platform("iosxr")
-        # Simple default; later map from req.command if you want finer tech bucketing
-        exec_tech = commands_trusted.norm_tech("interfaces")
-        commands_trusted.promote(req.command, vendor, platform, exec_tech)
-        promoted.append(req.command)
-        print(f"[DEBUG:triage] PROMOTED executed command → {req.command} under {vendor}/{platform}/{exec_tech}", flush=True)
+        tech = commands_trusted.norm_tech(rec.get("tech"))
+
+        error_markers = ["% Invalid input", "Unknown command",
+                         "Incomplete command", "Ambiguous command"]
+        has_error = any(m in (raw_output or "") for m in error_markers)
+        ran_ok = (not has_error) and bool((raw_output or "").strip())
+
+        if ran_ok:
+            commands_trusted.promote(cmd, vendor, platform, tech)
+            promoted.append(cmd)
+            print(f"[DEBUG:triage] PROMOTED from Pass-1 → {cmd} under {vendor}/{platform}/{tech}", flush=True)
+
 
     # 4. Save in triage history
     triage_history.append_step(

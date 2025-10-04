@@ -66,16 +66,26 @@ Return JSON only with this exact shape:
   "analysis_text": "<short plain analysis derived strictly from the outputs above>",
   "direction": "<next diagnostic steps in plain English; no config>",
   "recommended": [
-    {"command": "<read-only show cmd 1>", "tech": "bgp|interfaces|ospf|routing|misc", "trust_hint": "low"},
-    {"command": "<read-only show cmd 2>", "tech": "interfaces", "trust_hint": "low"}
+    {"command": "<read-only show cmd 1>", "tech": "<bgp|ospf|interfaces|routing|mpls|misc>", "trust_hint": "low"},
+    {"command": "<read-only show cmd 2>", "tech": "<one of the same categories>", "trust_hint": "low"}
   ],
   "execution_judgment": {
     "<the command you just analyzed>": "ok" | "partial" | "error"
   }
-}
-- The 'recommended' list MUST contain only read-only 'show' commands.
-- If the output indicates an invalid or failed command, set execution_judgment to "error".
-- Do not invent facts not present in the outputs.
+} 
+
+When deciding 'tech':
+- Use **bgp** for any BGP-related show commands (e.g., 'show bgp', 'show ip bgp summary', 'show bgp neighbors').
+- Use **ospf** for OSPF or IGP state commands (e.g., 'show ospf', 'show ip ospf interface').
+- Use **isis** for IS-IS or IGP state commands (e.g., 'show isis neighbor', 'show isis interface brief').
+- Use **interfaces** for link-level or interface-state commands (e.g., 'show interfaces', 'show ip interface brief').
+- Use **routing** for route tables or control-plane lookup commands (e.g., 'show route', 'show ip route summary').
+- Use **mpls** for MPLS or LDP-related commands.
+- Use **misc** if none of the above clearly apply.
+
+The 'recommended' list MUST contain only read-only 'show' commands.
+If the output indicates an invalid or failed command, set execution_judgment to "error".
+Do not invent facts not present in the outputs.
 """
     )
     return "\n".join(prompt)
