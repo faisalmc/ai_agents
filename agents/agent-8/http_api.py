@@ -626,26 +626,27 @@ def triage_analyze_command(req: AnalyzeCommandReq):
         else:
             unvalidated_cmds.append(cmd)
 
-    # --- Promotion: ONLY use LLM Pass-1 recommended commands ---
-    for rec in llm_pass1.get("recommended", []):
-        cmd = (rec.get("command") or "").strip()
-        if not cmd or not cmd.lower().startswith("show "):
-            continue
+    # --- Promotion: ONLY the executed command if it actually ran OK ---
+    error_markers = ["% Invalid input", "Unknown command", "Incomplete command", "Ambiguous command"]
+    output_text = (raw_output or "").strip()
+    has_error = any(marker in output_text for marker in error_markers)
+    ran_ok = bool(output_text) and not has_error
 
+    if ran_ok and (req.command or "").strip().lower().startswith(("show", "sh")):
         vendor = _norm_vendor("cisco")
         platform = _norm_platform("iosxr")
-        tech = commands_trusted.norm_tech(rec.get("tech"))
 
-        error_markers = ["% Invalid input", "Unknown command",
-                         "Incomplete command", "Ambiguous command"]
-        has_error = any(m in (raw_output or "") for m in error_markers)
-        ran_ok = (not has_error) and bool((raw_output or "").strip())
+        # Try to reuse tech label from LLM Pass-1 if it referenced same command
+        exec_tech = "misc"
+        for rec in llm_pass1.get("recommended", []):
+            if (rec.get("command") or "").strip().lower() == (req.command or "").strip().lower():
+                exec_tech = rec.get("tech") or "misc"
+                break
 
-        if ran_ok:
-            commands_trusted.promote(cmd, vendor, platform, tech)
-            promoted.append(cmd)
-            print(f"[DEBUG:triage] PROMOTED from Pass-1 → {cmd} under {vendor}/{platform}/{tech}", flush=True)
-
+        exec_tech = commands_trusted.norm_tech(exec_tech)
+        commands_trusted.promote(req.command, vendor, platform, exec_tech)
+        promoted.append(req.command)
+        print(f"[DEBUG:triage] PROMOTED executed command → {req.command} under {vendor}/{platform}/{exec_tech}", flush=True)
 
     # 4. Save in triage history
     triage_history.append_step(
