@@ -148,3 +148,50 @@ def triage_llm_analyze(host: str, cmds: List[str], outputs: List[str],
         "recommended": result.get("recommended", []),
         "execution_judgment": result.get("execution_judgment", {})
     }
+
+
+def triage_llm_propose(user_text: str, vendor: str = None, platform: str = None) -> Dict:
+    """
+    Use the LLM to propose diagnostic 'show' commands based on a user's free-text issue description.
+    Example input: "ISIS adjacency down" or "BGP neighbors not established"
+    Returns a dict with 'recommended' list (same schema as triage_llm_analyze).
+    """
+    if not user_text or not isinstance(user_text, str):
+        return {"recommended": []}
+
+    prompt = f"""
+You are a senior network troubleshooting assistant.
+The user described the following issue on a network device:
+
+"{user_text}"
+
+Your goal:
+- Suggest 2–5 relevant *read-only* 'show' commands that could help diagnose the issue.
+- If the text is NOT related to networking, return an empty list.
+- Each recommendation must include:
+  - "command": the exact CLI command string.
+  - "tech": one of [bgp, ospf, isis, interfaces, routing, mpls, misc].
+  - "trust_hint": always "low" for now.
+
+Return STRICT JSON only:
+{{
+  "recommended": [
+    {{"command": "...", "tech": "...", "trust_hint": "low"}}
+  ]
+}}
+"""
+
+    try:
+        result = call_llm_json(prompt)
+        # Safety guard: ensure result is valid structure
+        if not isinstance(result, dict):
+            return {"recommended": []}
+        if "recommended" not in result:
+            result["recommended"] = []
+        return result
+    except Exception as e:
+        return {"recommended": [], "error": str(e)}
+    
+
+
+
