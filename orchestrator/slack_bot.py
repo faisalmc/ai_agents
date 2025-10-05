@@ -18,6 +18,8 @@ from agent7_client import (
 # --- New: minimal HTTP helper (no external client file) ---
 import requests
 
+import yaml  # for loading device.yaml to get vendor & platform (e.g., cisco & iosxr etc)
+
 # --- agent-8 triage (analyze 1 command)
 from agent8_client import analyze_command
 
@@ -55,6 +57,39 @@ _A8_SESSION_LAST_BY_CHANNEL: Dict[str, str] = {}  # NEW: fallback when thread ma
 _A8_CTX_BY_THREAD: Dict[str, Dict[str, str]] = {}
 
 _A8_CTX_BY_SESSION: Dict[str, Dict[str, str]] = {}   # key = session_id, value = {config_dir, task_id, host, thread_ts, channel}
+
+# --- Helper: tiny helper to map device_type → (vendor, platform) --- #
+def _lookup_vendor_platform(config_dir: str, host: str) -> tuple[Optional[str], Optional[str]]:
+    """
+    Read <REPO_ROOT>/<config_dir>/devices.yaml and derive (vendor, platform)
+    from device_type for the device whose 'name' matches <host>.
+    """
+    try:
+        path = os.path.join(REPO_ROOT, config_dir, "devices.yaml")
+        with open(path, "r", encoding="utf-8") as fh:
+            data = yaml.safe_load(fh) or {}
+    except Exception:
+        return None, None
+
+    def _map_device_type(dt: str) -> tuple[Optional[str], Optional[str]]:
+        dt = (dt or "").strip().lower()
+        if dt in ("cisco_xr", "iosxr", "cisco-iosxr", "cisco xr"):
+            return "cisco", "iosxr"
+        if dt in ("cisco_xe", "iosxe", "cisco-iosxe", "cisco ios", "ios"):
+            return "cisco", "iosxe"
+        if dt in ("nxos", "cisco_nxos", "cisco-nxos"):
+            return "cisco", "nxos"
+        if dt in ("junos", "juniper_junos", "juniper-junos"):
+            return "juniper", "junos"
+        if dt in ("eos", "arista_eos", "arista-eos"):
+            return "arista", "eos"
+        return None, None
+
+    for dev in (data.get("devices") or []):
+        name = str(dev.get("name") or "").strip()
+        if name == host:
+            return _map_device_type(dev.get("device_type") or "")
+    return None, None
 
 # --- Core watch-and-analyze flow ---
 def _watch_and_analyze(say, pchan: str, pthr: str,
@@ -906,13 +941,20 @@ def handle_start_triage(ack, body, say, logger):
         say(channel=channel, thread_ts=thread_ts, text="⚠️ No host selected for triage.")
         return
 
+    # Derive vendor/platform from devices.yaml (best-effort)
+    vendor, platform = _lookup_vendor_platform(config_dir, host)
+    if vendor:   # optional debug
+        print(f"[DEBUG] start_triage vendor={vendor} platform={platform} for host={host}", flush=True)
+
     # Call Agent-8
     start_payload = {
         "config_dir": config_dir,
         "task_dir": task_id,
         "host": host,              # send single host (Agent-8 also accepts hosts[0])
         "thread_ts": thread_ts,
-        "channel": channel
+        "channel": channel,
+        "vendor": vendor,          # from _lookup_vendor_platform()
+        "platform": platform,      # from _lookup_vendor_platform()
     }
     url = f"{AGENT_8_URL}/triage/start"
     res = _post_json(url, start_payload, timeout=60)

@@ -159,16 +159,27 @@ def triage_llm_propose(user_text: str, vendor: str = None, platform: str = None)
     if not user_text or not isinstance(user_text, str):
         return {"recommended": []}
 
+    # ---- Include vendor and platform context ----
+    v_info = f"Vendor: {vendor}" if vendor else "Vendor: (unknown)"
+    p_info = f"Platform/OS: {platform}" if platform else "Platform/OS: (unknown)"
+
     prompt = f"""
 You are a senior network troubleshooting assistant.
-The user described the following issue on a network device:
+You are analyzing a device with the following characteristics:
+{v_info}
+{p_info}
+
+The user described the following issue:
 
 "{user_text}"
 
 Your goal:
 - Suggest 2–5 relevant *read-only* 'show' commands that could help diagnose the issue.
+- Prefer commands valid for this vendor/platform combination.
+- Do NOT include configuration commands.
 - If the text is NOT related to networking, return an empty list.
-- Each recommendation must include:
+
+Each recommendation must include:
   - "command": the exact CLI command string.
   - "tech": one of [bgp, ospf, isis, interfaces, routing, mpls, misc].
   - "trust_hint": always "low" for now.
@@ -180,7 +191,6 @@ Return STRICT JSON only:
   ]
 }}
 """
-
     try:
         result = call_llm_json(prompt)
         # Safety guard: ensure result is valid structure

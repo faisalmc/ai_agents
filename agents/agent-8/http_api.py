@@ -59,6 +59,8 @@ class StartReq(BaseModel):
     channel: Optional[str] = None
     thread_ts: Optional[str] = None
     user_id: Optional[str] = None
+    vendor: Optional[str] = None          # slack_bot --> def handle_start_triage() --> passes vendor, platform (from device.yaml)
+    platform: Optional[str] = None        # slack_bot --> def handle_start_triage() --> passes vendor, platform 
 
 class StartResp(BaseModel):
     session_id: str
@@ -232,6 +234,7 @@ def _append_trial_event(config_dir: str, task_dir: str, event: Dict[str, Any]) -
     except Exception:
         pass
 
+# --- Helper funciton to enrich LLM response for "@agent triage [free-text]" with KB (command_trusted.yaml)
 def _select_trusted_by_text(user_text: str,
                             vendor_hint: Optional[str] = None,
                             platform_hint: Optional[str] = None,
@@ -242,6 +245,19 @@ def _select_trusted_by_text(user_text: str,
       +1 if tech token in text
       +1 if parser_support is True
     Then filter by vendor/platform hints (if provided).
+
+    If no suitable matches are found, return an empty list
+    (do NOT suggest unrelated BGP/interfaces fallbacks).
+
+    ==> here we build a list called --> items = [(score, row), (score, row), ...]
+	•	first part = the numeric score for how well the row matched (score)
+	•	second part = the actual command row (a dictionary from YAML)
+        items = [
+        (5, {"command": "show bgp summary"}),
+        (3, {"command": "show interface"}),
+        (7, {"command": "show isis neighbor"})
+        ]
+
     """
     text = (user_text or "").lower()
     v_hint = _norm_vendor(vendor_hint)
@@ -269,18 +285,13 @@ def _select_trusted_by_text(user_text: str,
         if score > 0:
             items.append((score, row))
 
-    # fallback: if nothing matched, suggest 1–2 broadly safe starters
+    # --- SAFER fallback: if nothing matched, return empty list ---
     if not items:
-        for row in rows:
-            if row.get("tech") and "interfaces" in row["tech"]:
-                items.append((1, row))
-                break
-        for row in rows:
-            if row.get("tech") and "bgp" in row["tech"]:
-                items.append((1, row))
-                break
+        return []
 
+    # Sort the "items" (score, command) i.e., list by score in descending order
     items.sort(key=lambda x: x[0], reverse=True)
+    # keeping the top limit=4 items in the list and "for each tuple (score, row) in the top N --> ignore _(score) & collect just the r (the command info)"
     return [r for _, r in items[:limit]]
 
 
@@ -343,6 +354,9 @@ def triage_start(req: StartReq):
         # place-holders for future context:
         "history": [],          # [{role, text, ts}]
         "last_proposals": [],   # [command strings]
+        # NEW: hints for downstream LLM/Kb
+        "vendor": _norm_vendor(req.vendor),
+        "platform": _norm_platform(req.platform),
     }
     return StartResp(
         session_id=sid,
@@ -360,8 +374,10 @@ def triage_ingest(req: IngestReq):
     s = _require_session(req.session_id)
     s["history"].append({"role": "user", "text": req.user_text, "ts": _now()})
 
-    vendor_hint = None
-    platform_hint = None
+    # vendor_hint = None
+    # platform_hint = None
+    vendor_hint = s.get("vendor")
+    platform_hint = s.get("platform")
 
     proposed: List[ProposedCmd] = []
 
