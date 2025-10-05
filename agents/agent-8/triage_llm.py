@@ -191,17 +191,24 @@ Return STRICT JSON only:
   ]
 }}
 """
+    # --- DEBUG before sending ---
+    print("\n[DEBUG:triage_llm_propose] Sending prompt to LLM:")
+    print(f"user_text: {user_text}")
+    print(f"vendor: {vendor}, platform: {platform}")
+    print(f"Prompt preview:\n{prompt[:400]}...\n", flush=True)
+
     try:
         result = call_llm_json(prompt)
-        # Safety guard: ensure result is valid structure
+        print(f"[DEBUG:triage_llm_propose] Raw LLM response: {json.dumps(result, indent=2)[:500]}...\n", flush=True)
+
         if not isinstance(result, dict):
             return {"recommended": []}
         if "recommended" not in result:
             result["recommended"] = []
         return result
     except Exception as e:
-        return {"recommended": [], "error": str(e)}
-    
+        print(f"[agent-8/triage_llm_propose] WARN: LLM propose failed: {e}", flush=True)
+        return {"recommended": [], "error": str(e)}    
 
 
 
