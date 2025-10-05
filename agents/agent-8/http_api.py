@@ -653,16 +653,20 @@ def triage_analyze_command(req: AnalyzeCommandReq):
         platform = _norm_platform("iosxr")
 
         # Try to reuse tech label from LLM Pass-1 if it referenced same command
-        exec_tech = "misc"
+        exec_tech_hint = None
         for rec in llm_pass1.get("recommended", []):
             if (rec.get("command") or "").strip().lower() == (req.command or "").strip().lower():
-                exec_tech = rec.get("tech") or "misc"
+                exec_tech_hint = rec.get("tech")
                 break
 
-        exec_tech = commands_trusted.norm_tech(exec_tech)
+        # NEW: use unified choose_tech() logic to classify
+        exec_tech = commands_trusted.choose_tech(req.command, exec_tech_hint)
+
+        print(f"[DEBUG:triage] PROMOTE → cmd={req.command}, hinted={exec_tech_hint}, final_bucket={exec_tech}", flush=True)
+
         commands_trusted.promote(req.command, vendor, platform, exec_tech)
         promoted.append(req.command)
-        print(f"[DEBUG:triage] PROMOTED executed command → {req.command} under {vendor}/{platform}/{exec_tech}", flush=True)
+    
 
     # 4. Save in triage history
     triage_history.append_step(

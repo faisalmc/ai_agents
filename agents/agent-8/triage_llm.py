@@ -192,14 +192,17 @@ Return STRICT JSON only:
 }}
 """
     # --- DEBUG before sending ---
-    print("\n[DEBUG:triage_llm_propose] Sending prompt to LLM:")
-    print(f"user_text: {user_text}")
-    print(f"vendor: {vendor}, platform: {platform}")
-    print(f"Prompt preview:\n{prompt[:400]}...\n", flush=True)
+    print("\n[DEBUG:triage_llm_propose] ===== LLM PROPOSE CALL =====", flush=True)
+    print(f"user_text     : {user_text}", flush=True)
+    print(f"vendor/platform: {vendor or 'unknown'} / {platform or 'unknown'}", flush=True)
+    print(f"Prompt (first 400 chars):\n{prompt[:400]}...\n", flush=True)
 
     try:
         result = call_llm_json(prompt)
-        print(f"[DEBUG:triage_llm_propose] Raw LLM response: {json.dumps(result, indent=2)[:500]}...\n", flush=True)
+
+        # --- DEBUG after response ---
+        pretty = json.dumps(result, indent=2) if isinstance(result, dict) else str(result)
+        print(f"[DEBUG:triage_llm_propose] ===== LLM RAW RESPONSE =====\n{pretty[:800]}...\n", flush=True)
 
         if not isinstance(result, dict):
             return {"recommended": []}

@@ -12,6 +12,18 @@ DEFAULT_PATH = os.getenv(
     "/app/shared/_agent_knowledge/commands_trusted.yaml",
 ).strip()
 
+# ---------------------------------------------------
+# Canonical tech buckets (single source of truth)
+# ---------------------------------------------------
+TECH_BUCKETS = (
+    "bgp",
+    "ospf",
+    "isis",
+    "mpls",
+    "interfaces",
+    "routing",
+    "misc",
+)
 
 # -------- basic normalization helpers --------
 def normalize_command(cmd: str) -> str:
@@ -32,13 +44,73 @@ def norm_platform(p: Optional[str]) -> str:
         return "nxos"
     return p
 
+# def norm_tech(t: Union[str, List[str], None]) -> str:
+#     if isinstance(t, list) and t:
+#         t = t[0]
+#     t = (t or "misc")
+#     t = str(t).strip().lower()
+#     return t or "misc"
+
 def norm_tech(t: Union[str, List[str], None]) -> str:
+    """
+    Normalize a hinted tech value into one of TECH_BUCKETS, else 'misc'.
+    NOTE: This does NOT inspect the command text (use choose_tech for that).
+    """
     if isinstance(t, list) and t:
         t = t[0]
     t = (t or "misc")
     t = str(t).strip().lower()
-    return t or "misc"
+    return t if t in TECH_BUCKETS else "misc"
 
+# ---------------------------------------------------
+# Light-weight command → tech classification
+# (No regex; just a few obvious substrings)
+# ---------------------------------------------------
+def classify_tech(cmd: str) -> str:
+    """
+    Given a CLI command string (e.g., 'show ip bgp summary'),
+    return the best-fit bucket from TECH_BUCKETS.
+    Very simple substring checks; easy to maintain.
+    """
+    c = " " + normalize_command(cmd) + " "  # pad to avoid partial-word confusion
+
+    # BGP
+    if " bgp " in c or " show bgp" in c or " show ip bgp" in c:
+        return "bgp"
+
+    # OSPF
+    if " ospf " in c or " show ip ospf" in c or " show ospf" in c:
+        return "ospf"
+
+    # ISIS
+    if " isis " in c or " show isis" in c:
+        return "isis"
+
+    # MPLS / LDP
+    if " mpls " in c or " ldp " in c or " show mpls" in c:
+        return "mpls"
+
+    # Interfaces
+    if " interface " in c or " interfaces " in c or " show ip interface brief" in c or " show interfaces" in c:
+        return "interfaces"
+
+    # Routing / RIB
+    if " route " in c or " show ip route" in c or " show route" in c:
+        return "routing"
+
+    return "misc"
+
+def choose_tech(cmd: str, hinted_tech: Union[str, List[str], None] = None) -> str:
+    """
+    Resolve a final tech bucket for a command:
+    1) if hinted_tech is valid (in TECH_BUCKETS), use it;
+    2) otherwise classify from the command string;
+    3) fallback to 'misc'.
+    """
+    hinted = norm_tech(hinted_tech)
+    if hinted in TECH_BUCKETS and hinted != "misc":
+        return hinted
+    return classify_tech(cmd) or "misc"
 
 # -------- YAML I/O --------
 def load_trusted(path: str = DEFAULT_PATH) -> dict:
@@ -91,10 +163,14 @@ def promote(cmd: str, vendor: str, platform: str, tech: Union[str, List[str], No
     """
     Add a command to the trusted list if not already present.
     Accepts tech as str/list/None. Creates buckets if missing.
+    Tech is resolved centrally via choose_tech() to keep consistency.
     """
     v = norm_vendor(vendor)
     p = norm_platform(platform)
-    t = norm_tech(tech)
+
+    # resolve tech using our single source of truth
+    t = choose_tech(cmd, hinted_tech=tech)
+
     cmd_clean = cmd.strip()
     needle = normalize_command(cmd_clean)
 
