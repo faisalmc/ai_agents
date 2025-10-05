@@ -1150,17 +1150,26 @@ def handle_quick_run(ack, body, say, logger):
             return
 
         channel = body.get("container", {}).get("channel_id")
-        thread_ts = body.get("container", {}).get("message_ts")
+        # --- DEBUG: to check session & host for command_buttons ---
+        # --- Improved thread_ts detection ---
+        # Slack sometimes sends button clicks with message_ts instead of thread_ts,
+        # so we try multiple fallbacks to locate the parent triage thread.
+        thread_ts = (
+            body.get("container", {}).get("thread_ts")
+            or body.get("container", {}).get("message_ts")
+            or body.get("message", {}).get("thread_ts")
+            or body.get("message", {}).get("ts")
+        )
+
+        print(f"[DEBUG:quick_run] thread_ts candidate from Slack: {thread_ts}", flush=True)
+        print(f"[DEBUG:quick_run] _A8_SESSION_BY_THREAD keys: {list(_A8_SESSION_BY_THREAD.keys())}", flush=True)
 
         sess = _A8_SESSION_BY_THREAD.get(thread_ts)
         ctx = _A8_CTX_BY_SESSION.get(sess, {})
         host = ctx.get("host")
-        # --- DEBUG: to check session & host for command_buttons ---
-        print(f"[DEBUG:quick_run] body keys: {list(body.keys())}", flush=True)
-        print(f"[DEBUG:quick_run] thread_ts from Slack: {thread_ts}", flush=True)
-        print(f"[DEBUG:quick_run] _A8_SESSION_BY_THREAD keys: {list(_A8_SESSION_BY_THREAD.keys())}", flush=True)
-        print(f"[DEBUG:quick_run] sess={sess}, host={host}", flush=True)
+        print(f"[DEBUG:quick_run] resolved sess={sess}, host={host}", flush=True)
         # --- 
+        
         if not (sess and host):
             say(channel=channel, thread_ts=thread_ts,
                 text="⚠️ No active triage session or host. Start triage first.")
