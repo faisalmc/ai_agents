@@ -1155,6 +1155,12 @@ def handle_quick_run(ack, body, say, logger):
         sess = _A8_SESSION_BY_THREAD.get(thread_ts)
         ctx = _A8_CTX_BY_SESSION.get(sess, {})
         host = ctx.get("host")
+        # --- DEBUG: to check session & host for command_buttons ---
+        print(f"[DEBUG:quick_run] body keys: {list(body.keys())}", flush=True)
+        print(f"[DEBUG:quick_run] thread_ts from Slack: {thread_ts}", flush=True)
+        print(f"[DEBUG:quick_run] _A8_SESSION_BY_THREAD keys: {list(_A8_SESSION_BY_THREAD.keys())}", flush=True)
+        print(f"[DEBUG:quick_run] sess={sess}, host={host}", flush=True)
+        # --- 
         if not (sess and host):
             say(channel=channel, thread_ts=thread_ts,
                 text="⚠️ No active triage session or host. Start triage first.")
