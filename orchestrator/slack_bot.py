@@ -577,23 +577,54 @@ def handle_app_mention(body, say, logger):
 
         guidance = (resp.get("guidance_text") or "").strip()
         cmds = resp.get("proposed_commands") or []
-        lines = []
-        for c in cmds[:12]:
-            cmd_txt = c.get("command", "")
-            src = c.get("source", "llm")
-            trust = c.get("trust_hint", "low")
-            if cmd_txt:
-                lines.append(f"• `{cmd_txt}`  _(src: {src}, trust: {trust})_")
 
-        hint = f"_To run now:_ `@{BOT_NAME} triage run <cmd1> | <cmd2>`"
-        out = []
+        # Split into trusted vs unvalidated for clarity
+        trusted_cmds = [c for c in cmds if c.get("trust_hint") == "high"]
+        unvalidated_cmds = [c for c in cmds if c.get("trust_hint") != "high"]
+
+        # Prepare Slack blocks with buttons
+        blocks = []
+
         if guidance:
-            out.append(f"*Guidance:*\n{guidance}")
-        if lines:
-            out.append("*Proposed commands:*\n" + "\n".join(lines))
-        out.append(hint)
+            blocks.append({
+                "type": "section",
+                "text": {"type": "mrkdwn", "text": f"*Guidance:*\n{guidance}"}
+            })
 
-        say(channel=channel, thread_ts=thread_ts, text="\n\n".join(out))
+        # Helper to make button blocks
+        def _make_button_block(cmd_list, title, style="primary"):
+            if not cmd_list:
+                return None
+            btns = []
+            for c in cmd_list[:6]:
+                cmd_txt = c.get("command")
+                if not cmd_txt:
+                    continue
+                btns.append({
+                    "type": "button",
+                    "text": {"type": "plain_text", "text": cmd_txt},
+                    "value": json.dumps({"command": cmd_txt}),
+                    "action_id": "agent8_quick_run"
+                })
+            return [
+                {"type": "section", "text": {"type": "mrkdwn", "text": f"*{title}*"}},
+                {"type": "actions", "elements": btns}
+            ]
+
+        trusted_block = _make_button_block(trusted_cmds, "Trusted commands (safe to run):")
+        unvalidated_block = _make_button_block(unvalidated_cmds, "Unvalidated commands (need review):", style="danger")
+
+        for blk in (trusted_block or []) + (unvalidated_block or []):
+            blocks.append(blk)
+
+        # Fallback hint text
+        blocks.append({
+            "type": "context",
+            "elements": [{"type": "mrkdwn", "text": f"_To run manually:_ `@{BOT_NAME} triage run <cmd1> | <cmd2>`"}]
+        })
+
+        say(channel=channel, thread_ts=thread_ts, text="Agent-8 Triage Suggestions", blocks=blocks)
+
         return
 
     if cmd == "help":
@@ -1101,6 +1132,42 @@ def handle_escalate(ack, body, say, logger):
             say(channel=channel, thread_ts=thread_ts, text=f"⚠️ Escalation failed: {e}")
         except Exception:
             pass
+
+
+# -------- NEW: Quick-run buttons for triage commands --------
+@app.action("agent8_quick_run")
+def handle_quick_run(ack, body, say, logger):
+    """
+    When a user clicks a proposed command button, auto-runs it via triage run path.
+    """
+    ack()
+    try:
+        payload = json.loads((body.get("actions") or [{}])[0].get("value") or "{}")
+        cmd = payload.get("command")
+        if not cmd:
+            return
+
+        channel = body.get("container", {}).get("channel_id")
+        thread_ts = body.get("container", {}).get("message_ts")
+
+        sess = _A8_SESSION_BY_THREAD.get(thread_ts)
+        ctx = _A8_CTX_BY_SESSION.get(sess, {})
+        host = ctx.get("host")
+        if not (sess and host):
+            say(channel=channel, thread_ts=thread_ts,
+                text="⚠️ No active triage session or host. Start triage first.")
+            return
+
+        # Dispatch single-command run
+        run_url = f"{AGENT_8_URL}/triage/run_shows"
+        payload = {"session_id": sess, "host": host, "commands": [cmd]}
+        resp = _post_json(run_url, payload, timeout=90)
+        say(channel=channel, thread_ts=thread_ts,
+            text=f"▶️ Running `{cmd}` on `{host}` — analyzing shortly…")
+    except Exception as e:
+        logger.error(f"agent8_quick_run error: {e}")
+        say(channel=channel, thread_ts=thread_ts,
+            text=f"⚠️ Failed to trigger quick run: {e}")
 
 if __name__ == "__main__":
     print("[DEBUG] Orchestrator Slack bot starting...")
