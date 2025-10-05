@@ -19,6 +19,7 @@ from agent7_client import (
 import requests
 
 import yaml  # for loading device.yaml to get vendor & platform (e.g., cisco & iosxr etc)
+import re
 
 # --- agent-8 triage (analyze 1 command)
 from agent8_client import analyze_command
@@ -604,7 +605,7 @@ def handle_app_mention(body, say, logger):
                     "type": "button",
                     "text": {"type": "plain_text", "text": cmd_txt},
                     "value": json.dumps({"command": cmd_txt}),
-                    "action_id": "agent8_quick_run"
+                    "action_id": f"agent8_quick_run_{cmd_txt.replace(' ', '_')[:20]}"
                 })
             return [
                 {"type": "section", "text": {"type": "mrkdwn", "text": f"*{title}*"}},
@@ -1135,7 +1136,7 @@ def handle_escalate(ack, body, say, logger):
 
 
 # -------- NEW: Quick-run buttons for triage commands --------
-@app.action("agent8_quick_run")
+@app.action(re.compile("^agent8_quick_run"))
 def handle_quick_run(ack, body, say, logger):
     """
     When a user clicks a proposed command button, auto-runs it via triage run path.
