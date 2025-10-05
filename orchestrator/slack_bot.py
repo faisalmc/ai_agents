@@ -605,7 +605,8 @@ def handle_app_mention(body, say, logger):
                     "type": "button",
                     "text": {"type": "plain_text", "text": cmd_txt},
                     "value": json.dumps({"command": cmd_txt}),
-                    "action_id": f"agent8_quick_run_{cmd_txt.replace(' ', '_')[:20]}"
+                    # "action_id": f"agent8_quick_run_{cmd_txt.replace(' ', '_')[:20]}"
+                    "action_id": f"agent8_quick_run_{cmd_txt.replace(' ', '_')[:20]}_{abs(hash(cmd_txt)) % 10000}"
                 })
             return [
                 {"type": "section", "text": {"type": "mrkdwn", "text": f"*{title}*"}},
