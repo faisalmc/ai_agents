@@ -176,10 +176,10 @@ def _watch_and_analyze(say, pchan: str, pthr: str,
                 # Build Slack text
                 out = []
                 out.append(f"*📄 Output for `{cmd}` on `{hst}`:*\n```{preview}```")
-                out.append(f"*🟢 Pass-1 (single-step):*\n{analysis1}")
+                out.append(f"*🟢 Analysis-1 (single-step):*\n{analysis1}") # Pass-1
                 # comment this block to disable Pass-2 entirely
                 if analysis2:   
-                    out.append(f"*🔵 Pass-2 (with history):*\n{analysis2}")
+                    out.append(f"*🔵 Analysis-2 (with history):*\n{analysis2}") # Pass-2
                     # # comment above block to disable Pass-2 entirely
                 if direction:
                     out.append(f"*Direction:* {direction}")
@@ -436,6 +436,58 @@ def _post_a7_overview(say, channel: str, thread_ts: str, config_dir: str, task_i
                   f"Config: `{config_dir}` • Task: `{task_id}` • Status: *{status}* • Per-device rows: {hosts}\n"
                   f"(UI build failed: {e})"))
 
+
+
+# -------- Shared helper for Agent-8 triage suggestions --------
+def build_triage_suggestion_blocks(guidance: str, cmds: list, bot_name: str):
+    """Build Slack blocks (guidance + trusted/unvalidated command buttons)"""
+    blocks = []
+
+    if guidance:
+        blocks.append({
+            "type": "section",
+            "text": {"type": "mrkdwn", "text": f"*Guidance:*\n{guidance}"}
+        })
+
+    # Split into trusted/unvalidated
+    trusted_cmds = [c for c in cmds if c.get("trust_hint") == "high"]
+    unvalidated_cmds = [c for c in cmds if c.get("trust_hint") != "high"]
+
+    # --- inner helper ---
+    def _make_button_block(cmd_list, title, style="primary"):
+        if not cmd_list:
+            return None
+        btns = []
+        for c in cmd_list[:6]:
+            cmd_txt = c.get("command")
+            if not cmd_txt:
+                continue
+            btns.append({
+                "type": "button",
+                "text": {"type": "plain_text", "text": cmd_txt},
+                "value": json.dumps({"command": cmd_txt}),
+                "action_id": f"agent8_quick_run_{abs(hash(cmd_txt)) % 100000}"
+            })
+        return [
+            {"type": "section", "text": {"type": "mrkdwn", "text": f"*{title}*"}},
+            {"type": "actions", "elements": btns}
+        ]
+
+    trusted_block = _make_button_block(trusted_cmds, "Trusted commands (safe to run):")
+    unvalidated_block = _make_button_block(unvalidated_cmds, "Unvalidated commands (need review):", style="danger")
+
+    for blk in (trusted_block or []) + (unvalidated_block or []):
+        blocks.append(blk)
+
+    # Fallback hint
+    blocks.append({
+        "type": "context",
+        "elements": [{"type": "mrkdwn", "text": f"_To run manually:_ `@{bot_name} triage run <cmd1> | <cmd2>`"}]
+    })
+
+    return blocks
+
+
 # -------- Slack events --------
 @app.event("app_mention")
 def handle_app_mention(body, say, logger):
@@ -584,47 +636,7 @@ def handle_app_mention(body, say, logger):
         unvalidated_cmds = [c for c in cmds if c.get("trust_hint") != "high"]
 
         # Prepare Slack blocks with buttons
-        blocks = []
-
-        if guidance:
-            blocks.append({
-                "type": "section",
-                "text": {"type": "mrkdwn", "text": f"*Guidance:*\n{guidance}"}
-            })
-
-        # Helper to make button blocks
-        def _make_button_block(cmd_list, title, style="primary"):
-            if not cmd_list:
-                return None
-            btns = []
-            for c in cmd_list[:6]:
-                cmd_txt = c.get("command")
-                if not cmd_txt:
-                    continue
-                btns.append({
-                    "type": "button",
-                    "text": {"type": "plain_text", "text": cmd_txt},
-                    "value": json.dumps({"command": cmd_txt}),
-                    # "action_id": f"agent8_quick_run_{cmd_txt.replace(' ', '_')[:20]}"
-                    "action_id": f"agent8_quick_run_{cmd_txt.replace(' ', '_')[:20]}_{abs(hash(cmd_txt)) % 10000}"
-                })
-            return [
-                {"type": "section", "text": {"type": "mrkdwn", "text": f"*{title}*"}},
-                {"type": "actions", "elements": btns}
-            ]
-
-        trusted_block = _make_button_block(trusted_cmds, "Trusted commands (safe to run):")
-        unvalidated_block = _make_button_block(unvalidated_cmds, "Unvalidated commands (need review):", style="danger")
-
-        for blk in (trusted_block or []) + (unvalidated_block or []):
-            blocks.append(blk)
-
-        # Fallback hint text
-        blocks.append({
-            "type": "context",
-            "elements": [{"type": "mrkdwn", "text": f"_To run manually:_ `@{BOT_NAME} triage run <cmd1> | <cmd2>`"}]
-        })
-
+        blocks = build_triage_suggestion_blocks(guidance, cmds, BOT_NAME)
         say(channel=channel, thread_ts=thread_ts, text="Agent-8 Triage Suggestions", blocks=blocks)
 
         return

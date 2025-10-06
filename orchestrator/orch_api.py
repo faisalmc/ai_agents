@@ -9,7 +9,7 @@ from slack_bolt import App
 from slack_sdk import WebClient
 
 # Import the existing Slack app instance so we can reuse its token/client
-from slack_bot import app as slack_app
+from slack_bot import app as slack_app, build_triage_suggestion_blocks
 
 app = FastAPI(title="Orchestrator Callback API", version="0.1.0")
 
@@ -43,9 +43,9 @@ def agent8_callback(body: Agent8AnalysisPayload):
     if body.preview:
         parts.append(f"*📄 Output for `{body.command}` on `{body.host}`:*\n```{body.preview}```")
     if body.analysis_pass1:
-        parts.append(f"*🟢 Pass-1 (single-command):*\n{body.analysis_pass1}")
+        parts.append(f"*🟢 Analysis-1 (single-command):*\n{body.analysis_pass1}") # Pass-1
     if body.analysis_pass2:
-        parts.append(f"*🔵 Pass-2 (with history):*\n{body.analysis_pass2}")
+        parts.append(f"*🔵 Analysis-2 (with history):*\n{body.analysis_pass2}") # Pass-2
     if body.direction:
         parts.append(f"*Direction:* {body.direction}")
     # if body.trusted_commands:
@@ -72,33 +72,83 @@ def agent8_callback(body: Agent8AnalysisPayload):
     })
 
     try:
+        # Base section for analysis text
+        blocks = [
+            {"type": "section", "text": {"type": "mrkdwn", "text": text}},
+        ]
+
+        # --- NEW: add quick-run suggestion buttons if Agent-8 proposed commands ---
+        cmds = []
+        if body.trusted_commands:
+            cmds += [{"command": c, "trust_hint": "high"} for c in body.trusted_commands]
+        if body.unvalidated_commands:
+            cmds += [{"command": c, "trust_hint": "low"} for c in body.unvalidated_commands]
+
+        if cmds:
+            triage_blocks = build_triage_suggestion_blocks(
+                guidance="Follow-up commands suggested by Agent-8:",
+                cmds=cmds,
+                bot_name="agent"
+            )
+            blocks.extend(triage_blocks)
+
+        # --- Always include Escalate / Close buttons at bottom ---
+        blocks.append({
+            "type": "actions",
+            "elements": [
+                {
+                    "type": "button",
+                    "text": {"type": "plain_text", "text": "📧 Escalate"},
+                    "style": "primary",
+                    "value": btn_value,
+                    "action_id": "agent8_escalate",
+                },
+                {
+                    "type": "button",
+                    "text": {"type": "plain_text", "text": "✔ Close issue"},
+                    "style": "danger",
+                    "value": btn_value,
+                    "action_id": "agent8_close_issue",
+                },
+            ],
+        })
+
         slack_client.chat_postMessage(
             channel=body.channel,
             thread_ts=body.thread_ts,
-            text=text,  # fallback text
-            blocks=[
-                {"type": "section", "text": {"type": "mrkdwn", "text": text}},
-                {
-                    "type": "actions",
-                    "elements": [
-                        {
-                            "type": "button",
-                            "text": {"type": "plain_text", "text": "📧 Escalate"},
-                            "style": "primary",
-                            "value": btn_value,
-                            "action_id": "agent8_escalate",
-                        },
-                        {
-                            "type": "button",
-                            "text": {"type": "plain_text", "text": "✔ Close issue"},
-                            "style": "danger",
-                            "value": btn_value,
-                            "action_id": "agent8_close_issue",
-                        },
-                    ],
-                },
-            ],
+            text=text,
+            blocks=blocks,
         )
         return {"ok": True}
+
+    # try:
+    #     slack_client.chat_postMessage(
+    #         channel=body.channel,
+    #         thread_ts=body.thread_ts,
+    #         text=text,  # fallback text
+    #         blocks=[
+    #             {"type": "section", "text": {"type": "mrkdwn", "text": text}},
+    #             {
+    #                 "type": "actions",
+    #                 "elements": [
+    #                     {
+    #                         "type": "button",
+    #                         "text": {"type": "plain_text", "text": "📧 Escalate"},
+    #                         "style": "primary",
+    #                         "value": btn_value,
+    #                         "action_id": "agent8_escalate",
+    #                     },
+    #                     {
+    #                         "type": "button",
+    #                         "text": {"type": "plain_text", "text": "✔ Close issue"},
+    #                         "style": "danger",
+    #                         "value": btn_value,
+    #                         "action_id": "agent8_close_issue",
+    #                     },
+    #                 ],
+    #             },
+    #         ],
+    #     )
+    #     return {"ok": True}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Slack post failed: {e}")
