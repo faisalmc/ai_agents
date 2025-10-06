@@ -43,20 +43,16 @@ def agent8_callback(body: Agent8AnalysisPayload):
     if body.preview:
         parts.append(f"*📄 Output for `{body.command}` on `{body.host}`:*\n```{body.preview}```")
     if body.analysis_pass1:
-        parts.append(f"*🟢 Analysis-1 (single-command):*\n{body.analysis_pass1}") # Pass-1
+        parts.append(f"*🔍 Analysis-1 (single-command):*\n{body.analysis_pass1}") # Pass-1
     if body.analysis_pass2:
-        parts.append(f"*🔵 Analysis-2 (with history):*\n{body.analysis_pass2}") # Pass-2
+        parts.append(f"*🔍 Analysis-2 (with history):*\n{body.analysis_pass2}") # Pass-2
     if body.direction:
         parts.append(f"*Direction:* {body.direction}")
     # if body.trusted_commands:
     #     parts.append("*Trusted commands:* " + ", ".join(f"`{c}`" for c in body.trusted_commands))
     # if body.unvalidated_commands:
     #     parts.append("*Unvalidated commands:* " + ", ".join(f"`{c}`" for c in body.unvalidated_commands))
-    if body.trusted_commands:
-        parts.append("*Trusted commands:* " + ", ".join(f"`{c}`" for c in body.trusted_commands))
-    if body.unvalidated_commands:
-        parts.append("*Unvalidated commands:* " + ", ".join(f"`{c}`" for c in body.unvalidated_commands))
-    if hasattr(body, "promoted") and body.promoted:   # <<< NEW
+    if hasattr(body, "promoted") and body.promoted:   # <<< added to indicate prompoted cmds
         parts.append("*Promoted to trusted (just ran ok):* " + ", ".join(f"`{c}`" for c in body.promoted))
 
     text = "\n\n".join(parts) if parts else f"Analysis for `{body.command}` on `{body.host}`"
