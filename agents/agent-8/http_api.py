@@ -400,7 +400,7 @@ def triage_ingest(req: IngestReq):
     for p in picks:
         proposed.append(ProposedCmd(command=p["command"], source="kb", trust_hint="high"))
 
-    guidance = "Here are safe commands based on what you described. You can run them or type a custom command."
+    guidance = "Here are few commands suggested based on what you described. You can run them by clicking on them, or type a custom command."
 
     _append_trial_event(
         s["config_dir"], s["task_dir"],
