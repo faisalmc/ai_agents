@@ -626,6 +626,18 @@ def triage_analyze_command(req: AnalyzeCommandReq):
 
     # 3. Bucket recommended commands (from Pass-2, no promotion here)
     for rec in recommended:
+        # --- Clean up duplicates ---
+        # Convert all commands to lowercase for comparison
+        trusted_set = set(c.lower().strip() for c in trusted_cmds)
+        unvalidated_set = set(c.lower().strip() for c in unvalidated_cmds)
+
+        # If a command is trusted, remove it from unvalidated
+        unvalidated_set -= trusted_set
+
+        # Convert back to normal lists
+        trusted_cmds = list(trusted_set)
+        unvalidated_cmds = list(unvalidated_set)
+        # ---- #
         cmd = (rec.get("command") or "").strip()
         if not cmd:
             continue
