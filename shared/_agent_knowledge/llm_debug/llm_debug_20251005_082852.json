@@ -1,0 +1,13 @@
+{
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a senior network troubleshooting assistant. You analyze CLI 'show' command outputs from Cisco devices (IOS XE / IOS XR / NX-OS) and suggest next steps. Always return STRICT JSON only (no prose, no markdown, no backticks). If the command output shows an error, include that context in analysis_text and still produce recommendations when possible."
+    },
+    {
+      "role": "user",
+      "content": "\nYou are a senior network troubleshooting assistant.\nThe user described the following issue on a network device:\n\n\"issue with bgp\"\n\nYour goal:\n- Suggest 2\u20135 relevant *read-only* 'show' commands that could help diagnose the issue.\n- If the text is NOT related to networking, return an empty list.\n- Each recommendation must include:\n  - \"command\": the exact CLI command string.\n  - \"tech\": one of [bgp, ospf, isis, interfaces, routing, mpls, misc].\n  - \"trust_hint\": always \"low\" for now.\n\nReturn STRICT JSON only:\n{\n  \"recommended\": [\n    {\"command\": \"...\", \"tech\": \"...\", \"trust_hint\": \"low\"}\n  ]\n}\n"
+    }
+  ],
+  "raw": "{\n  \"recommended\": [\n    {\"command\": \"show ip bgp summary\", \"tech\": \"bgp\", \"trust_hint\": \"low\"},\n    {\"command\": \"show ip bgp neighbors\", \"tech\": \"bgp\", \"trust_hint\": \"low\"},\n    {\"command\": \"show ip route bgp\", \"tech\": \"routing\", \"trust_hint\": \"low\"},\n    {\"command\": \"show bgp ipv4 unicast\", \"tech\": \"bgp\", \"trust_hint\": \"low\"},\n    {\"command\": \"show ip bgp flap-statistics\", \"tech\": \"bgp\", \"trust_hint\": \"low\"}\n  ]\n}"
+}
