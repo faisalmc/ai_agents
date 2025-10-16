@@ -419,7 +419,7 @@ def triage_ingest(req: IngestReq):
     s["last_proposals"] = [pc.command for pc in proposed]
 
 
-    # ------ DEBUGso to confirm duplication of commands ------ #
+    # ------ DEBUGs to confirm duplication of commands ------ #
     print(f"[DEBUG:triage_ingest] LLM proposed = {[r.get('command') for r in llm_resp.get('recommended', [])]}", flush=True)
     print(f"[DEBUG:triage_ingest] KB picked    = {[p['command'] for p in picks]}", flush=True)
     unique_cmds = {}
@@ -428,7 +428,29 @@ def triage_ingest(req: IngestReq):
         if c in unique_cmds:
             print(f"[DEBUG:triage_ingest] DUPLICATE detected → {c} (sources: {unique_cmds[c].source} + {pc.source})", flush=True)
         unique_cmds[c] = pc
-    # ---- #
+        # ---- #
+    
+    # --- Step 3: remove duplicates (prefer KB over LLM) ---
+    final_list = []        # commands to keep
+    seen = set()           # store normalized command strings
+    # We go through all proposed commands, but KB (trust_hint='high')
+    # should always replace the same command from LLM if both exist.
+    for pc in proposed:
+        cmd_lower = pc.command.strip().lower()
+        # If command already seen and current one is low trust, skip it
+        if cmd_lower in seen and pc.trust_hint != "high":
+            continue
+        # If high-trust version appears later, remove older low-trust one
+        if pc.trust_hint == "high":
+            final_list = [c for c in final_list if c.command.strip().lower() != cmd_lower]
+        # Add the new one
+        final_list.append(pc)
+        seen.add(cmd_lower)
+    # For visibility, print duplicates if any were removed
+    print("[DEBUG:triage_ingest] deduplicated commands →", [c.command for c in final_list], flush=True)
+
+    # --- Replace original list ---
+    proposed = final_list
 
     return IngestResp(
         guidance_text=guidance,
