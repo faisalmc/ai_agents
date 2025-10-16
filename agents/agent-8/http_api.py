@@ -372,6 +372,13 @@ def triage_ingest(req: IngestReq):
     Accept free-text, return structured suggestions from LLM + trusted AK.
     """
     s = _require_session(req.session_id)
+    # --- NEW: remember the very first user text as session summary ---
+    # This helps later when we save the issue to memory.
+    # We only capture it once, when the session is still new.
+    if not s.get("summary_text"):
+        s["summary_text"] = req.user_text
+        print(f"[DEBUG] Stored first summary_text for session {req.session_id}", flush=True)
+    # --- #
     s["history"].append({"role": "user", "text": req.user_text, "ts": _now()})
 
     # vendor_hint = None
@@ -726,6 +733,46 @@ def triage_analyze_command(req: AnalyzeCommandReq):
         unvalidated=unvalidated_cmds,
     )
 
+    # --- NEW: update temporary session memory for this triage session ---
+    # Each command we analyze is recorded here for later recall (Close Issue).
+    if "executed_cmds" not in s:
+        s["executed_cmds"] = []   # list of {"cmd": ..., "ran_ok": bool, "ts": float}
+    if "analyses" not in s:
+        s["analyses"] = []        # recent analysis texts from LLM pass-2
+    if "directions" not in s:
+        s["directions"] = []      # recent direction lines
+    if "last_trusted" not in s:
+        s["last_trusted"] = []
+    if "last_unvalidated" not in s:
+        s["last_unvalidated"] = []
+
+    # 1) Record the executed command and whether it succeeded
+    s["executed_cmds"].append({
+        "cmd": req.command,
+        "ran_ok": ran_ok,
+        "ts": _now()
+    })
+
+    # 2) Keep last few (up to 5) analyses for context
+    if analysis_pass2:
+        s["analyses"].append(analysis_pass2)
+        if len(s["analyses"]) > 5:
+            s["analyses"] = s["analyses"][-5:]
+
+    # 3) Keep last few (up to 5) directions for recall
+    if direction:
+        s["directions"].append(direction)
+        if len(s["directions"]) > 5:
+            s["directions"] = s["directions"][-5:]
+
+    # 4) Store snapshot of current trusted/unvalidated lists
+    s["last_trusted"] = trusted_cmds[:]
+    s["last_unvalidated"] = unvalidated_cmds[:]
+
+    print(f"[DEBUG] Session memory updated for {req.command}", flush=True)
+
+    # --- # 
+
     return AnalyzeCommandResp(
         raw_output=raw_output,                 # <<< NEW
         analysis_pass1=analysis_pass1,
@@ -868,6 +915,110 @@ def capture_done(req: CaptureDoneReq):
 
     print(f"\n\n-----end of [def capture_done]-----\n\--- \nresults: {results}n\----\n", flush=True)
     return {"ok": True, "results": results}
+
+
+# ----------------------------------------------------------------------
+# NEW ENDPOINT: Save validated triage session info to memory JSONL file
+# ----------------------------------------------------------------------
+
+from fastapi import Body
+
+@app.post("/memory/save")
+def memory_save(
+    session_id: str = Body(..., embed=True),
+    root_cause_text: Optional[str] = Body(None),
+    fix_steps_text: Optional[str] = Body(None),
+    user_feedback: Optional[str] = Body(None),
+):
+    """
+    Save the triage session data when user clicks 'Close Issue'.  
+    It is called by Orchestrator when user clicks 'Close Issue'
+    This writes one validated record into triage_memory.jsonl
+    under /app/shared/_agent_knowledge.
+    """
+
+    MEMORY_PATH = "/app/shared/_agent_knowledge/triage_memory.jsonl"
+
+    s = _require_session(session_id)
+
+    # --- gather data from session memory ---
+    summary_text = s.get("summary_text", "")
+    executed_cmds = s.get("executed_cmds", [])
+    analyses = s.get("analyses", [])
+    directions = s.get("directions", [])
+    last_trusted = s.get("last_trusted", [])
+    last_unvalidated = s.get("last_unvalidated", [])
+
+    # --- choose cause/fix: prefer human text, fallback to last direction ---
+    root_cause = (root_cause_text or "").strip()
+    fix_steps = (fix_steps_text or "").strip()
+    if not root_cause and directions:
+        root_cause = directions[-1].strip()
+    if not fix_steps and directions:
+        fix_steps = directions[-1].strip()
+
+    # --- effective commands (those that ran successfully) ---
+    effective_cmds = []
+    for rec in executed_cmds:
+        if rec.get("ran_ok") and rec.get("cmd"):
+            cmd = rec["cmd"]
+            if cmd not in effective_cmds:
+                effective_cmds.append(cmd)
+
+    # --- simple tags for indexing ---
+    tags = []
+    for c in effective_cmds:
+        lc = c.lower()
+        if "bgp" in lc: tags.append("bgp")
+        if "ospf" in lc: tags.append("ospf")
+        if "isis" in lc: tags.append("isis")
+        if "mpls" in lc or "ldp" in lc: tags.append("mpls")
+        if "interface" in lc: tags.append("interfaces")
+        if "route" in lc: tags.append("routing")
+    if s.get("platform"): tags.append(s["platform"])
+    if s.get("vendor"): tags.append(s["vendor"])
+    # remove duplicates
+    tags = list(dict.fromkeys(tags))
+
+    # --- confidence score ---
+    if root_cause_text or fix_steps_text:
+        confidence = 1.0
+    else:
+        confidence = 0.6
+
+    # --- build final record ---
+    record = {
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "session_id": session_id,
+        "config_dir": s.get("config_dir"),
+        "task_dir": s.get("task_dir"),
+        "host": s.get("host"),
+        "vendor": s.get("vendor"),
+        "platform": s.get("platform"),
+        "summary_text": summary_text,
+        "root_cause": root_cause,
+        "fix_steps": [fix_steps] if fix_steps else [],
+        "effective_cmds": effective_cmds,
+        "trusted_cmds": last_trusted,
+        "unvalidated_cmds": last_unvalidated,
+        "analysis_snippets": analyses,
+        "validated": True,
+        "confidence_score": confidence,
+        "user_feedback": (user_feedback or "").strip(),
+        "tags": tags,
+    }
+
+    # --- append JSONL line to the shared file ---
+    try:
+        os.makedirs(os.path.dirname(MEMORY_PATH), exist_ok=True)
+        with open(MEMORY_PATH, "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(record) + "\n")
+        print(f"[DEBUG] Saved triage memory record to {MEMORY_PATH}", flush=True)
+        return {"ok": True, "path": MEMORY_PATH}
+    except Exception as e:
+        print(f"[ERROR] Failed to save triage memory: {e}", flush=True)
+        raise HTTPException(status_code=500, detail=f"memory save failed: {e}")
+    
 
 # ---- Local dev ----
 if __name__ == "__main__":

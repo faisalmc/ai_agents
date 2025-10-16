@@ -1147,7 +1147,72 @@ def handle_escalate(ack, body, say, logger):
         except Exception:
             pass
 
+# -------- NEW: Close Issue button --------
+@app.action("agent8_close_issue")
+def handle_close_issue(ack, body, say, logger):
+    """
+    Handle 'Close Issue' button click from Slack.
+    Sends session data to Agent-8 /memory/save so that
+    the triage knowledge is written to triage_memory.jsonl.
+    """
+    ack()
 
+    try:
+        # --- Extract basic context (channel + thread) ---
+        channel = body.get("container", {}).get("channel_id") or body.get("channel", {}).get("id") or ""
+        thread_ts = body.get("container", {}).get("message_ts") or body.get("message", {}).get("ts") or ""
+
+        # --- Parse button payload (JSON string) ---
+        payload = {}
+        try:
+            payload = json.loads((body.get("actions") or [{}])[0].get("value") or "{}")
+        except Exception:
+            payload = {}
+
+        # --- Collect identifiers from payload or known context maps ---
+        session_id = payload.get("session_id") or _A8_SESSION_BY_THREAD.get(thread_ts, "")
+        config_dir = payload.get("config_dir") or ""
+        task_id    = payload.get("task_dir") or ""
+        host       = payload.get("host") or _A8_CTX_BY_THREAD.get(thread_ts, {}).get("host", "")
+
+        # Guard against missing session
+        if not session_id:
+            say(channel=channel, thread_ts=thread_ts,
+                text="⚠️ Cannot close issue — no active triage session found.")
+            return
+
+        # --- Import helper and call Agent-8 /memory/save ---
+        from agent8_client import save_memory
+        result = save_memory(session_id=session_id)
+
+        # --- Post result back to Slack thread ---
+        if result.get("ok") or result.get("saved") or "success" in str(result).lower():
+            say(
+                channel=channel,
+                thread_ts=thread_ts,
+                text=(
+                    f"✅ *Issue closed and saved to triage memory.*\n"
+                    f"_File:_ `/app/shared/_agent_knowledge/triage_memory.jsonl`\n"
+                    f"Host: `{host}`  •  Config: `{config_dir}`  •  Task: `{task_id}`"
+                )
+            )
+        else:
+            err = result.get("error", "unknown error")
+            say(
+                channel=channel,
+                thread_ts=thread_ts,
+                text=f"⚠️ Failed to save triage memory: `{err}`"
+            )
+
+        logger.info(f"[agent8_close_issue] session={session_id} host={host} result={result}")
+
+    except Exception as e:
+        logger.error(f"agent8_close_issue error: {e}")
+        try:
+            say(channel=channel, thread_ts=thread_ts, text=f"⚠️ Close Issue failed: {e}")
+        except Exception:
+            pass
+        
 # -------- NEW: Quick-run buttons for triage commands --------
 @app.action(re.compile("^agent8_quick_run"))
 def handle_quick_run(ack, body, say, logger):

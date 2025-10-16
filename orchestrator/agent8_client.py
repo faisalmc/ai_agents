@@ -53,3 +53,27 @@ def analyze_command(session_id: str, host: str, command: str) -> Dict[str, Any]:
         "command": command,
         # "output": output,
     })
+
+# --- NEW: save triage session to memory (Close Issue) --- #
+def save_memory(session_id: str,
+                root_cause_text: str = "",
+                fix_steps_text: str = "",
+                user_feedback: str = "") -> Dict[str, Any]:
+    """
+    Calls Agent-8 /memory/save to persist the triage session data
+    into /app/shared/_agent_knowledge/triage_memory.jsonl
+
+    The optional text fields can later be filled by user input (future UI).
+    For now, they can be left blank.
+    """
+    payload = {
+        "session_id": session_id,
+        "root_cause_text": root_cause_text,
+        "fix_steps_text": fix_steps_text,
+        "user_feedback": user_feedback,
+    }
+
+    try:
+        return _post("/memory/save", payload, timeout=30.0)
+    except Exception as e:
+        return {"ok": False, "error": f"Agent-8 /memory/save failed: {e}"}
