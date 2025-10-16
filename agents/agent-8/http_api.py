@@ -418,6 +418,18 @@ def triage_ingest(req: IngestReq):
     )
     s["last_proposals"] = [pc.command for pc in proposed]
 
+
+    # ------ DEBUGso to confirm duplication of commands ------ #
+    print(f"[DEBUG:triage_ingest] LLM proposed = {[r.get('command') for r in llm_resp.get('recommended', [])]}", flush=True)
+    print(f"[DEBUG:triage_ingest] KB picked    = {[p['command'] for p in picks]}", flush=True)
+    unique_cmds = {}
+    for pc in proposed:
+        c = pc.command.strip().lower()
+        if c in unique_cmds:
+            print(f"[DEBUG:triage_ingest] DUPLICATE detected → {c} (sources: {unique_cmds[c].source} + {pc.source})", flush=True)
+        unique_cmds[c] = pc
+    # ---- #
+
     return IngestResp(
         guidance_text=guidance,
         proposed_commands=proposed,

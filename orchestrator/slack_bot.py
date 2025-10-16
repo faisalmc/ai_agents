@@ -482,7 +482,7 @@ def build_triage_suggestion_blocks(guidance: str, cmds: list, bot_name: str):
     # Fallback hint
     blocks.append({
         "type": "context",
-        "elements": [{"type": "mrkdwn", "text": f"_To run manually:_ `@{bot_name} triage run <cmd1> | <cmd2>`"}]
+        "elements": [{"type": "mrkdwn", "text": f"_To run custom commands:_ `@{bot_name} triage run <cmd1> | <cmd2>`"}]
     })
 
     return blocks
