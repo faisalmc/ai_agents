@@ -150,8 +150,16 @@ def triage_llm_analyze(host: str, cmds: List[str], outputs: List[str],
     }
 
 
-def triage_llm_propose(user_text: str, vendor: str = None, platform: str = None) -> Dict:
+def triage_llm_propose(user_text: str,
+                       vendor: str = None,
+                       platform: str = None,
+                       memory_summary: str = None) -> Dict:
     """
+    Use the LLM to propose diagnostic 'show' commands based on a user's free-text issue description.
+    Optionally includes a short memory_summary from similar past incidents.
+    Returns a dict with 'recommended' list (same schema as triage_llm_analyze).
+
+    # OLD ##
     Use the LLM to propose diagnostic 'show' commands based on a user's free-text issue description.
     Example input: "ISIS adjacency down" or "BGP neighbors not established"
     Returns a dict with 'recommended' list (same schema as triage_llm_analyze).
@@ -163,6 +171,17 @@ def triage_llm_propose(user_text: str, vendor: str = None, platform: str = None)
     v_info = f"Vendor: {vendor}" if vendor else "Vendor: (unknown)"
     p_info = f"Platform/OS: {platform}" if platform else "Platform/OS: (unknown)"
 
+    # ---- Optional section: relevant past cases ----
+    memory_section = ""
+    if memory_summary:
+        memory_section = f"""
+There are some relevant previously validated cases from memory.
+Use them only to avoid proposing *identical* commands unless truly justified.
+Here is a brief summary of those cases:
+{memory_summary}
+"""
+
+    # ---- Build main prompt ----
     prompt = f"""
 You are a senior network troubleshooting assistant.
 You are analyzing a device with the following characteristics:
@@ -172,6 +191,8 @@ You are analyzing a device with the following characteristics:
 The user described the following issue:
 
 "{user_text}"
+
+{memory_section}
 
 Your goal:
 - Suggest 2–5 relevant *read-only* 'show' commands that could help diagnose the issue.
@@ -195,6 +216,8 @@ Return STRICT JSON only:
     print("\n[DEBUG:triage_llm_propose] ===== LLM PROPOSE CALL =====", flush=True)
     print(f"user_text     : {user_text}", flush=True)
     print(f"vendor/platform: {vendor or 'unknown'} / {platform or 'unknown'}", flush=True)
+    if memory_summary:
+        print(f"[DEBUG:triage_llm_propose] memory_summary (first 200 chars): {memory_summary[:200]}", flush=True)
     print(f"Prompt (first 400 chars):\n{prompt[:400]}...\n", flush=True)
 
     try:
@@ -211,7 +234,4 @@ Return STRICT JSON only:
         return result
     except Exception as e:
         print(f"[agent-8/triage_llm_propose] WARN: LLM propose failed: {e}", flush=True)
-        return {"recommended": [], "error": str(e)}    
-
-
-
+        return {"recommended": [], "error": str(e)}

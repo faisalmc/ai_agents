@@ -15,6 +15,141 @@ import triage_history
 # shared/helpers.py
 from shared.helpers import extract_cmd_output   
 
+# -----------------------------
+# Lightweight local "vector" memory (no external deps)
+# -----------------------------
+
+from math import sqrt
+from collections import defaultdict
+
+def _mem_paths():
+    """
+    Return the canonical memory and index paths.
+    Keeping it here (single source of truth).
+    """
+    base = "/app/shared/_agent_knowledge"
+    return (
+        os.path.join(base, "triage_memory.jsonl"),   # primary validated memory
+        os.path.join(base, "triage_memory.index.jsonl"),  # compact vector index
+    )
+
+def _normalize_text(txt: str) -> str:
+    """
+    Very small text normalizer for embeddings.
+    Lowercase, collapse spaces.
+    """
+    return " ".join((txt or "").lower().split())
+
+def _text_to_vec(text: str, dim: int = 512) -> list[float]:
+    """
+    Hashing-based bag-of-words embedding.
+    - No third-party libs
+    - Deterministic, fixed-length vector
+    NOTE: This is *not* as good as real embeddings, but is a
+    zero-dependency baseline that gives us cosine similarity.
+    """
+    text = _normalize_text(text)
+    if not text:
+        return [0.0] * dim
+
+    vec = [0.0] * dim
+    # Simple tokenization on whitespace + a bit of punctuation split
+    for raw_tok in text.replace("/", " ").replace("|", " ").replace(",", " ").split():
+        tok = raw_tok.strip()
+        if not tok:
+            continue
+        # Use built-in hash; mod into our vector size
+        idx = (hash(tok) % dim + dim) % dim
+        vec[idx] += 1.0
+
+    # L2 normalize (avoid zero-div)
+    norm = sqrt(sum(v * v for v in vec)) or 1.0
+    return [v / norm for v in vec]
+
+def _cosine(a: list[float], b: list[float]) -> float:
+    """
+    Cosine similarity between two equally sized vectors.
+    """
+    # guard: dimension mismatch
+    if len(a) != len(b):
+        return 0.0
+    return sum(x * y for x, y in zip(a, b))
+
+def _append_index_entry(record: dict) -> None:
+    """
+    Append a compact searchable line into the JSONL index.
+    We store:
+    - "id": session_id + timestamp (or just session_id)
+    - "session_id"
+    - "text": combined_text we embedded
+    - "vec": the embedding vector
+    - plus a few handy fields for downstream use
+    """
+    MEM_PATH, IDX_PATH = _mem_paths()
+
+    # Build a combined text field for recall
+    summary = _normalize_text(record.get("summary_text") or "")
+    rc = _normalize_text(record.get("root_cause") or "")
+    fixes = _normalize_text(" ".join(record.get("fix_steps") or []))
+    eff = _normalize_text(" ".join(record.get("effective_cmds") or []))
+    tags = _normalize_text(" ".join(record.get("tags") or []))
+
+    combined_text = " | ".join([t for t in (summary, rc, fixes, eff, tags) if t])
+
+    entry = {
+        "id": record.get("session_id") or record.get("timestamp"),
+        "session_id": record.get("session_id"),
+        "config_dir": record.get("config_dir"),
+        "task_dir": record.get("task_dir"),
+        "host": record.get("host"),
+        "vendor": record.get("vendor"),
+        "platform": record.get("platform"),
+        "text": combined_text,
+        "vec": _text_to_vec(combined_text),
+        # keep a few useful payloads to surface back on recall:
+        "root_cause": record.get("root_cause"),
+        "fix_steps": record.get("fix_steps"),
+        "effective_cmds": record.get("effective_cmds"),
+        "trusted_cmds": record.get("trusted_cmds"),
+        "tags": record.get("tags"),
+    }
+
+    os.makedirs(os.path.dirname(IDX_PATH), exist_ok=True)
+    with open(IDX_PATH, "a", encoding="utf-8") as fh:
+        fh.write(json.dumps(entry) + "\n")
+
+def _search_memory(query: str, top_k: int = 3, threshold: float = 0.35) -> list[dict]:
+    """
+    Search the local JSONL index with cosine similarity.
+    Returns a list of hits sorted by score (desc).
+    - threshold: only return hits with cosine >= threshold
+    """
+    _, IDX_PATH = _mem_paths()
+    if not os.path.exists(IDX_PATH):
+        return []
+
+    q_vec = _text_to_vec(query)
+    hits: list[tuple[float, dict]] = []
+
+    with open(IDX_PATH, "r", encoding="utf-8") as fh:
+        for line in fh:
+            try:
+                row = json.loads(line)
+            except Exception:
+                continue
+            vec = row.get("vec")
+            if not isinstance(vec, list) or not vec:
+                continue
+            score = _cosine(q_vec, vec)
+            if score >= threshold:
+                hits.append((score, row))
+
+    hits.sort(key=lambda x: x[0], reverse=True)
+    return [{"score": sc, **row} for sc, row in hits[:top_k]]
+
+# ----------------   ##
+
+
 app = FastAPI(title="Agent-8 Triage API", version="0.1.0")
 
 # ---- Environment ----
@@ -379,36 +514,95 @@ def triage_ingest(req: IngestReq):
         s["summary_text"] = req.user_text
         print(f"[DEBUG] Stored first summary_text for session {req.session_id}", flush=True)
     # --- #
+
+    # Append to chat history for this session
     s["history"].append({"role": "user", "text": req.user_text, "ts": _now()})
 
-    # vendor_hint = None
-    # platform_hint = None
     vendor_hint = s.get("vendor")
     platform_hint = s.get("platform")
 
     proposed: List[ProposedCmd] = []
 
-    # --- Step 1: ask LLM for suggestions ---
+    # ---------- Step 0: MEMORY RECALL (new) ----------
+    guidance_prefix = ""
+    memory_summary = ""   # <-- NEW
+    try:
+        hits = _search_memory(req.user_text, top_k=3, threshold=0.35)
+        if hits:
+            recall_lines: List[str] = []
+            for i, h in enumerate(hits, start=1):
+                memory_summary = "\n".join([ (h.get("root_cause") or " ".join(h.get("fix_steps") or [])) for h in hits ])
+                score = round(float(h.get("score", 0.0)), 2)
+                rc = (h.get("root_cause") or "").strip()
+                fx = ", ".join(h.get("fix_steps") or [])
+                # show either root cause or fix summary
+                recap = rc if rc else fx if fx else "(no summary)"
+                recall_lines.append(f"• Match {i} (score {score}): {recap}")
+
+                # Seed commands from memory into proposals as HIGH trust (they worked before)
+                for c in (h.get("effective_cmds") or []):
+                    if c:
+                        proposed.append(ProposedCmd(command=c, source="memory", trust_hint="high"))
+                for c in (h.get("trusted_cmds") or []):
+                    if c:
+                        proposed.append(ProposedCmd(command=c, source="memory", trust_hint="high"))
+
+            guidance_prefix = "*Similar past issues found:*\n" + "\n".join(recall_lines) + "\n\n"
+            print(f"[DEBUG] Memory recall hits → {[(round(h.get('score',0.0),2), h.get('host')) for h in hits]}", flush=True)
+    except Exception as e:
+        print(f"[WARN] memory recall failed: {e}", flush=True)
+
+    # ---------- Step 1: LLM proposals (existing) ----------
+    llm_resp = {"recommended": []}  # default so debug print below never crashes
     try:
         llm_resp = triage_llm.triage_llm_propose(
             user_text=req.user_text,
             vendor=vendor_hint,
-            platform=platform_hint
-        )
+            platform=platform_hint,
+            memory_summary=memory_summary or None   # <-- NEW
+        ) or {"recommended": []}
         for rec in llm_resp.get("recommended", []):
-            cmd = rec.get("command", "").strip()
+            cmd = (rec.get("command") or "").strip()
             if cmd:
                 proposed.append(ProposedCmd(command=cmd, source="llm", trust_hint="low"))
     except Exception as e:
         print(f"[agent-8/triage_ingest] WARN: LLM propose failed: {e}", flush=True)
 
-    # --- Step 2: also pull from KB/YAML ---
+    # ---------- Step 2: KB/YAML trusted (existing) ----------
     picks = _select_trusted_by_text(req.user_text, vendor_hint, platform_hint, limit=4)
     for p in picks:
         proposed.append(ProposedCmd(command=p["command"], source="kb", trust_hint="high"))
 
-    guidance = "Here are few commands suggested based on what you described. You can run them by clicking on them, or type a custom command."
+    # ---------- Existing DEBUGs for duplicate detection ----------
+    print(f"[DEBUG:triage_ingest] LLM proposed = {[r.get('command') for r in llm_resp.get('recommended', [])]}", flush=True)
+    print(f"[DEBUG:triage_ingest] KB picked    = {[p['command'] for p in picks]}", flush=True)
+    unique_cmds = {}
+    for pc in proposed:
+        c = pc.command.strip().lower()
+        if c in unique_cmds:
+            print(f"[DEBUG:triage_ingest] DUPLICATE detected → {c} (sources: {unique_cmds[c].source} + {pc.source})", flush=True)
+        unique_cmds[c] = pc
 
+    # ---------- Step 3: De-duplicate (prefer HIGH trust) ----------
+    final_list: List[ProposedCmd] = []
+    seen = set()
+    for pc in proposed:
+        cmd_lower = pc.command.strip().lower()
+        # If we've already seen it and this one is not high-trust, skip
+        if cmd_lower in seen and pc.trust_hint != "high":
+            continue
+        # If a high-trust version arrives, drop any previous lower-trust copy
+        if pc.trust_hint == "high":
+            final_list = [c for c in final_list if c.command.strip().lower() != cmd_lower]
+        final_list.append(pc)
+        seen.add(cmd_lower)
+    proposed = final_list
+
+    # ---------- Step 4: Guidance text ----------
+    base_guidance = "Here are few commands suggested based on what you described."
+    guidance = guidance_prefix + base_guidance + " You can run them by clicking on them, or type a custom command."
+
+    # ---------- Step 5: Trial log (existing shape; note the source label) ----------
     _append_trial_event(
         s["config_dir"], s["task_dir"],
         {
@@ -419,45 +613,11 @@ def triage_ingest(req: IngestReq):
             "platform": platform_hint,
             "user_text": req.user_text,
             "proposed": [pc.command for pc in proposed],
-            "source": "llm+kb",
+            "source": "memory+llm+kb" if guidance_prefix else "llm+kb",
             "type": "proposal"
         }
     )
     s["last_proposals"] = [pc.command for pc in proposed]
-
-
-    # ------ DEBUGs to confirm duplication of commands ------ #
-    print(f"[DEBUG:triage_ingest] LLM proposed = {[r.get('command') for r in llm_resp.get('recommended', [])]}", flush=True)
-    print(f"[DEBUG:triage_ingest] KB picked    = {[p['command'] for p in picks]}", flush=True)
-    unique_cmds = {}
-    for pc in proposed:
-        c = pc.command.strip().lower()
-        if c in unique_cmds:
-            print(f"[DEBUG:triage_ingest] DUPLICATE detected → {c} (sources: {unique_cmds[c].source} + {pc.source})", flush=True)
-        unique_cmds[c] = pc
-        # ---- #
-    
-    # --- Step 3: remove duplicates (prefer KB over LLM) ---
-    final_list = []        # commands to keep
-    seen = set()           # store normalized command strings
-    # We go through all proposed commands, but KB (trust_hint='high')
-    # should always replace the same command from LLM if both exist.
-    for pc in proposed:
-        cmd_lower = pc.command.strip().lower()
-        # If command already seen and current one is low trust, skip it
-        if cmd_lower in seen and pc.trust_hint != "high":
-            continue
-        # If high-trust version appears later, remove older low-trust one
-        if pc.trust_hint == "high":
-            final_list = [c for c in final_list if c.command.strip().lower() != cmd_lower]
-        # Add the new one
-        final_list.append(pc)
-        seen.add(cmd_lower)
-    # For visibility, print duplicates if any were removed
-    print("[DEBUG:triage_ingest] deduplicated commands →", [c.command for c in final_list], flush=True)
-
-    # --- Replace original list ---
-    proposed = final_list
 
     return IngestResp(
         guidance_text=guidance,
@@ -931,42 +1091,43 @@ def memory_save(
     user_feedback: Optional[str] = Body(None),
 ):
     """
-    Save the triage session data when user clicks 'Close Issue'.  
-    It is called by Orchestrator when user clicks 'Close Issue'
-    This writes one validated record into triage_memory.jsonl
-    under /app/shared/_agent_knowledge.
+    Save the triage session data when user clicks 'Close Issue'.
+    Writes a validated JSON line into triage_memory.jsonl (for humans/tools),
+    and also appends a compact "vector index" line (for fast recall).
     """
-
-    MEMORY_PATH = "/app/shared/_agent_knowledge/triage_memory.jsonl"
+    # Get both file paths from our helper (single source of truth)
+    # NOTE: We write the full record to MEMORY_PATH.
+    #       _append_index_entry(record) will itself write to INDEX_PATH.
+    MEMORY_PATH, INDEX_PATH = _mem_paths()
 
     s = _require_session(session_id)
 
-    # --- gather data from session memory ---
-    summary_text = s.get("summary_text", "")
-    executed_cmds = s.get("executed_cmds", [])
-    analyses = s.get("analyses", [])
-    directions = s.get("directions", [])
-    last_trusted = s.get("last_trusted", [])
+    # 1) Collect data from the in-memory session
+    summary_text   = s.get("summary_text", "")
+    executed_cmds  = s.get("executed_cmds", [])
+    analyses       = s.get("analyses", [])
+    directions     = s.get("directions", [])
+    last_trusted   = s.get("last_trusted", [])
     last_unvalidated = s.get("last_unvalidated", [])
 
-    # --- choose cause/fix: prefer human text, fallback to last direction ---
+    # 2) Use human-entered cause/fix if provided; else fall back to last LLM direction
     root_cause = (root_cause_text or "").strip()
-    fix_steps = (fix_steps_text or "").strip()
+    fix_steps  = (fix_steps_text or "").strip()
     if not root_cause and directions:
-        root_cause = directions[-1].strip()
+        root_cause = (directions[-1] or "").strip()
     if not fix_steps and directions:
-        fix_steps = directions[-1].strip()
+        fix_steps = (directions[-1] or "").strip()
 
-    # --- effective commands (those that ran successfully) ---
-    effective_cmds = []
+    # 3) Build list of "effective" commands (that actually ran OK)
+    effective_cmds: List[str] = []
     for rec in executed_cmds:
         if rec.get("ran_ok") and rec.get("cmd"):
             cmd = rec["cmd"]
             if cmd not in effective_cmds:
                 effective_cmds.append(cmd)
 
-    # --- simple tags for indexing ---
-    tags = []
+    # 4) Simple tag extraction to help later recall/filtering
+    tags: List[str] = []
     for c in effective_cmds:
         lc = c.lower()
         if "bgp" in lc: tags.append("bgp")
@@ -976,30 +1137,27 @@ def memory_save(
         if "interface" in lc: tags.append("interfaces")
         if "route" in lc: tags.append("routing")
     if s.get("platform"): tags.append(s["platform"])
-    if s.get("vendor"): tags.append(s["vendor"])
-    # remove duplicates
+    if s.get("vendor"):   tags.append(s["vendor"])
+    # remove duplicates while keeping order
     tags = list(dict.fromkeys(tags))
 
-    # --- confidence score ---
-    if root_cause_text or fix_steps_text:
-        confidence = 1.0
-    else:
-        confidence = 0.6
+    # 5) Confidence: 1.0 if a human provided cause/fix, otherwise lower
+    confidence = 1.0 if (root_cause_text or fix_steps_text) else 0.6
 
-    # --- build final record ---
+    # 6) Build the final record we will persist to triage_memory.jsonl
     record = {
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "session_id": session_id,
         "config_dir": s.get("config_dir"),
-        "task_dir": s.get("task_dir"),
-        "host": s.get("host"),
-        "vendor": s.get("vendor"),
-        "platform": s.get("platform"),
-        "summary_text": summary_text,
-        "root_cause": root_cause,
-        "fix_steps": [fix_steps] if fix_steps else [],
-        "effective_cmds": effective_cmds,
-        "trusted_cmds": last_trusted,
+        "task_dir":   s.get("task_dir"),
+        "host":       s.get("host"),
+        "vendor":     s.get("vendor"),
+        "platform":   s.get("platform"),
+        "summary_text": summary_text,           # first user free-text captured at start
+        "root_cause":   root_cause,
+        "fix_steps":    [fix_steps] if fix_steps else [],
+        "effective_cmds":   effective_cmds,
+        "trusted_cmds":     last_trusted,
         "unvalidated_cmds": last_unvalidated,
         "analysis_snippets": analyses,
         "validated": True,
@@ -1008,17 +1166,25 @@ def memory_save(
         "tags": tags,
     }
 
-    # --- append JSONL line to the shared file ---
+    # 7) Append to the human-readable memory file (JSONL = one JSON per line)
     try:
         os.makedirs(os.path.dirname(MEMORY_PATH), exist_ok=True)
         with open(MEMORY_PATH, "a", encoding="utf-8") as fh:
             fh.write(json.dumps(record) + "\n")
-        print(f"[DEBUG] Saved triage memory record to {MEMORY_PATH}", flush=True)
-        return {"ok": True, "path": MEMORY_PATH}
+        print(f"[DEBUG] Saved triage memory record → {MEMORY_PATH}", flush=True)
     except Exception as e:
         print(f"[ERROR] Failed to save triage memory: {e}", flush=True)
         raise HTTPException(status_code=500, detail=f"memory save failed: {e}")
-    
+
+    # 8) Also append a compact vector index line (for fast cosine-similarity recall)
+    #    This helper internally writes to INDEX_PATH we unpacked above.
+    try:
+        _append_index_entry(record)
+        print(f"[DEBUG] Added vector index entry → {INDEX_PATH}", flush=True)
+    except Exception as e:
+        print(f"[WARN] Failed to append index entry: {e}", flush=True)
+
+    return {"ok": True, "memory_path": MEMORY_PATH, "index_path": INDEX_PATH}    
 
 # ---- Local dev ----
 if __name__ == "__main__":
