@@ -22,6 +22,10 @@ from shared.helpers import extract_cmd_output
 from math import sqrt
 from collections import defaultdict
 
+# --- For semantic embeddings ---
+from sentence_transformers import SentenceTransformer
+import numpy as np
+
 def _mem_paths():
     """
     Return the canonical memory and index paths.
@@ -40,31 +44,53 @@ def _normalize_text(txt: str) -> str:
     """
     return " ".join((txt or "").lower().split())
 
-def _text_to_vec(text: str, dim: int = 512) -> list[float]:
+# ------------------------------------------------------
+# Semantic text embedding (using all-MiniLM-L6-v2)
+# ------------------------------------------------------
+# This model converts text into a 384-dimensional dense vector.
+# It captures the *meaning* of the text, not just keywords.
+# Example: "bgp issue" ≈ "problem with bgp" will have high similarity.
+# Load the model once (cached globally)
+try:
+    _embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+    print("[INFO] Loaded MiniLM embedding model successfully.", flush=True)
+except Exception as e:
+    print(f"[WARN] Failed to load MiniLM model: {e}", flush=True)
+    _embedding_model = None
+
+def _text_to_vec(text: str) -> list[float]:
     """
-    Hashing-based bag-of-words embedding.
-    - No third-party libs
-    - Deterministic, fixed-length vector
-    NOTE: This is *not* as good as real embeddings, but is a
-    zero-dependency baseline that gives us cosine similarity.
+    CURRENT:
+        Convert input text into a semantic vector.
+        Returns a list of floats (length ~384).
+        Falls back to a zero vector if model not available or text empty.
+    OLD:
+        tried: Hashing-based bag-of-words embedding.
+        - No third-party libs
+        - Deterministic, fixed-length vector
+        NOTE: This is *not* as good as real embeddings, but is a
+        zero-dependency baseline that gives us cosine similarity.
     """
     text = _normalize_text(text)
     if not text:
-        return [0.0] * dim
+        return [0.0] * 384
 
-    vec = [0.0] * dim
-    # Simple tokenization on whitespace + a bit of punctuation split
-    for raw_tok in text.replace("/", " ").replace("|", " ").replace(",", " ").split():
-        tok = raw_tok.strip()
-        if not tok:
-            continue
-        # Use built-in hash; mod into our vector size
-        idx = (hash(tok) % dim + dim) % dim
-        vec[idx] += 1.0
+    if _embedding_model is None:
+        # Simple fallback (old hash-based approach)
+        print("[WARN] Embedding model unavailable, using fallback.", flush=True)
+        vec = [0.0] * 384
+        for tok in text.split():
+            idx = (hash(tok) % 384 + 384) % 384
+            vec[idx] += 1.0
+        norm = np.linalg.norm(vec) or 1.0
+        return (vec / norm).tolist()
 
-    # L2 normalize (avoid zero-div)
-    norm = sqrt(sum(v * v for v in vec)) or 1.0
-    return [v / norm for v in vec]
+    try:
+        emb = _embedding_model.encode([text], normalize_embeddings=True)
+        return emb[0].tolist()
+    except Exception as e:
+        print(f"[WARN] Embedding failed for text: {e}", flush=True)
+        return [0.0] * 384
 
 def _cosine(a: list[float], b: list[float]) -> float:
     """
