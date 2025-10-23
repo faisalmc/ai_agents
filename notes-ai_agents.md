@@ -1,4 +1,9 @@
+
 # App creation on slack:
+# tar on mac
+tar -czvf archive_name.tar.gz file_or_directory [file_or_directory...]
+
+tar -czvf agent-7.tar.gz agent-7
 
 # test agent-7:
 curl -sS http://localhost:8007/health
@@ -23,7 +28,48 @@ curl -sS -X POST http://localhost:8007/capture \
 @agent a7-plan configs.5 task-18.bfd
 @agent a7-analyze configs.5 task-18.bfd
 
+
+
+# agent-8
+
+docker compose stop agent_8 && docker compose rm -f  agent_8  && docker compose up -d --build agent_8 
+
+docker compose stop orchestrator_bot agent_8 && docker compose rm -f orchestrator_bot agent_8  && docker compose up -d --build orchestrator_bot agent_8 
+
+docker compose stop orchestrator_bot agent_4 agent_8 agent_7 && docker compose rm -f orchestrator_bot agent_4 agent_8 agent_7 && docker compose up -d --build orchestrator_bot agent_4 agent_8 agent_7
+
+**slack test for agent-8**
+@agent triage BGP is flapping on C-ASBR-1
+@agent triage run show ip bgp summary
+
+
+
+**manual tests for agent-8:**
+curl -s -X POST http://localhost:8008/triage/start \                                                                            
+  -H "Content-Type: application/json" \
+  -d '{"config_dir":"configs.5","task_dir":"task-18.bfd","host":"C-ASBR-1"}'   
+  
+curl -s -X POST http://localhost:8008/triage/ingest \
+ -H "Content-Type: application/json" \
+ -d '{"session_id":"1486e51469f94d34b9d4c74de60d1677","user_text":"BGP is flapping on site A"}'
+
+# orchestrator
+docker compose stop orchestrator_bot && docker compose rm -f orchestrator_bot  && docker compose up -d --build orchestrator_bot 
+
+# agent-7
+
+docker compose stop agent_7 && docker compose rm -f  agent_7  && docker compose up -d --build agent_7 
+
+
 # docker -- same command for build and up
+docker compose stop agent_2 && docker compose rm -f agent_2 && docker compose up -d --build agent_2
+
+
+docker compose stop agent_1 && docker compose rm -f agent_1 && docker compose build --no-cache agent_1
+docker compose up agent_1
+
+docker compose stop agent_1 && docker compose rm -f agent_1 && docker compose up -d --build --no-cache agent_1
+
 docker compose stop agent_7 && docker compose rm -f agent_7
 docker compose up -d --build agent_7
 
