@@ -12,6 +12,15 @@ HOSTS_MULTI_ID         = ("hosts_block", "hosts_select")
 INCLUDE_SHOW_RUN_ID    = ("opts_block", "include_show_run")
 ATTACH_BTN_ACTION_ID   = "agent7_attach_artifacts"  # orchestrator listens for this
 
+# NEW: Agent-8 triage action ids
+TRIAGE_BTN_ACTION_ID   = "agent8_start_triage"
+TRIAGE_HOST_PICKER_ID  = ("triage_block", "agent8_host_select")
+
+# DEBUG 
+print(" ---------------------")
+print("[slack_ui] slack_ui.py file LOADED ✅")
+print(" ---------------------")
+
 # Per-host command picks are dynamic: block_id = f"cmds_{host}", action_id = "trusted_cmds"/"unval_cmds"
 
 def _per_device_status_counts(rows):
@@ -41,6 +50,32 @@ def _per_device_status_counts(rows: List[Dict[str, Any]]) -> Dict[str, int]:
         counts[s] += 1
     return counts
 
+# NEW: pick top degraded/error hosts for triage picker
+def _top_degraded_hosts(per_device: List[Dict[str, Any]], limit: int = 8) -> List[str]:
+    """
+    Order: error → degraded → unknown → healthy (cap by limit).
+    Fallback to per_device order if statuses missing.
+    """
+    buckets = {"error": [], "degraded": [], "unknown": [], "healthy": []}
+    for row in per_device or []:
+        host = (row.get("hostname") or "").strip()
+        if not host:
+            continue
+        status = str(row.get("status", "unknown")).lower()
+        if status not in buckets:
+            status = "unknown"
+        buckets[status].append(host)
+    ordered = buckets["error"] + buckets["degraded"] + buckets["unknown"] + buckets["healthy"]
+    out: List[str] = []
+    for h in ordered:
+        if h not in out:
+            out.append(h)
+        if len(out) >= max(1, limit):
+            break
+    return out
+
+# DEBUG before build_overview_block
+# print(f"[slack_ui] build_overview_blocks: per_device={len(per_device)} host(s), cross keys={list(cross.keys())}")
 # ------------------------------------------------------------------------------------
 # Overview message blocks (feed to your orchestrator to post)
 # ------------------------------------------------------------------------------------
@@ -51,18 +86,33 @@ def build_overview_blocks(
     per_device: List[Dict[str, Any]] | None,
     *,
     include_attach_button: bool = False,
+    # NEW keyword-only args (backward compatible):
+    include_triage_button: bool = False,
+    triage_picker_limit: int = 8,
 ) -> List[Dict[str, Any]]:
     cross = cross or {}
+    full_analysis_mode = bool(cross)
+
     per_device = per_device or []
 
+    print(" ---------------------")
+    print("[slack_ui] build_overview_blocks() INVOKED ✅")
+    print(f"[slack_ui] Received task_id: {task_dir}")
+    print(f"[slack_ui] Number of per_device entries: {len(per_device)}")
+    print(f"[slack_ui] cross_device keys: {list(cross.keys())}")
+
+
     blocks: List[Dict[str, Any]] = []
-    blocks.append(_mk_section(f"*Agent-7 Overview*\n*Config:* `{config_dir}` • *Task:* `{task_dir}`"))
+    blocks.append(_mk_section(f"*Agent Overview*\n*Config:* `{config_dir}` • *Task:* `{task_dir}`"))
 
     # (1) Network summary (if present)
     net_sum = (cross.get("network_summary") or "").strip()
     if net_sum:
         blocks.append(_mk_section(f"*Summary:* {net_sum}"))
-
+        print("[slack_ui] Using cross-network summary in Slack message")
+    else:
+        print("[slack_ui] No cross-network summary — likely scoped triage mode")
+    
     # (2) Status rollup: prefer cross.status_rollup; else derive
     roll = cross.get("status_rollup") if isinstance(cross, dict) else None
     need_derive = (
@@ -76,24 +126,35 @@ def build_overview_blocks(
             s = (row.get("status") or "unknown").lower()
             cnt[s] = cnt.get(s, 0) + 1
         roll = cnt
-    blocks.append(_mk_section(
-        f"*Status rollup:* healthy `{roll.get('healthy',0)}` • "
-        f"degraded `{roll.get('degraded',0)}` • error `{roll.get('error',0)}` • "
-        f"unknown `{roll.get('unknown',0)}`"
-    ))
+
+    if full_analysis_mode:
+        blocks.append(_mk_section(
+            f"*Status rollup:* healthy `{roll.get('healthy',0)}` • "
+            f"degraded `{roll.get('degraded',0)}` • error `{roll.get('error',0)}` • "
+            f"unknown `{roll.get('unknown',0)}`"
+        ))
 
     # Visual separator after rollup
     blocks.append(_mk_divider())
 
     # (3) Notable devices (from cross)
-    notable = cross.get("notable_devices") or []
-    if isinstance(notable, list) and notable:
-        lines = []
-        for nd in notable[:5]:
-            lines.append(f"• `{nd.get('host','?')}` — *{nd.get('status','unknown')}*: {nd.get('note','')}")
-        blocks.append(_mk_section("*Notable devices:*\n" + "\n".join(lines)))
-        blocks.append(_mk_divider())
+    # notable = cross.get("notable_devices") or []
+    # if isinstance(notable, list) and notable:
+    #     lines = []
+    #     for nd in notable[:5]:
+    #         lines.append(f"• `{nd.get('host','?')}` — *{nd.get('status','unknown')}*: {nd.get('note','')}")
+    #     blocks.append(_mk_section("*Notable devices:*\n" + "\n".join(lines)))
+    #     blocks.append(_mk_divider())
 
+    if full_analysis_mode:
+        notable = cross.get("notable_devices") or []
+        if isinstance(notable, list) and notable:
+            lines = []
+            for nd in notable[:5]:
+                lines.append(f"• `{nd.get('host','?')}` — *{nd.get('status','unknown')}*: {nd.get('note','')}")
+            blocks.append(_mk_section("*Notable devices:*\n" + "\n".join(lines)))
+            blocks.append(_mk_divider())
+            
     # (4) Per-device mini cards (ok/suspect; fallback to findings)
     if per_device:
         upto = min(len(per_device), 5)
@@ -142,20 +203,23 @@ def build_overview_blocks(
     blocks.append(_mk_divider())
 
     # (5) Cross-device summary
-    task_status = cross.get("task_status", "unknown")
-    blocks.append(_mk_section(f"*Network status:* *{task_status}*"))
+    # (5) Cross-device summary
+    if full_analysis_mode and cross.get("task_status"):
+        task_status = cross["task_status"]
+        blocks.append(_mk_section(f"*Network status:* *{task_status}*"))
 
     incidents = cross.get("top_incidents") or []
-    if incidents:
-        lines = []
-        for inc in incidents[:6]:
-            scope   = inc.get("scope", "scope")
-            summary = inc.get("summary", "")
-            devs    = ", ".join((inc.get("devices") or [])[:6])
-            lines.append(f"• *[{scope}]* {summary} — _{devs}_")
-        blocks.append(_mk_section("*Top incidents:*\n" + "\n".join(lines)))
-    else:
-        blocks.append(_mk_section("_No cross-device incidents detected._"))
+    if full_analysis_mode:
+        if incidents:
+            lines = []
+            for inc in incidents[:6]:
+                scope   = inc.get("scope", "scope")
+                summary = inc.get("summary", "")
+                devs    = ", ".join((inc.get("devices") or [])[:6])
+                lines.append(f"• *[{scope}]* {summary} — _{devs}_")
+            blocks.append(_mk_section("*Top incidents:*\n" + "\n".join(lines)))
+        else:
+            blocks.append(_mk_section("_No cross-device incidents detected._"))
 
     themes = cross.get("remediation_themes") or []
     if themes:
@@ -172,8 +236,13 @@ def build_overview_blocks(
         if probes:
             blocks.append(_mk_section("*Optional probes:*\n" + "\n".join([f"• `{c}`" for c in probes[:6]])))
 
-    # (6) Optional action
-    if include_attach_button:
+    # (6) Optional actions
+    # (6) Optional actions — split into two rows for clarity
+    # 6a) Attach artifacts (first row)
+    action_elems: List[Dict[str, Any]] = []
+
+    if full_analysis_mode and include_attach_button:
+    # if include_attach_button:
         payload = json.dumps({"config_dir": config_dir, "task_dir": task_dir})
         blocks.append({
             "type": "actions",
@@ -187,7 +256,95 @@ def build_overview_blocks(
             ]
         })
 
-    return blocks
+    # 6b) Friendly lead-in + Start triage row (next line)
+    if full_analysis_mode:
+        if include_triage_button:
+            # short human lead-in
+            blocks.append(_mk_divider())
+            blocks.append(_mk_section("*Want to troubleshoot further?* \n Pick a host and start a focused triage session."))
+
+        # Host options: top degraded/error first (cap by triage_picker_limit)
+        host_candidates = _top_degraded_hosts(per_device, limit=triage_picker_limit)
+        host_options = [{
+            "text": {"type": "plain_text", "text": h, "emoji": True},
+            "value": h
+        } for h in host_candidates] or [{
+            "text": {"type": "plain_text", "text": "— no hosts —", "emoji": True},
+            "value": "__none__"
+        }]
+
+        # Button payload carries config/task; selected host will be picked by action handler
+        triage_payload = json.dumps({"config_dir": config_dir, "task_dir": task_dir})
+
+        blocks.append({
+            "type": "actions",
+            "block_id": TRIAGE_HOST_PICKER_ID[0],
+            "elements": [
+                {
+                    "type": "static_select",
+                    "placeholder": {"type": "plain_text", "text": "Pick host"},
+                    "action_id": TRIAGE_HOST_PICKER_ID[1],
+                    "options": host_options
+                },
+                {
+                    "type": "button",
+                    "text": {"type": "plain_text", "text": "Start triage"},
+                    "action_id": TRIAGE_BTN_ACTION_ID,
+                    "value": triage_payload
+                }
+            ]
+        })
+
+    return blocks    
+
+    # if include_attach_button:
+    #     payload = json.dumps({"config_dir": config_dir, "task_dir": task_dir})
+    #     action_elems.append({
+    #         "type": "button",
+    #         "text": {"type": "plain_text", "text": "Attach artifacts"},
+    #         "action_id": ATTACH_BTN_ACTION_ID,
+    #         "value": payload
+    #     })
+
+    # # NEW: Start triage + host picker (only if requested)
+    # if include_triage_button:
+    #     # Host options: top degraded/error first (cap by triage_picker_limit)
+    #     host_candidates = _top_degraded_hosts(per_device, limit=triage_picker_limit)
+    #     host_options = [{
+    #         "text": {"type": "plain_text", "text": h, "emoji": True},
+    #         "value": h
+    #     } for h in host_candidates] or [{
+    #         "text": {"type": "plain_text", "text": "— no hosts —", "emoji": True},
+    #         "value": "__none__"
+    #     }]
+
+    #     # Button payload carries config/task; selected host will be read via select action
+    #     triage_payload = json.dumps({"config_dir": config_dir, "task_dir": task_dir})
+
+    #     action_elems.extend([
+    #         {
+    #             "type": "button",
+    #             "text": {"type": "plain_text", "text": "Start triage"},
+    #             "action_id": TRIAGE_BTN_ACTION_ID,
+    #             "value": triage_payload
+    #         },
+    #         {
+    #             "type": "static_select",
+    #             "placeholder": {"type": "plain_text", "text": "Pick host"},
+    #             "action_id": TRIAGE_HOST_PICKER_ID[1],
+    #             "options": host_options
+    #         }
+    #     ])
+
+    # if action_elems:
+    #     blocks.append({
+    #         "type": "actions",
+    #         "block_id": TRIAGE_HOST_PICKER_ID[0],
+    #         "elements": action_elems
+    #     })
+
+    # return blocks
+
 # ------------------------------------------------------------------------------------
 # “Run selected” modal (multi-host, per-host trusted/unvalidated command picks)
 # ------------------------------------------------------------------------------------

@@ -1,0 +1,120 @@
+--- SYSTEM ---
+You are a senior Cisco SP NOC engineer.
+You will analyze structured FACTS produced from parsed CLI (pyATS Genie or LLM). You MUST:
+- Use only the provided facts as evidence; do NOT invent information.
+- Return STRICT JSON only (no prose) with this schema:
+{
+  "hostname": "<string>",
+  "platform": "ios-xr" | "ios" | "unknown",
+  "signals_seen": ["bgp","isis","mpls","evpn","l2vpn","sr","srv6","intf","ip","bfd", ...],
+  "status": "healthy" | "degraded" | "error" | "unknown",
+  "status_reason": "<short explanation tied to evidence, not to parsing availability>",
+  "ok": [
+    {
+      "summary": "<what looks healthy (1 line)>",
+      "evidence_ref": { "command_key": "<cmd_key>", "path": "commands.<cmd_key>.<...>" }
+    }
+  ],
+  "suspect": [
+    {
+      "summary": "<what looks off (1 line)>",
+      "evidence_ref": { "command_key": "<cmd_key>", "path": "commands.<cmd_key>.<...>" }
+    }
+  ],
+  "findings": [
+    {
+      "signal": "<one of signals_seen>",
+      "severity": "info" | "warn" | "error",
+      "summary": "<short, evidence-backed>",
+      "evidence_ref": {
+        "command_key": "<cmd_key from facts.commands>",
+        "path": "commands.<cmd_key>.<...>"  // MUST point to a real path in facts
+      }
+    }
+  ],
+  "recommended_show_cmds": ["show ..."],
+  "optional_active_cmds": ["ping ..."]
+}
+Rules:
+- Evidence must reference REAL paths in the provided facts (start with commands.<cmd_key>.).
+- Do NOT mark status as degraded/error just because a parser is unavailable or parser_ok=false.
+  If tables/metrics/evidence_text exist and clearly show healthy behavior, treat that as valid evidence.
+- Prefer listing both positives (ok[]) and negatives (suspect[]) so the operator sees what's working and what's not.
+- status_reason must reflect network state (e.g., "some BGP neighbors Idle while others Established"), NOT "parser not found".
+- Be conservative: if unclear, use severity "info".
+- Never propose config/debug/clear/reload commands.
+
+
+--- USER ---
+### Context
+```json
+{
+  "hostname": "B-ASBR-1",
+  "platform_hint": "unknown",
+  "signals_seen": [],
+  "available_command_keys": [],
+  "agent1_summary": {
+    "hostname": "B-ASBR-1",
+    "provider": "Beta",
+    "customer": null,
+    "role": "ASBR",
+    "platform_hint": "cisco-ios-xr",
+    "vendor": "cisco",
+    "config_intents": [
+      "Establish BGP AS 200 with IPv4 and IPv6 unicast address families",
+      "Configure BFD for fast detection with minimum interval 500 ms and multiplier 5 for neighbor-group TO_C_ASBR"
+    ],
+    "expected_state": [
+      {
+        "signal": "bgp",
+        "observation_goals": [
+          "BGP process is running",
+          "Neighbor relationship with AS 300 established",
+          "BFD configured for fast detection"
+        ],
+        "suggested_show": [
+          {
+            "cmd": "show bgp summary",
+            "provenance": "llm",
+            "confidence": "high",
+            "platform": "cisco-ios-xr"
+          },
+          {
+            "cmd": "show bgp neighbor",
+            "provenance": "llm",
+            "confidence": "med",
+            "platform": "cisco-ios-xr"
+          }
+        ],
+        "candidate_show": [
+          {
+            "cmd": "show run | section ^router bgp",
+            "provenance": "llm",
+            "confidence": "low",
+            "platform": "cisco-ios-xr",
+            "note": "IOS-style pipe may not work on XR"
+          }
+        ]
+      },
+      {
+        "signal": "bfd",
+        "observation_goals": [
+          "BFD minimum interval set to 500 ms",
+          "BFD multiplier set to 5",
+          "BFD fast-detect enabled"
+        ],
+        "suggested_show": [
+          {
+            "cmd": "show bfd neighbors",
+            "provenance": "llm",
+            "confidence": "high",
+            "platform": "cisco-ios-xr"
+          }
+        ]
+      }
+    ]
+  },
+  "adk_snippets": [],
+  "facts_json": "{\"hostname\": \"B-ASBR-1\", \"platform_hint\": \"unknown\", \"signals_seen\": [], \"generated_at\": 1758021587, \"facts_version\": 1, \"coverage\": {\"genie_ok\": 0, \"genie_err\": 0, \"llm_ok\": 0, \"total_cmds\": 0, \"total_enriched\": 0}, \"commands\": {}, \"notes\": {\"gap_fill_permitted\": true, \"gap_fill_used\": false, \"providers\": [\"mcp(if-wired)\", \"genie\", \"llm\"]}}"
+}
+```

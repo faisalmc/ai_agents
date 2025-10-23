@@ -1,0 +1,319 @@
+{
+  "hostname": "B-ASBR-1",
+  "platform_hint": "cisco-ios-xr",
+  "signals_seen": [
+    "bfd",
+    "bgp"
+  ],
+  "generated_at": 1758042170,
+  "facts_version": 1,
+  "coverage": {
+    "genie_ok": 1,
+    "genie_err": 0,
+    "llm_ok": 2,
+    "total_cmds": 3,
+    "total_enriched": 3
+  },
+  "commands": {
+    "show_bfd_session": {
+      "command": "show bfd session",
+      "topic": "bfd",
+      "platform_hint": "cisco-ios-xr",
+      "source": "genie",
+      "parsed_path": "/app/doo/configs.5/task-18.bfd/agent7/3-analyze/1-parsed/B-ASBR-1/cisco-ios-xr__show_bfd_session.json",
+      "evidence_text_path": "/app/doo/configs.5/task-18.bfd/agent7/3-analyze/0-md-index/B-ASBR-1/002__show_bfd_session.txt",
+      "parser_ok": true,
+      "data": {
+        "interface": {
+          "GigabitEthernet0/0/0/3": {
+            "dest_ip_address": {
+              "100.64.231.2": {
+                "echo_total_msec": 2500,
+                "echo_msec": 500,
+                "echo_multiplier": 5,
+                "async_total_msec": 10000,
+                "async_msec": 2000,
+                "async_multiplier": 5,
+                "state": "UP",
+                "hardware": "No",
+                "npu": "n/a"
+              }
+            }
+          }
+        }
+      },
+      "genie_data": {
+        "interface": {
+          "GigabitEthernet0/0/0/3": {
+            "dest_ip_address": {
+              "100.64.231.2": {
+                "echo_total_msec": 2500,
+                "echo_msec": 500,
+                "echo_multiplier": 5,
+                "async_total_msec": 10000,
+                "async_msec": 2000,
+                "async_multiplier": 5,
+                "state": "UP",
+                "hardware": "No",
+                "npu": "n/a"
+              }
+            }
+          }
+        }
+      }
+    },
+    "show_bfd_session_detail": {
+      "command": "show bfd session detail",
+      "topic": "bfd",
+      "platform_hint": "cisco-ios-xr",
+      "source": "llm",
+      "parsed_path": "",
+      "evidence_text_path": "/app/doo/configs.5/task-18.bfd/agent7/3-analyze/0-md-index/B-ASBR-1/003__show_bfd_session_detail.txt",
+      "parser_ok": false,
+      "data": {
+        "summary": "BFD session is currently up with specific parameters and statistics.",
+        "status": {
+          "name": "bfd_session",
+          "value": "up",
+          "confidence": "high",
+          "confidence_reason": "The state is explicitly stated as UP."
+        },
+        "metrics": {
+          "desired_tx_interval_seconds": 2,
+          "required_rx_interval_seconds": 2,
+          "required_echo_rx_interval_ms": 1,
+          "multiplier": 5,
+          "async_detection_time_seconds": 10,
+          "echo_detection_time_ms": 2500,
+          "local_negotiated_async_tx_interval_seconds": 2,
+          "remote_negotiated_async_tx_interval_seconds": 2,
+          "desired_echo_tx_interval_ms": 500,
+          "local_negotiated_echo_tx_interval_ms": 500,
+          "last_packet_transmitted_ms": 1740,
+          "last_packet_received_ms": 1687
+        },
+        "tables": {
+          "timers": [
+            {
+              "local_negotiated_async_tx_interval": "2 s",
+              "remote_negotiated_async_tx_interval": "2 s",
+              "desired_echo_tx_interval": "500 ms",
+              "local_negotiated_echo_tx_interval": "500 ms",
+              "echo_detection_time": "2500 ms",
+              "async_detection_time": "10 s"
+            }
+          ],
+          "parameters": [
+            {
+              "version": 1,
+              "desired_tx_interval": "2 s",
+              "required_rx_interval": "2 s",
+              "required_echo_rx_interval": "1 ms",
+              "multiplier": 5,
+              "diag": "None",
+              "my_discr": 2148532226,
+              "your_discr": 2148532226,
+              "state": "UP",
+              "d_f_p_c_a": "0/0/0/1/0"
+            }
+          ]
+        },
+        "evidence": [
+          "L5: State: UP for 0d:0h:0m:32s, number of times UP: 1",
+          "L6: Session type: PR/V4/SH",
+          "L20: Local negotiated async tx interval: 2 s",
+          "L21: Remote negotiated async tx interval: 2 s",
+          "L22: Desired echo tx interval: 500 ms, local negotiated echo tx interval: 500 ms"
+        ]
+      },
+      "llm_data": {
+        "summary": "BFD session is currently up with specific parameters and statistics.",
+        "status": {
+          "name": "bfd_session",
+          "value": "up",
+          "confidence": "high",
+          "confidence_reason": "The state is explicitly stated as UP."
+        },
+        "metrics": {
+          "desired_tx_interval_seconds": 2,
+          "required_rx_interval_seconds": 2,
+          "required_echo_rx_interval_ms": 1,
+          "multiplier": 5,
+          "async_detection_time_seconds": 10,
+          "echo_detection_time_ms": 2500,
+          "local_negotiated_async_tx_interval_seconds": 2,
+          "remote_negotiated_async_tx_interval_seconds": 2,
+          "desired_echo_tx_interval_ms": 500,
+          "local_negotiated_echo_tx_interval_ms": 500,
+          "last_packet_transmitted_ms": 1740,
+          "last_packet_received_ms": 1687
+        },
+        "tables": {
+          "timers": [
+            {
+              "local_negotiated_async_tx_interval": "2 s",
+              "remote_negotiated_async_tx_interval": "2 s",
+              "desired_echo_tx_interval": "500 ms",
+              "local_negotiated_echo_tx_interval": "500 ms",
+              "echo_detection_time": "2500 ms",
+              "async_detection_time": "10 s"
+            }
+          ],
+          "parameters": [
+            {
+              "version": 1,
+              "desired_tx_interval": "2 s",
+              "required_rx_interval": "2 s",
+              "required_echo_rx_interval": "1 ms",
+              "multiplier": 5,
+              "diag": "None",
+              "my_discr": 2148532226,
+              "your_discr": 2148532226,
+              "state": "UP",
+              "d_f_p_c_a": "0/0/0/1/0"
+            }
+          ]
+        },
+        "evidence": [
+          "L5: State: UP for 0d:0h:0m:32s, number of times UP: 1",
+          "L6: Session type: PR/V4/SH",
+          "L20: Local negotiated async tx interval: 2 s",
+          "L21: Remote negotiated async tx interval: 2 s",
+          "L22: Desired echo tx interval: 500 ms, local negotiated echo tx interval: 500 ms"
+        ]
+      }
+    },
+    "show_ip_bgp_neighbor_brief": {
+      "command": "show ip bgp neighbor brief",
+      "topic": "bgp",
+      "platform_hint": "cisco-ios-xr",
+      "source": "llm",
+      "parsed_path": "",
+      "evidence_text_path": "/app/doo/configs.5/task-18.bfd/agent7/3-analyze/0-md-index/B-ASBR-1/001__show_ip_bgp_neighbor_brief.txt",
+      "parser_ok": false,
+      "data": {
+        "summary": "The BGP neighbor summary shows three established IPv4 neighbors and one established IPv6 neighbor.",
+        "status": {
+          "name": "bgp_neighbors",
+          "value": "established",
+          "confidence": "high",
+          "confidence_reason": "All neighbors are in the Established state."
+        },
+        "metrics": {
+          "bgp_neighbors_total": 4,
+          "bgp_neighbors_by_state": {
+            "established": 4
+          }
+        },
+        "tables": {
+          "bgp_neighbors": [
+            {
+              "Neighbor": "2.0.101.10",
+              "Spk": 0,
+              "AS": 200,
+              "Description": "",
+              "Up/Down": "01:56:52",
+              "NBRState": "Established"
+            },
+            {
+              "Neighbor": "100.64.121.1",
+              "Spk": 0,
+              "AS": 100,
+              "Description": "",
+              "Up/Down": "04:04:52",
+              "NBRState": "Established"
+            },
+            {
+              "Neighbor": "100.64.231.2",
+              "Spk": 0,
+              "AS": 300,
+              "Description": "",
+              "Up/Down": "00:00:34",
+              "NBRState": "Established"
+            },
+            {
+              "Neighbor": "2620:fc7:64:231::2",
+              "Spk": 0,
+              "AS": 300,
+              "Description": "",
+              "Up/Down": "00:00:46",
+              "NBRState": "Established"
+            }
+          ]
+        },
+        "evidence": [
+          "L2: 2.0.101.10        0   200                                      01:56:52 Established",
+          "L3: 100.64.121.1      0   100                                      04:04:52 Established",
+          "L4: 100.64.231.2      0   300                                      00:00:34 Established",
+          "L5: 2620:fc7:64:231::2\n                  0   300                                      00:00:46 Established"
+        ]
+      },
+      "llm_data": {
+        "summary": "The BGP neighbor summary shows three established IPv4 neighbors and one established IPv6 neighbor.",
+        "status": {
+          "name": "bgp_neighbors",
+          "value": "established",
+          "confidence": "high",
+          "confidence_reason": "All neighbors are in the Established state."
+        },
+        "metrics": {
+          "bgp_neighbors_total": 4,
+          "bgp_neighbors_by_state": {
+            "established": 4
+          }
+        },
+        "tables": {
+          "bgp_neighbors": [
+            {
+              "Neighbor": "2.0.101.10",
+              "Spk": 0,
+              "AS": 200,
+              "Description": "",
+              "Up/Down": "01:56:52",
+              "NBRState": "Established"
+            },
+            {
+              "Neighbor": "100.64.121.1",
+              "Spk": 0,
+              "AS": 100,
+              "Description": "",
+              "Up/Down": "04:04:52",
+              "NBRState": "Established"
+            },
+            {
+              "Neighbor": "100.64.231.2",
+              "Spk": 0,
+              "AS": 300,
+              "Description": "",
+              "Up/Down": "00:00:34",
+              "NBRState": "Established"
+            },
+            {
+              "Neighbor": "2620:fc7:64:231::2",
+              "Spk": 0,
+              "AS": 300,
+              "Description": "",
+              "Up/Down": "00:00:46",
+              "NBRState": "Established"
+            }
+          ]
+        },
+        "evidence": [
+          "L2: 2.0.101.10        0   200                                      01:56:52 Established",
+          "L3: 100.64.121.1      0   100                                      04:04:52 Established",
+          "L4: 100.64.231.2      0   300                                      00:00:34 Established",
+          "L5: 2620:fc7:64:231::2\n                  0   300                                      00:00:46 Established"
+        ]
+      }
+    }
+  },
+  "notes": {
+    "gap_fill_permitted": true,
+    "gap_fill_used": true,
+    "providers": [
+      "mcp(if-wired)",
+      "genie",
+      "llm"
+    ]
+  }
+}

@@ -1,9 +1,8 @@
 {
   "config_dir": "configs.5",
-  "task_dir": "taREMOVED18.bfd",
-  "hosts": 2,
+  "task_dir": "task-18.bfd",
+  "hosts": 1,
   "facts_written": [
-    "/app/doo/configs.5/taREMOVED18.bfd/agent7/3-analyze/2-facts/B-ASBR-1.json",
-    "/app/doo/configs.5/taREMOVED18.bfd/agent7/3-analyze/2-facts/C-ASBR-1.json"
+    "/app/doo/configs.5/task-18.bfd/agent7/3-analyze/2-facts/C-ASBR-1.json"
   ]
 }

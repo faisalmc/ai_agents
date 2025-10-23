@@ -34,6 +34,10 @@ try:
 except Exception:
     call_llm = None  # degrade gracefully
 
+# --- feature flag: allow legacy audit backfill (default: OFF) ---
+# Set A7_ALLOW_AUDIT_BACKFILL=1 to re-enable reading agent7/audit/<host>__blocks.json
+ALLOW_AUDIT_BACKFILL = (os.getenv("A7_ALLOW_AUDIT_BACKFILL", "0").strip() == "1")
+
 # ------- tiny io helpers -------
 def _read_json(path: str) -> Any:
     try:
@@ -109,24 +113,60 @@ def _signal_set(paths: Agent7Paths, host: str) -> List[str]:
     return []
 
 # ------- blocks index lookup (new path first, then legacy audit) -------
+# def _load_blocks_index(paths: Agent7Paths, host: str) -> Dict[str, Dict[str, Any]]:
+#     """
+#     Returns cmd_key -> block dict (if any):
+#       { "sanitized_command", "text_path", "platform_hint", "cmd_key" }
+#     Tries:
+#       1) agent7/3-analyze/0-md-index/<host>__blocks.json   (preferred)
+#       2) agent7/audit/<host>__blocks.json                  (legacy mirror)
+#     """
+#     out: Dict[str, Dict[str, Any]] = {}
+
+#     idx_new = os.path.join(paths.md_index_dir, f"{host}__blocks.json")
+#     arr = _read_json(idx_new)
+#     if isinstance(arr, list):
+#         for b in arr:
+#             if isinstance(b, dict) and b.get("cmd_key"):
+#                 out[b["cmd_key"]] = b
+#     if out:
+#         return out
+
+#     idx_legacy = os.path.join(paths.audit_dir, f"{host}__blocks.json")
+#     arr2 = _read_json(idx_legacy)
+#     if isinstance(arr2, list):
+#         for b in arr2:
+#             if isinstance(b, dict) and b.get("cmd_key"):
+#                 out[b["cmd_key"]] = b
+
+#     return out
+
 def _load_blocks_index(paths: Agent7Paths, host: str) -> Dict[str, Dict[str, Any]]:
     """
     Returns cmd_key -> block dict (if any):
       { "sanitized_command", "text_path", "platform_hint", "cmd_key" }
-    Tries:
-      1) agent7/3-analyze/0-md-index/<host>__blocks.json   (preferred)
-      2) agent7/audit/<host>__blocks.json                  (legacy mirror)
+
+    Preferred (authoritative): agent7/3-analyze/0-md-index/<host>__blocks.json
+    Optional (legacy only if A7_ALLOW_AUDIT_BACKFILL=1): agent7/audit/<host>__blocks.json
     """
     out: Dict[str, Dict[str, Any]] = {}
 
+    # --- preferred index ---
     idx_new = os.path.join(paths.md_index_dir, f"{host}__blocks.json")
     arr = _read_json(idx_new)
     if isinstance(arr, list):
         for b in arr:
             if isinstance(b, dict) and b.get("cmd_key"):
                 out[b["cmd_key"]] = b
+
     if out:
+        # Fresh md-index found → authoritative
         return out
+
+    # --- legacy audit (disabled by default) ---
+    if not ALLOW_AUDIT_BACKFILL:
+        _dbg(f"[blocks] {host}: no md-index; legacy audit backfill is disabled")
+        return {}
 
     idx_legacy = os.path.join(paths.audit_dir, f"{host}__blocks.json")
     arr2 = _read_json(idx_legacy)
@@ -134,8 +174,10 @@ def _load_blocks_index(paths: Agent7Paths, host: str) -> Dict[str, Dict[str, Any
         for b in arr2:
             if isinstance(b, dict) and b.get("cmd_key"):
                 out[b["cmd_key"]] = b
-
+        if out:
+            _dbg(f"[blocks] {host}: using legacy audit backfill (A7_ALLOW_AUDIT_BACKFILL=1)")
     return out
+
 
 # ------- collect parsed files for a host (new location) -------
 def _collect_parsed_for_host(paths: Agent7Paths, host: str) -> Dict[str, Dict[str, Any]]:
@@ -170,6 +212,69 @@ def _try_mcp_extract(*, cmd: str, text: str, platform_hint: str) -> Optional[Dic
     """
     return None
 
+# ---- Hygiene: rotate stale 1-parsed/<other-host>/ to _prev/ when md-index exists ----
+
+def _rotate_stale_parsed(paths: Agent7Paths, keep_hosts: List[str]) -> None:
+    """
+    Hygiene for triage: if md-index exists (keep_hosts non-empty),
+    move parsed outputs for other hosts under 1-parsed/_prev/<ts>/<host>.
+    No-op if nothing to rotate.
+    """
+    if not keep_hosts:
+        return
+    try:
+        import shutil
+        ts = time.strftime("%Y%m%d-%H%M%S")
+        prev_root = os.path.join(paths.parsed_dir, "_prev", ts)
+        os.makedirs(prev_root, exist_ok=True)
+
+        for p in sorted(glob.glob(os.path.join(paths.parsed_dir, "*"))):
+            if not os.path.isdir(p):
+                continue
+            name = os.path.basename(p)
+            if name.startswith("_"):
+                continue  # skip our own rotations
+            if name not in keep_hosts:
+                dst = os.path.join(prev_root, name)
+                try:
+                    shutil.move(p, dst)
+                    _dbg(f"[hygiene] rotated parsed/{name} -> {dst}")
+                except Exception as e:
+                    _dbg(f"[hygiene] rotate failed for {name}: {e}")
+    except Exception as e:
+        _dbg(f"[hygiene] rotate wrapper failed: {e}")
+
+def _rotate_stale_facts(paths: Agent7Paths, keep_hosts: List[str]) -> None:
+    """
+    Hygiene for triage: if md-index exists (keep_hosts non-empty),
+    move facts for other hosts under 2-facts/_prev/<ts>/<file>.
+    """
+    if not keep_hosts:
+        return
+    try:
+        import shutil
+        ts = time.strftime("%Y%m%d-%H%M%S")
+        prev_root = os.path.join(paths.facts_dir, "_prev", ts)
+        os.makedirs(prev_root, exist_ok=True)
+
+        for p in sorted(glob.glob(os.path.join(paths.facts_dir, "*.json"))):
+            base = os.path.basename(p)
+            if base == "facts_summary.json":
+                continue
+            if base.startswith("_"):  # skip _audit etc.
+                continue
+            host = base[:-5] if base.endswith(".json") else base
+            if host not in keep_hosts:
+                dst = os.path.join(prev_root, base)
+                try:
+                    shutil.move(p, dst)
+                    _dbg(f"[hygiene] rotated facts/{base} -> {dst}")
+                except Exception as e:
+                    _dbg(f"[hygiene] rotate facts failed for {base}: {e}")
+    except Exception as e:
+        _dbg(f"[hygiene] rotate facts wrapper failed: {e}")
+
+        
 # ---- LLM fallback extractor ----
 _LLM_SYS = """You extract *structured facts* from a single CLI command output.
 Return STRICT JSON only, with this schema:
@@ -323,8 +428,22 @@ def _build_facts_for_host(paths: Agent7Paths, host: str) -> Dict[str, Any]:
     audit_dir = os.path.join(paths.facts_dir, "_audit")
     os.makedirs(audit_dir, exist_ok=True)
 
-    # Consider the union of command keys seen in blocks index and parsed files
-    all_cmd_keys: List[str] = sorted(set(list(blocks_by_key.keys()) + list(parsed_map.keys())))
+    # ---- Option A gating: NEVER revive old parsed JSON when md-index has 0 blocks ----
+    # (e.g., TCP error capture produced no "## show ..." sections)
+    md_index_fp = os.path.join(paths.md_index_dir, f"{host}__blocks.json")
+    md_arr = _read_json(md_index_fp)
+    md_block_count = len(md_arr) if isinstance(md_arr, list) else 0
+    _dbg(f"[blocks] {host}: md_blocks={md_block_count} parsed_cmds={len(parsed_map)}")
+
+    if os.path.isfile(md_index_fp) and md_block_count == 0:
+        # Explicitly ignore any leftover 1-parsed data for safety
+        parsed_map = {}
+        blocks_by_key = {}
+        _dbg(f"[blocks] {host}: 0 md-index blocks → suppressing parsed backfill")
+
+    # Consider ONLY commands present in md-index; parsed_map enriches those same commands
+    all_cmd_keys: List[str] = sorted(list(blocks_by_key.keys()))
+    _dbg(f"[select] {host}: cmd_keys={all_cmd_keys}")
 
     commands: Dict[str, Any] = {}
     platforms_seen: List[str] = []
@@ -337,7 +456,7 @@ def _build_facts_for_host(paths: Agent7Paths, host: str) -> Dict[str, Any]:
         text_path = b.get("text_path") or ""
         plat_hint = normalize_platform(b.get("platform_hint") or "")
 
-        # Try Genie first if a parsed file exists
+        # Try Genie first if a parsed file exists (for THIS cmd_key only)
         genie_row = parsed_map.get(cmd_key)
         genie_data = None
         if genie_row:
@@ -349,7 +468,7 @@ def _build_facts_for_host(paths: Agent7Paths, host: str) -> Dict[str, Any]:
                 platforms_seen.append(normalize_platform(genie_row["platform_hint"]))
                 genie_ok += 1
 
-        # If Genie failed/empty, try MCP (stub), then LLM fallback
+        # If Genie failed/empty, try MCP (stub), then LLM fallback using the md-index text
         llm_data: Optional[Dict[str, Any]] = None
         if genie_data is None:
             # MCP (stub)
@@ -381,7 +500,7 @@ def _build_facts_for_host(paths: Agent7Paths, host: str) -> Dict[str, Any]:
                 if isinstance(llm_obj, dict):
                     llm_data = llm_obj
                     llm_ok += 1
-                    gap_fill_used = True            
+                    gap_fill_used = True
 
         # Decide what to write for this command
         if genie_data is not None:
@@ -443,16 +562,26 @@ def _build_facts_for_host(paths: Agent7Paths, host: str) -> Dict[str, Any]:
 # ------- public: build all hosts -------
 def build_all(config_dir: str, task_dir: str) -> Dict[str, Any]:
     """
-    For each host with parsed outputs (and/or text blocks), write agent7/3-analyze/2-facts/<host>.json
-    Also writes a roll-up to agent7/3-analyze/facts_summary.json
+    Build per-host facts:
+      - Prefer hosts discovered from md-index (authoritative when present).
+      - Fall back to parsed/ only if md-index is entirely absent.
+      - When md-index exists, rotate parsed and facts for non-indexed hosts.
     """
     cfg = load_config()
     paths = resolve_paths(cfg, config_dir, task_dir)
     ensure_dirs(paths)
 
-    parsed_hosts = _hosts_from_parsed(paths)
     md_hosts = _hosts_from_md_index(paths)
-    hosts = sorted(set(parsed_hosts + md_hosts))
+    parsed_hosts = _hosts_from_parsed(paths)
+
+    if md_hosts:
+        hosts = sorted(md_hosts)
+        _rotate_stale_parsed(paths, keep_hosts=hosts)  # already added earlier
+        _rotate_stale_facts(paths,  keep_hosts=hosts)  # <<< NEW
+    else:
+        hosts = sorted(set(parsed_hosts))
+
+    _dbg(f"[build] host_set={hosts} (md_index={len(md_hosts)}, parsed={len(parsed_hosts)})")
 
     written: List[str] = []
     for h in hosts:

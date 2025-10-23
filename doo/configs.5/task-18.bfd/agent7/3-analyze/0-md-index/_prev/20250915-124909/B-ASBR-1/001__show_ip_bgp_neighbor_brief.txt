@@ -1,0 +1,10 @@
+
+Sun Jul  6 06:36:40.400 UTC
+
+Neighbor         Spk    AS  Description                         Up/Down  NBRState
+2.0.101.10        0   200                                      01:56:52 Established 
+100.64.121.1      0   100                                      04:04:52 Established 
+100.64.231.2      0   300                                      00:00:34 Established 
+2620:fc7:64:231::2
+                  0   300                                      00:00:46 Established 
+RP/0/RP0/CPU0:B-ASBR-1#

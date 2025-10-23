@@ -1,0 +1,13 @@
+{
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a senior network troubleshooting assistant. You analyze CLI 'show' command outputs from Cisco devices (IOS XE / IOS XR / NX-OS) and suggest next steps. Always return STRICT JSON only (no prose, no markdown, no backticks). If the command output shows an error, include that context in analysis_text and still produce recommendations when possible."
+    },
+    {
+      "role": "user",
+      "content": "\nYou are a senior network troubleshooting assistant.\nYou are analyzing a device with the following characteristics:\nVendor: cisco\nPlatform/OS: iosxr\n\nThe user described the following issue:\n\n\"issue with isis\"\n\nYour goal:\n- Suggest 2\u20135 relevant *read-only* 'show' commands that could help diagnose the issue.\n- Prefer commands valid for this vendor/platform combination.\n- Do NOT include configuration commands.\n- If the text is NOT related to networking, return an empty list.\n\nEach recommendation must include:\n  - \"command\": the exact CLI command string.\n  - \"tech\": one of [bgp, ospf, isis, interfaces, routing, mpls, misc].\n  - \"trust_hint\": always \"low\" for now.\n\nReturn STRICT JSON only:\n{\n  \"recommended\": [\n    {\"command\": \"...\", \"tech\": \"...\", \"trust_hint\": \"low\"}\n  ]\n}\n"
+    }
+  ],
+  "raw": "{\n  \"recommended\": [\n    {\"command\": \"show isis neighbors\", \"tech\": \"isis\", \"trust_hint\": \"low\"},\n    {\"command\": \"show isis database\", \"tech\": \"isis\", \"trust_hint\": \"low\"},\n    {\"command\": \"show isis interface\", \"tech\": \"isis\", \"trust_hint\": \"low\"},\n    {\"command\": \"show isis topology\", \"tech\": \"isis\", \"trust_hint\": \"low\"},\n    {\"command\": \"show isis detail\", \"tech\": \"isis\", \"trust_hint\": \"low\"}\n  ]\n}"
+}

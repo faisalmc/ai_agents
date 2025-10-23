@@ -1,6 +1,5 @@
-```json
 {
-  "summary": "The BGP neighbor summary shows four established neighbors.",
+  "summary": "The BGP neighbor summary shows three established IPv4 neighbors and one established IPv6 neighbor.",
   "status": {
     "name": "bgp_neighbors",
     "value": "established",
@@ -56,4 +55,3 @@
     "L5: 2620:fc7:64:231::2\n                  0   300                                      00:00:46 Established"
   ]
 }
-```

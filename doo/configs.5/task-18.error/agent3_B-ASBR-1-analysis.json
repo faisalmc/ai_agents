@@ -1,7 +1,7 @@
 {
   "issue": "SSH connection failed",
-  "explanation": "The router B-ASBR-1 failed to establish an SSH connection during the configuration push attempt.",
-  "recommendation": "Check the hostname, IP address, and TCP port settings. Ensure that SSH is enabled on the device and there are no firewall rules blocking the connection.",
+  "explanation": "The router B-ASBR-1 failed to establish an SSH connection due to a TCP connection failure.",
+  "recommendation": "Check the hostname, IP address, and TCP port settings. Ensure that there are no intermediate firewalls blocking the access.",
   "confidence": "high",
   "needs_more_context": false
 }

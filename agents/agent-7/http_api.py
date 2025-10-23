@@ -1,14 +1,15 @@
 # agents/agent-7/http_api.py
 from __future__ import annotations
 import os
+import time
 import json
 import glob
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-app = FastAPI(title="Agent-7 HTTP API", version="1.0.0")
+app = FastAPI(title="Agent-7 HTTP API", version="1.1.0")
 
 REPO_ROOT = os.getenv("REPO_ROOT", "/app/doo")
 
@@ -76,6 +77,101 @@ def _read_json(path: str) -> Any:
     except Exception:
         return None
 
+def _host_from_blocks_path(blocks_json_path: str) -> Optional[str]:
+    """
+    md_splitter writes 0-md-index/<HOST>__blocks.json
+    """
+    base = os.path.basename(blocks_json_path)
+    if "__blocks.json" in base:
+        return base.split("__blocks.json")[0]
+    return None
+
+def _prune_md_index_for_hosts(md_index_dir: str, allowed_hosts: Set[str]) -> None:
+    """
+    SAFE, non-destructive pruning of the generated md-index ONLY (never touch capture logs).
+    Keeps only md-index artifacts for allowed hosts so downstream parsers process a subset.
+    Non-allowed artifacts are *moved* under 0-md-index/_prev/<timestamp>/ for easy rollback.
+
+    Structure we may see:
+      • Current (v2):
+          0-md-index/<HOST>/...            (raw block .txt files)
+          0-md-index/<HOST>__blocks.json   (per-host block index at root)
+      • Legacy (flat):
+          0-md-index/00x__<HOST>__<cmd>.txt
+    """
+    if not allowed_hosts:
+        return
+
+    import time, shutil
+
+    # Where we rotate non-allowed hosts
+    ts = time.strftime("%Y%m%d-%H%M%S")
+    prev_root = os.path.join(md_index_dir, "_prev", ts)
+    try:
+        os.makedirs(prev_root, exist_ok=True)
+    except Exception:
+        pass
+
+    # --- 1) Move per-host DIRECTORIES (current layout) ---
+    try:
+        for name in os.listdir(md_index_dir):
+            src = os.path.join(md_index_dir, name)
+            if not os.path.isdir(src):
+                continue
+            # ignore our own _prev rotations
+            if name.startswith("_"):
+                continue
+            if name not in allowed_hosts:
+                dst = os.path.join(prev_root, name)
+                try:
+                    shutil.move(src, dst)
+                except Exception:
+                    # don't fail pruning on move errors
+                    pass
+    except Exception:
+        pass
+
+    # --- 2) Move per-host __blocks.json at root (current layout) ---
+    try:
+        for p in glob.glob(os.path.join(md_index_dir, "*__blocks.json")):
+            h = _host_from_blocks_path(p)
+            if h and h not in allowed_hosts:
+                dst = os.path.join(prev_root, os.path.basename(p))
+                try:
+                    shutil.move(p, dst)
+                except Exception:
+                    # fallback to remove if move fails (file is regenerated anyway)
+                    try:
+                        os.remove(p)
+                    except Exception:
+                        pass
+    except Exception:
+        pass
+
+    # --- 3) Move legacy flat block files at root (00x__<HOST>__*.txt) ---
+    try:
+        legacy_dst = os.path.join(prev_root, "legacy")
+        os.makedirs(legacy_dst, exist_ok=True)
+    except Exception:
+        pass
+    try:
+        for p in glob.glob(os.path.join(md_index_dir, "*.txt")):
+            base = os.path.basename(p)
+            parts = base.split("__", 2)  # ["00x", "<HOST>", "<rest>.txt"]
+            if len(parts) >= 2:
+                host = parts[1]
+                if host not in allowed_hosts:
+                    dst = os.path.join(legacy_dst, base)
+                    try:
+                        shutil.move(p, dst)
+                    except Exception:
+                        # fallback to remove if move fails (legacy file is regenerated anyway)
+                        try:
+                            os.remove(p)
+                        except Exception:
+                            pass
+    except Exception:
+        pass
 # -------- models --------
 class PlanRequest(BaseModel):
     config_dir: str
@@ -106,13 +202,15 @@ class CaptureResponse(BaseModel):
 class AnalyzeRequest(BaseModel):
     config_dir: str
     task_dir: str
+    # NEW: optional per-host filtering for a faster, scoped analyze
+    hosts: Optional[List[str]] = None
 
 class AnalyzeResponse(BaseModel):
     facts_summary_path: str
     hosts_processed: int
     per_device_json_path: str
     cross_device_json_path: str
-    slack_overview_path: Optional[str] = None  # NEW
+    slack_overview_path: Optional[str] = None  # best-effort
 
 # -------- endpoints --------
 @app.get("/health")
@@ -248,18 +346,130 @@ def capture(req: CaptureRequest):
     _write_json(out_path, summary or {})
     return CaptureResponse(summary_path=out_path)
 
+# @app.post("/analyze", response_model=AnalyzeResponse)
+# def analyze(req: AnalyzeRequest):
+#     """
+#     Analysis stage.
+
+#     executes →
+#       1) md_splitter.split_task(config_dir, task_dir)  → agent7/3-analyze/0-md-index/...
+#       2) (optional) prune md-index to selected hosts
+#       3) genie_parser.run(config_dir, task_dir)        → agent7/3-analyze/1-parsed/...
+#       4) facts_builder.build_all(config_dir, task_dir) → agent7/3-analyze/2-facts/*.json
+#       5) per_device_llm.run(config_dir, task_dir)      → agent7/3-analyze/per_device.json
+#       6) cross_device_llm.run(config_dir, task_dir)    → agent7/3-analyze/cross_device.json  (skipped if single host)
+#       7) slack_summarizer.summarize(...)               → agent7/3-analyze/slack_overview.json  (best-effort)
+#     emits →
+#       • agent7/3-analyze/facts_summary.json
+#     """
+#     import md_splitter
+#     import genie_parser
+#     import facts_builder
+#     import per_device_llm
+#     import cross_device_llm
+
+#     # DEBUG to check hosts
+#     print(f"[agent7][analyze] req.hosts={req.hosts}", flush=True)
+
+#     # Always split to regenerate md-index (safe)
+#     md_splitter.split_task(req.config_dir, req.task_dir)
+
+#     # If a host filter is provided, prune ONLY the generated md-index to those hosts.
+#     # This avoids touching capture logs and speeds up downstream parsing.
+#     if req.hosts:
+#         root = _agent7_root(req.config_dir, req.task_dir)
+#         dirs = _ensure_dirs(root)
+#         allowed = {h.strip() for h in req.hosts if h and isinstance(h, str)}
+#         _prune_md_index_for_hosts(dirs["md_index_dir"], allowed_hosts=allowed)
+
+#     # DEBUG to check hosts #
+#     root = _agent7_root(req.config_dir, req.task_dir); dirs = _ensure_dirs(root)
+#     now_hosts = [n for n in os.listdir(dirs["md_index_dir"])
+#                 if os.path.isfile(os.path.join(dirs["md_index_dir"], f"{n}__blocks.json"))]
+#     print(f"[agent7][analyze] md_index hosts after prune={now_hosts}", flush=True)
+
+#     # Parse facts from the (possibly pruned) md-index
+#     genie_parser.run(req.config_dir, req.task_dir)
+#     facts_summary = facts_builder.build_all(req.config_dir, req.task_dir)
+
+#     # # Run LLM analyses (per-device, then cross-device if applicable)
+#     # per_dev = per_device_llm.run(req.config_dir, req.task_dir) or {}
+
+#     # run_cross = True
+#     # if req.hosts and len(req.hosts) == 1:
+#     #     # Fast path for triage: skip cross-device when only one host is requested
+#     #     run_cross = False
+
+#     # Run LLM analyses (per-device) — scoped if hosts provided
+#     if req.hosts:
+#         per_dev = per_device_llm.run_hosts(req.config_dir, req.task_dir, req.hosts) or {}
+#     else:
+#         per_dev = per_device_llm.run(req.config_dir, req.task_dir) or {}
+
+#     run_cross = True
+#     if req.hosts and len(req.hosts) == 1:
+#         # Fast path for triage: skip cross-device when only one host is requested
+#         run_cross = False
+
+
+#     cross = {}
+#     if run_cross:
+#         cross = cross_device_llm.run(req.config_dir, req.task_dir) or {}
+
+#     root = _agent7_root(req.config_dir, req.task_dir)
+#     dirs = _ensure_dirs(root)
+
+#     facts_summary_path     = os.path.join(dirs["analyze_dir"], "facts_summary.json")
+#     per_device_json_path   = per_dev.get("path")   or os.path.join(dirs["analyze_dir"], "per_device.json")
+#     cross_device_json_path = cross.get("path")     or os.path.join(dirs["analyze_dir"], "cross_device.json")
+
+#     # -------- OPTIONAL: LLM Slack overview (best-effort) --------
+#     slack_overview_path: Optional[str] = None
+#     try:
+#         import slack_summarizer  # local module in agents/agent-7/
+#         # Load inputs
+#         per_rows = _read_json(per_device_json_path) or []
+#         cross_obj = _read_json(cross_device_json_path) or {}
+#         # Load all facts for context (by host)
+#         facts_by_host: Dict[str, Dict[str, Any]] = {}
+#         for fp in glob.glob(os.path.join(dirs["facts_dir"], "*.json")):
+#             fobj = _read_json(fp) or {}
+#             h = fobj.get("hostname") or os.path.splitext(os.path.basename(fp))[0]
+#             facts_by_host[h] = fobj
+#         # Summarize to a file
+#         slack_overview_path = os.path.join(dirs["analyze_dir"], "slack_overview.json")
+#         slack_summarizer.summarize(
+#             per_device_rows=per_rows,
+#             cross_device=cross_obj,
+#             facts_by_host=facts_by_host,
+#             out_path=slack_overview_path
+#         )
+#     except Exception:
+#         # Soft-fail: keep API stable even if summarizer is missing
+#         slack_overview_path = None
+
+#     hosts_processed = int(facts_summary.get("hosts", 0)) if isinstance(facts_summary, dict) else 0
+#     return AnalyzeResponse(
+#         facts_summary_path=facts_summary_path,
+#         hosts_processed=hosts_processed,
+#         per_device_json_path=per_device_json_path,
+#         cross_device_json_path=cross_device_json_path,
+#         slack_overview_path=slack_overview_path,
+#     )
+
 @app.post("/analyze", response_model=AnalyzeResponse)
 def analyze(req: AnalyzeRequest):
     """
     Analysis stage.
 
     executes →
-      1) md_splitter.split_task(config_dir, task_dir)  → agent7/3-analyze/0-md-index/...
-      2) genie_parser.run(config_dir, task_dir)        → agent7/3-analyze/1-parsed/...
-      3) facts_builder.build_all(config_dir, task_dir) → agent7/3-analyze/2-facts/*.json
-      4) per_device_llm.run(config_dir, task_dir)      → agent7/3-analyze/per_device.json
-      5) cross_device_llm.run(config_dir, task_dir)    → agent7/3-analyze/cross_device.json
-      6) slack_summarizer.summarize(...)               → agent7/3-analyze/slack_overview.json  (best-effort)
+      1) md_splitter.split_task(config_dir, task_dir, allow_backfill=..., hosts_filter=...) → agent7/3-analyze/0-md-index/...
+      2) (optional) prune md-index to selected hosts
+      3) genie_parser.run(config_dir, task_dir)        → agent7/3-analyze/1-parsed/...
+      4) facts_builder.build_all(config_dir, task_dir) → agent7/3-analyze/2-facts/*.json
+      5) per_device_llm.run*(...)                      → agent7/3-analyze/per_device*.json
+      6) cross_device_llm.run(config_dir, task_dir)    → agent7/3-analyze/cross_device.json  (skipped if single host)
+      7) slack_summarizer.summarize(...)               → agent7/3-analyze/slack_overview.json  (best-effort)
     emits →
       • agent7/3-analyze/facts_summary.json
     """
@@ -269,26 +479,85 @@ def analyze(req: AnalyzeRequest):
     import per_device_llm
     import cross_device_llm
 
-    md_splitter.split_task(req.config_dir, req.task_dir)
-    genie_parser.run(req.config_dir, req.task_dir)
-    facts_summary = facts_builder.build_all(req.config_dir, req.task_dir)
+    # DEBUG: show incoming scope
+    print(f"[agent7][analyze] req.hosts={req.hosts}", flush=True)
+    print(f"[agent7]------------------------------", flush=True)
+    print(f"[agent7] /analyze called with hosts: {req.hosts}")
+    print(f"[agent7]------------------------------", flush=True)
+    # Add this guard near the top
+    
 
-    # Run LLM analyses (per-device, then cross-device)
-    per_dev = per_device_llm.run(req.config_dir, req.task_dir) or {}
-    cross   = cross_device_llm.run(req.config_dir, req.task_dir) or {}
+    # --- 1) Build md-index with correct semantics for triage vs full run ---
+    # Full run (no host filter): allow grading backfill; index all hosts
+    # Triage (hosts provided):   DO NOT backfill from grading; index only those hosts
+    allow_backfill = not bool(req.hosts)
+    hosts_filter   = list({h.strip() for h in (req.hosts or []) if h and isinstance(h, str)}) or None
 
+    md_splitter.split_task(
+        req.config_dir,
+        req.task_dir,
+        allow_backfill=allow_backfill,   # <-- corrected kwarg
+        hosts_filter=hosts_filter        # <-- pass scope (or None)
+    )
+
+    # --- 2) Safe prune of md-index to selected hosts (defensive, non-destructive) ---
+    if hosts_filter:
+        root = _agent7_root(req.config_dir, req.task_dir)
+        dirs = _ensure_dirs(root)
+        _prune_md_index_for_hosts(dirs["md_index_dir"], allowed_hosts=set(hosts_filter))
+
+        # DEBUG: list hosts present in md-index after prune
     root = _agent7_root(req.config_dir, req.task_dir)
     dirs = _ensure_dirs(root)
+    now_hosts = [
+        n for n in os.listdir(dirs["md_index_dir"])
+        if os.path.isfile(os.path.join(dirs["md_index_dir"], f"{n}__blocks.json"))
+    ]
+    print(f"[agent7][analyze] md_index hosts after prune={now_hosts}", flush=True)
 
+    # --- 3) Parser (Genie) over current md-index ---
+    genie_parser.run(req.config_dir, req.task_dir)
+
+    # --- 4) Facts builder (Option A semantics inside facts_builder) ---
+    facts_summary = facts_builder.build_all(req.config_dir, req.task_dir)
+
+    # --- 5) Per-device LLM: scoped vs full ---
+    if hosts_filter:
+        per_dev = per_device_llm.run_hosts(req.config_dir, req.task_dir, hosts_filter) or {}
+    else:
+        per_dev = per_device_llm.run(req.config_dir, req.task_dir) or {}
+
+    # --- 6) Cross-device: skip if single-host triage ---
+    run_cross = True
+    if hosts_filter and len(hosts_filter) == 1:
+        run_cross = False
+    print(f"[DEBUG] run_cross={run_cross}")
+    cross = {}
+    if run_cross:
+        cross = cross_device_llm.run(req.config_dir, req.task_dir) or {}
+    else:
+        print("[DEBUG] Skipping stale cross_device.json loading (triage mode)")
+        cross_obj = {}
+
+    # --- 7) Slack overview (best effort) ---
     facts_summary_path     = os.path.join(dirs["analyze_dir"], "facts_summary.json")
     per_device_json_path   = per_dev.get("path")   or os.path.join(dirs["analyze_dir"], "per_device.json")
     cross_device_json_path = cross.get("path")     or os.path.join(dirs["analyze_dir"], "cross_device.json")
 
-    # -------- OPTIONAL: LLM Slack overview (best-effort) --------
+    # Debug instrumentation (AFTER paths are known; no inner imports)
+    def _dbg_file(p):
+        try:
+            st = os.stat(p)
+            return {"exists": True, "size": st.st_size, "mtime": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(st.st_mtime))}
+        except Exception:
+            return {"exists": False}
+    print(f"[agent7][analyze][dbg] run_cross={run_cross}", flush=True)
+    print(f"[agent7][analyze][dbg] per_device_json_path={per_device_json_path} meta={_dbg_file(per_device_json_path)}", flush=True)
+    print(f"[agent7][analyze][dbg] cross_device_json_path={cross_device_json_path} meta={_dbg_file(cross_device_json_path)}", flush=True)
+
     slack_overview_path: Optional[str] = None
     try:
         import slack_summarizer  # local module in agents/agent-7/
-        # Load inputs
         per_rows = _read_json(per_device_json_path) or []
         cross_obj = _read_json(cross_device_json_path) or {}
         # Load all facts for context (by host)
@@ -297,8 +566,9 @@ def analyze(req: AnalyzeRequest):
             fobj = _read_json(fp) or {}
             h = fobj.get("hostname") or os.path.splitext(os.path.basename(fp))[0]
             facts_by_host[h] = fobj
-        # Summarize to a file
         slack_overview_path = os.path.join(dirs["analyze_dir"], "slack_overview.json")
+        # DEBUG for slack message loading
+        print(f"[DEBUG] Calling build_overview_blocks with {len(per_rows)} per-device entries and cross keys: {list(cross_obj.keys())}")
         slack_summarizer.summarize(
             per_device_rows=per_rows,
             cross_device=cross_obj,
@@ -306,8 +576,7 @@ def analyze(req: AnalyzeRequest):
             out_path=slack_overview_path
         )
     except Exception:
-        # Soft-fail: keep API stable even if summarizer is missing
-        slack_overview_path = None
+        slack_overview_path = None  # keep API stable
 
     hosts_processed = int(facts_summary.get("hosts", 0)) if isinstance(facts_summary, dict) else 0
     return AnalyzeResponse(
@@ -317,7 +586,8 @@ def analyze(req: AnalyzeRequest):
         cross_device_json_path=cross_device_json_path,
         slack_overview_path=slack_overview_path,
     )
-
+    
+    
 # -------- local dev entrypoint --------
 if __name__ == "__main__":
     import uvicorn

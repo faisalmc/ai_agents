@@ -1,7 +1,7 @@
 {
-  "issue": "SSH connection failed",
-  "explanation": "The router was unable to establish an SSH connection to the device at IP address 192.168.100.137 on port 22.",
-  "recommendation": "Check the hostname/IP address, TCP port, and any intermediate firewall settings to ensure they are correct and allowing SSH connections.",
+  "issue": "Config push failed",
+  "explanation": "The router was unable to push the configuration due to a TCP connection failure over SSH.",
+  "recommendation": "Check the hostname, IP address, and TCP port settings. Ensure that there are no intermediate firewalls blocking access.",
   "confidence": "high",
   "needs_more_context": false
 }

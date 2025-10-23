@@ -32,12 +32,50 @@ from bootstrap import (
 # ---------------------------
 # Inputs: .md from two locations (merge)
 # ---------------------------
-def _read_md_for_task(paths: Agent7Paths) -> Dict[str, str]:
+# def _read_md_for_task(paths: Agent7Paths) -> Dict[str, str]:
+#     """
+#     Returns {hostname: merged_markdown_text}
+#     Merge order:
+#       1) <task>/grading_logs/*.md           (original logs, if present)
+#       2) <task>/agent7/2-capture/show_logs/*.md  (fresh capture copied by Agent-7)
+#     """
+#     def _read_dir(md_dir: str) -> Dict[str, str]:
+#         out: Dict[str, str] = {}
+#         if os.path.isdir(md_dir):
+#             for p in sorted(glob.glob(os.path.join(md_dir, "*.md"))):
+#                 try:
+#                     host = os.path.basename(p)[:-3]  # strip ".md"
+#                     out[host] = open(p, "r", encoding="utf-8").read()
+#                 except Exception:
+#                     pass
+#         return out
+
+#     orig = _read_dir(os.path.join(paths.task_root, "grading_logs"))
+#     fresh = _read_dir(paths.show_logs_dir)
+
+#     all_hosts = set(orig) | set(fresh)
+#     merged: Dict[str, str] = {}
+#     for h in sorted(all_hosts):
+#         a = orig.get(h, "")
+#         b = fresh.get(h, "")
+#         merged[h] = a + ("\n\n" if a and b else "") + b
+#     _dbg(f"[inputs] hosts with markdown: {len(merged)}")
+#     return merged
+
+def _read_md_for_task(paths: Agent7Paths,
+                      hosts_filter: List[str] | None = None,
+                      allow_backfill: bool = True) -> Dict[str, str]:
     """
     Returns {hostname: merged_markdown_text}
-    Merge order:
-      1) <task>/grading_logs/*.md           (original logs, if present)
-      2) <task>/agent7/2-capture/show_logs/*.md  (fresh capture copied by Agent-7)
+
+    Full run (allow_backfill=True):
+      Merge order:
+        1) <task>/grading_logs/*.md
+        2) <task>/agent7/2-capture/show_logs/*.md
+      If both exist, they’re concatenated (grading first, then fresh).
+
+    Scoped triage (allow_backfill=False):
+      Use ONLY fresh show_logs for the selected hosts (ignore grading_logs entirely).
     """
     def _read_dir(md_dir: str) -> Dict[str, str]:
         out: Dict[str, str] = {}
@@ -50,16 +88,23 @@ def _read_md_for_task(paths: Agent7Paths) -> Dict[str, str]:
                     pass
         return out
 
-    orig = _read_dir(os.path.join(paths.task_root, "grading_logs"))
     fresh = _read_dir(paths.show_logs_dir)
+    orig  = _read_dir(os.path.join(paths.task_root, "grading_logs")) if allow_backfill else {}
+
+    # Restrict to a subset of hosts if provided
+    if hosts_filter:
+        wanted = {h.strip() for h in hosts_filter if h and isinstance(h, str)}
+        fresh = {h: txt for h, txt in fresh.items() if h in wanted}
+        orig  = {h: txt for h, txt in orig.items()  if h in wanted}
 
     all_hosts = set(orig) | set(fresh)
     merged: Dict[str, str] = {}
     for h in sorted(all_hosts):
         a = orig.get(h, "")
         b = fresh.get(h, "")
-        merged[h] = a + ("\n\n" if a and b else "") + b
-    _dbg(f"[inputs] hosts with markdown: {len(merged)}")
+        merged[h] = (a + ("\n\n" if a and b else "") + b) if allow_backfill else b
+
+    _dbg(f"[inputs] hosts with markdown: {len(merged)} (allow_backfill={allow_backfill})")
     return merged
 
 # ---------------------------
@@ -214,19 +259,30 @@ def _write_blocks_for_host(paths: Agent7Paths, host: str, md_text: str) -> List[
 # ---------------------------
 # Orchestrate for task
 # ---------------------------
-def split_task(config_dir: str, task_dir: str) -> Dict[str, Any]:
+# def split_task(config_dir: str, task_dir: str) -> Dict[str, Any]:
+def split_task(config_dir: str,
+               task_dir: str,
+               hosts_filter: List[str] | None = None,
+               allow_backfill: bool = True) -> Dict[str, Any]:
     """
-    Processes all host markdown and writes:
+    Processes host markdown and writes:
       - agent7/3-analyze/0-md-index/<host>__blocks.json
       - agent7/3-analyze/0-md-index/<host>/*.txt (raw outputs)
       - agent7/meta/md_index_summary.json (summary)
-    Returns the summary dict.
+
+    Modes:
+      • Full run (allow_backfill=True; hosts_filter=None):
+          Merge order per host → grading_logs + fresh capture (if both exist).
+      • Scoped triage (allow_backfill=False; hosts_filter provided):
+          Use ONLY fresh capture for the selected hosts (ignore grading_logs entirely).
     """
     cfg = load_config()
     paths = resolve_paths(cfg, config_dir, task_dir)
     ensure_dirs(paths)
 
-    md_map = _read_md_for_task(paths)
+    md_map = _read_md_for_task(paths, hosts_filter=hosts_filter, allow_backfill=allow_backfill)
+    _dbg(f"[mode] allow_backfill={allow_backfill} hosts_filter={list(hosts_filter or [])} md_hosts={len(md_map)}")
+
     summary: Dict[str, Any] = {
         "config_dir": config_dir,
         "task_dir": task_dir,

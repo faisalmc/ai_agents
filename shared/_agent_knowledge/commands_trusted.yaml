@@ -1,0 +1,45 @@
+cisco:
+  iosxe:
+    bgp:
+    - show ip bgp summary
+    - show bgp neighbors
+    interfaces:
+    - show interfaces
+    - show ip interface brief
+    routing:
+    - show ip route summary
+  iosxr:
+    bgp:
+    - show bgp summary
+    - show bgp neighbors
+    - show ip bgp summary
+    - show ip bgp neighbors 2.0.101.10
+    - show bgp ipv4 unicast summary
+    - show ip bgp
+    - show bgp neighbor 100.64.231.2
+    - show bgp neighbor 2.0.101.10
+    - show ip bgp neighbors brief
+    interfaces:
+    - show interfaces
+    - show ipv4 interface brief
+    - show ip interface br
+    - show ip bgp summary
+    - show ver
+    - show ip interface brief
+    isis:
+    - show isis neighbors
+    misc:
+    - show ospf neighbor
+    routing:
+    - show route
+    - show route summary
+    - show ip route
+  nxos:
+    bgp:
+    - show bgp process vrf all
+    - show bgp neighbors
+    interfaces:
+    - show interface brief
+    - show interface status
+    routing:
+    - show ip route summary vrf all

@@ -2,7 +2,7 @@
 
 ```
 --- ERROR Log for B-ASBR-1 ---
-Timestamp: 2025-09-04 16:19:03.126486
+Timestamp: 2025-09-13 06:43:22.184690
 
 [ERROR] Config push failed for B-ASBR-1: [FAIL] SSH failed for B-ASBR-1 and Telnet not applicable: TCP connection to device failed.
 
@@ -20,7 +20,7 @@ Device settings: cisco_xr 192.168.100.124:22
 
 ```
 --- ERROR Log for C-ASBR-1 ---
-Timestamp: 2025-09-04 16:18:53.096634
+Timestamp: 2025-09-13 06:43:12.166554
 
 [ERROR] Config push failed for C-ASBR-1: [FAIL] SSH failed for C-ASBR-1 and Telnet not applicable: TCP connection to device failed.
 

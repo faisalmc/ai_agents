@@ -277,6 +277,53 @@ def analyze_host(*,
     cleaned["hostname"] = cleaned.get("hostname") or host
 
     return cleaned
+
+# ------------------------------------------------------
+# A) agents/agent-7/per_device_llm.py — ADD a host-scoped runner
+# ------------------------------------------------------
+
+def _list_facts_for_hosts(paths: Agent7Paths, hosts: List[str]) -> List[str]:
+    hostset = {h.strip() for h in hosts or [] if isinstance(h, str) and h.strip()}
+    out = []
+    for fp in _list_facts(paths):
+        base = os.path.basename(fp)
+        host = base[:-5] if base.endswith(".json") else os.path.splitext(base)[0]
+        if host in hostset:
+            out.append(fp)
+    return sorted(out)
+
+
+def run_hosts(config_dir: str, task_dir: str, hosts: List[str]) -> Dict[str, Any]:
+    """
+    Host-scoped per-device analysis.
+    - Reads facts only for `hosts`.
+    - Writes a separate scoped per_device JSON (does NOT merge with the global file).
+    - Returns the same shape as run(), but with 'path' pointing to the scoped file.
+    """
+    cfg: Agent7Config = load_config()
+    paths: Agent7Paths = resolve_paths(cfg, config_dir, task_dir)
+    ensure_dirs(paths)
+
+    facts_paths = _list_facts_for_hosts(paths, hosts)
+    results: List[Dict[str, Any]] = []
+    for fp in facts_paths:
+        try:
+            res = _analyze_one_host(paths, fp)
+            results.append(res)
+            _dbg(f"[host] {res.get('hostname','?')} status={res.get('status','?')} findings={len(res.get('findings') or [])}")
+        except Exception as e:
+            _dbg(f"[error] analyzing {os.path.basename(fp)}: {e}")
+
+    # Write to a scoped file to avoid contaminating the global per_device.json
+    import hashlib, json as _json
+    id_src = "|".join(sorted([r.get("hostname","") for r in results])) or "|".join(sorted(hosts or []))
+    short_id = hashlib.sha1(id_src.encode("utf-8", errors="ignore")).hexdigest()[:8]
+    out_p = os.path.join(paths.analyze_dir, f"per_device__scoped__{short_id}.json")
+
+    _write_json(out_p, results)
+    _dbg(f"[done] wrote {out_p} (hosts={len(results)})")
+    return {"hosts": len(results), "path": out_p, "generated_at": int(time.time())}
+
 # ---------------------------
 # Internal: iterate facts dir and write per_device.json
 # ---------------------------

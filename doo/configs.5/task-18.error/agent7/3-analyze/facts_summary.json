@@ -1,6 +1,9 @@
 {
   "config_dir": "configs.5",
-  "task_dir": "taREMOVED18.error",
-  "hosts": 0,
-  "facts_written": []
+  "task_dir": "task-18.error",
+  "hosts": 2,
+  "facts_written": [
+    "/app/doo/configs.5/task-18.error/agent7/3-analyze/2-facts/B-ASBR-1.json",
+    "/app/doo/configs.5/task-18.error/agent7/3-analyze/2-facts/C-ASBR-1.json"
+  ]
 }

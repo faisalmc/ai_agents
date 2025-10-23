@@ -1,5 +1,6 @@
 # orchestrator/slack_bot.py
-import os, json, importlib.util
+import os, json, importlib.util, re
+from typing import Dict, Optional, List
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 
@@ -7,7 +8,27 @@ from agent2_client import run_deploy              # Agent-2 (/deploy)
 from agent3_client import run_analyze_host        # Agent-3 (/analyze-host)
 from agent4_client import run_operational_check   # Agent-4 (/operational-check)
 from agent5_client import run_operational_analyze # Agent-5 (/operational-analyze)
-from agent7_client import run_plan as run_a7_plan, run_capture as run_a7_capture, run_analyze as run_a7_analyze
+from agent7_client import (
+    run_plan as run_a7_plan,
+    run_capture as run_a7_capture,
+    run_analyze as run_a7_analyze,
+    run_analyze_host as run_a7_analyze_host,   # NEW
+)
+
+# --- New: minimal HTTP helper (no external client file) ---
+import requests
+
+import yaml  # for loading device.yaml to get vendor & platform (e.g., cisco & iosxr etc)
+import re
+
+# --- agent-8 triage (analyze 1 command)
+from agent8_client import analyze_command
+
+# shared/helpers.py
+from shared.helpers import extract_cmd_output   
+# for email / Escalate
+from urllib.parse import quote
+
 
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
 SLACK_APP_TOKEN = os.environ["SLACK_APP_TOKEN"]
@@ -15,15 +36,180 @@ BOT_NAME = os.getenv("ORCHESTRATOR_BOT_NAME", "agent")
 
 # Where the repo data lives (to locate artifacts to attach)
 REPO_ROOT = os.getenv("REPO_ROOT", "/app/doo")
-# Where to import Agent-7 Slack UI renderer from (file path).
 
-# # Default now points inside REPO_ROOT so it exists in the Orchestrator container.
-# A7_SLACK_UI_PATH = os.getenv("A7_SLACK_UI_PATH", os.path.join(REPO_ROOT, "agents", "agent-7", "slack_ui.py"))
+# Agent-7 Slack UI helper (file path)
 A7_SLACK_UI_PATH = os.getenv("A7_SLACK_UI_PATH", "/app/agents/agent-7/slack_ui.py")
+
+# New: Agent-8 base URL
+AGENT_8_URL = os.getenv("AGENT_8_URL", "http://agent-8:8008")
 
 app = App(token=SLACK_BOT_TOKEN)
 
-print(f"[DEBUG] slack_bot.py: A7_SLACK_UI_PATH={A7_SLACK_UI_PATH} REPO_ROOT={REPO_ROOT}", flush=True)
+print(f"[DEBUG] slack_bot.py: A7_SLACK_UI_PATH={A7_SLACK_UI_PATH} REPO_ROOT={REPO_ROOT} AGENT_8_URL={AGENT_8_URL}", flush=True)
+
+# --- Simple per-thread memory of the last picked triage host ---
+_SELECTED_TRIAGE_HOST: Dict[str, str] = {}  # key = thread_ts, value = host
+
+# NEW: remember Agent-8 session per thread
+_A8_SESSION_BY_THREAD: Dict[str, str] = {}  # key = thread_ts, value = session_id
+
+_A8_SESSION_LAST_BY_CHANNEL: Dict[str, str] = {}  # NEW: fallback when thread mapping isn’t available
+# Remember config/task/host for this thread so we can watch for output and auto-analyze
+_A8_CTX_BY_THREAD: Dict[str, Dict[str, str]] = {}
+
+_A8_CTX_BY_SESSION: Dict[str, Dict[str, str]] = {}   # key = session_id, value = {config_dir, task_id, host, thread_ts, channel}
+
+# --- Helper: tiny helper to map device_type → (vendor, platform) --- #
+def _lookup_vendor_platform(config_dir: str, host: str) -> tuple[Optional[str], Optional[str]]:
+    """
+    Read <REPO_ROOT>/<config_dir>/devices.yaml and derive (vendor, platform)
+    from device_type for the device whose 'name' matches <host>.
+    """
+    try:
+        path = os.path.join(REPO_ROOT, config_dir, "devices.yaml")
+        with open(path, "r", encoding="utf-8") as fh:
+            data = yaml.safe_load(fh) or {}
+    except Exception:
+        return None, None
+
+    def _map_device_type(dt: str) -> tuple[Optional[str], Optional[str]]:
+        dt = (dt or "").strip().lower()
+        if dt in ("cisco_xr", "iosxr", "cisco-iosxr", "cisco xr"):
+            return "cisco", "iosxr"
+        if dt in ("cisco_xe", "iosxe", "cisco-iosxe", "cisco ios", "ios"):
+            return "cisco", "iosxe"
+        if dt in ("nxos", "cisco_nxos", "cisco-nxos"):
+            return "cisco", "nxos"
+        if dt in ("junos", "juniper_junos", "juniper-junos"):
+            return "juniper", "junos"
+        if dt in ("eos", "arista_eos", "arista-eos"):
+            return "arista", "eos"
+        return None, None
+
+    for dev in (data.get("devices") or []):
+        name = str(dev.get("name") or "").strip()
+        if name == host:
+            return _map_device_type(dev.get("device_type") or "")
+    return None, None
+
+# --- Core watch-and-analyze flow ---
+def _watch_and_analyze(say, pchan: str, pthr: str,
+                       session_id: str, hst: str,
+                       commands: List[str], chosen: str):
+    """
+    After run_shows has dispatched commands, wait for the .md log file,
+    then call Agent-8 /triage/analyze_command for each command and format results into Slack.
+    """
+    try:
+        import os, time
+
+        # 1) Get config/task from the orchestrator's own session context
+        ctx = _A8_CTX_BY_SESSION.get(session_id, {})  # <- orchestrator-owned, not Agent-8
+        cfg = ctx.get("config_dir")
+        tsk = ctx.get("task_id")
+
+        # Fallback: derive cfg/tsk from the INI path if context is missing
+        if (not cfg or not tsk) and chosen:
+            try:
+                rel = os.path.relpath(chosen, REPO_ROOT)  # e.g. configs.5/task-18.bfd/agent7/1-plan/triage_...
+                parts = rel.split(os.sep)
+                if len(parts) >= 2:
+                    cfg = cfg or parts[0]
+                    tsk = tsk or parts[1]
+            except Exception:
+                pass
+
+        if not cfg or not tsk:
+            say(channel=pchan, thread_ts=pthr,
+                text="⚠️ Cannot locate capture path for analysis (missing session context). "
+                     "Please click *Start triage* again.")
+            return
+
+        # 2) Path where Agent-4 writes the show log
+        md_path = os.path.join(
+            REPO_ROOT, cfg, tsk, "agent7", "2-capture", "show_logs", f"{hst}.md"
+        )
+
+        # 3) Wait (poll) up to 90s for the .md to appear
+        waited = 0
+        while not os.path.isfile(md_path) and waited < 90:
+            time.sleep(2)
+            waited += 2
+
+        if not os.path.isfile(md_path):
+            say(channel=pchan, thread_ts=pthr,
+                text=f"⚠️ No show_log found for `{hst}` at:\n`{md_path}`")
+            return
+
+        # 4) Ask Agent-8 to analyze each command (Agent-8 reads the file locally)
+        for cmd in commands:
+            try:
+                res = analyze_command(session_id=session_id, host=hst, command=cmd)
+
+                # Raw fenced output (always first)
+                # Use the same snippet extraction as _post_show_snippets but inline
+                import re
+                body = _read_text(md_path)
+                preview = extract_cmd_output(body, cmd)
+                # preview = ""
+                # if body:
+                #     pat = rf"(?mis)^##\s*{re.escape(cmd)}\s*\n+```(.*?)```"
+                #     m = re.search(pat, body)
+                #     if m:
+                #         preview = m.group(1).strip()
+                #     else:
+                #         blocks = re.findall(r"(?s)```(.*?)```", body)
+                #         if blocks:
+                #             preview = blocks[-1].strip()
+                if not preview:
+                    preview = f"(no captured output for `{cmd}` in log)"
+
+                # Analyses
+                analysis1 = res.get("analysis_pass1") or "(no analysis)"
+                analysis2 = res.get("analysis_pass2") or None   # Optional
+
+                direction = res.get("direction") or ""
+                trusted = res.get("trusted_commands") or []
+                unvalidated = res.get("unvalidated_commands") or []
+                promoted = res.get("promoted") or []   # <<< ADDED for trusted/unvalidated commands
+
+                # Build Slack text
+                out = []
+                out.append(f"*📄 Output for `{cmd}` on `{hst}`:*\n```{preview}```")
+                out.append(f"*🟢 Analysis-1 (single-step):*\n{analysis1}") # Pass-1
+                # comment this block to disable Pass-2 entirely
+                if analysis2:   
+                    out.append(f"*🔵 Analysis-2 (with history):*\n{analysis2}") # Pass-2
+                    # # comment above block to disable Pass-2 entirely
+                if direction:
+                    out.append(f"*Direction:* {direction}")
+                if trusted:
+                    out.append(f"*Trusted commands:* " + ", ".join(f"`{c}`" for c in trusted))
+                if unvalidated:
+                    out.append(f"*Unvalidated commands:* " + ", ".join(f"`{c}`" for c in unvalidated))
+                if promoted:   # <<< ADDED for trusted/unvalidated commands
+                    out.append("*Promoted to trusted (just ran ok):* " + ", ".join(f"`{c}`" for c in promoted))
+
+                say(channel=pchan, thread_ts=pthr, text="\n\n".join(out))
+
+            except Exception as e:
+                say(channel=pchan, thread_ts=pthr,
+                    text=f"⚠️ Analysis failed for `{cmd}`: `{e}`")
+
+    except Exception as e:
+        say(channel=pchan, thread_ts=pthr, text=f"⚠️ Analysis failed: `{e}`")
+    
+                
+def _post_json(url: str, payload: dict, timeout: int = 30) -> dict:
+    try:
+        r = requests.post(url, json=payload, timeout=timeout)
+        r.raise_for_status()
+        try:
+            return r.json()
+        except Exception:
+            return {"ok": True, "raw": r.text}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
 
 # -------- small helpers --------
 def _help_text() -> str:
@@ -46,6 +232,81 @@ def _read_json(path: str):
             return json.load(f)
     except Exception:
         return None
+
+def _read_text(path: str) -> str:
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return f.read()
+    except Exception:
+        return ""
+
+def _post_show_snippets(say, channel: str, thread_ts: str, md_path: str, commands: list[str], host: str):
+    """
+    Reads the host's show_log markdown and posts only the sections matching the commands.
+    If no sections match (e.g., error file), post a concise raw/error preview instead.
+    Sections in show logs are formatted as '## <command>' ... fenced block.
+    """
+    import re
+    body = _read_text(md_path)
+    if not body:
+        try:
+            say(channel=channel, thread_ts=thread_ts,
+                text=f"⚠️ Could not read captured log for `{host}` at `{md_path}`.")
+        except Exception:
+            pass
+        return
+
+    # Try to collect matching command snippets
+    snippets = []
+    for cmd in commands or []:
+        # Match header '## <cmd>' then the FIRST fenced code block under it.
+        pat = rf"(?mis)^##\s*{re.escape(cmd)}\s*\n+```(.*?)```"
+        m = re.search(pat, body)
+        if not m:
+            # Fallback: header up to next header (no fenced block)
+            pat2 = rf"(?mis)^##\s*{re.escape(cmd)}\s*\n(.*?)(?=^##\s|\Z)"
+            m = re.search(pat2, body)
+        if m:
+            raw = m.group(1).strip() if m.groups() else m.group(0).strip()
+            preview = raw if len(raw) <= 1800 else (raw[:1750] + "\n…(truncated)…")
+            snippets.append((cmd, preview))
+
+    if snippets:
+        parts = [f"*📄 Output — {host}*"]
+        for cmd, txt in snippets:
+            parts.append(f"*{cmd}*\n```{txt}```")
+        try:
+            say(channel=channel, thread_ts=thread_ts, text="\n\n".join(parts))
+        except Exception:
+            pass
+        return
+
+    # ---- No matching sections: provide a useful fallback (error/first block/raw) ----
+    # 1) If it's an error file, post the first fenced block as the device error details.
+    if body.lstrip().startswith("# ERROR for"):
+        m_err = re.search(r"(?s)```(.*?)```", body)
+        err_txt = (m_err.group(1).strip() if m_err else body.strip())
+        preview = err_txt if len(err_txt) <= 1800 else (err_txt[:1750] + "\n…(truncated)…")
+        try:
+            say(channel=channel, thread_ts=thread_ts,
+                text=f"⚠️ *Capture error on `{host}`* — posting device error details:\n```{preview}```")
+        except Exception:
+            pass
+        return
+
+    # 2) Otherwise, post the first fenced block; if none, a short raw preview of the file.
+    m_block = re.search(r"(?s)```(.*?)```", body)
+    if m_block:
+        blob = m_block.group(1).strip()
+    else:
+        blob = body.strip()
+    preview = blob if len(blob) <= 1800 else (blob[:1750] + "\n…(truncated)…")
+    try:
+        say(channel=channel, thread_ts=thread_ts,
+            text=f"*📄 Output — {host}*\n```{preview}```")
+    except Exception:
+        pass
+
 
 def _post_a7_llm_overview_if_available(say, channel: str, thread_ts: str, slack_overview_path: str | None) -> bool:
     """
@@ -79,22 +340,6 @@ def _post_a7_llm_overview_if_available(say, channel: str, thread_ts: str, slack_
     print("[DEBUG] LLM overview: no usable content", flush=True)
     return False
 
-# commented out to add DEBUGs
-# def _load_a7_slack_ui():
-#     """
-#     Dynamically import agents/agent-7/slack_ui.py even though the parent
-#     folder has a hyphen and isn't a valid package name.
-#     """
-#     try:
-#         spec = importlib.util.spec_from_file_location("a7_slack_ui", A7_SLACK_UI_PATH)
-#         if spec and spec.loader:
-#             mod = importlib.util.module_from_spec(spec)
-#             spec.loader.exec_module(mod)  # type: ignore
-#             return mod
-#     except Exception:
-#         pass
-#     return None
-
 def _load_a7_slack_ui():
     """
     Dynamically import agents/agent-7/slack_ui.py even though the parent
@@ -116,39 +361,6 @@ def _load_a7_slack_ui():
         print(f"[DEBUG] _load_a7_slack_ui: import failed: {e}", flush=True)
     return None
 
-# commented out to add DEBUGs
-# def _post_a7_overview(say, channel: str, thread_ts: str, config_dir: str, task_id: str,
-#                       per_device_path: str | None, cross_device_path: str | None):
-#     """
-#     Fallback renderer if run_a7_analyze didn't return prebuilt blocks.
-#     """
-#     ui = _load_a7_slack_ui()
-#     per_device = _read_json(per_device_path) if per_device_path else None
-#     cross = _read_json(cross_device_path) if cross_device_path else None
-
-#     # Fallback: if import failed or malformed data, just print a compact text.
-#     if not ui or not hasattr(ui, "build_overview_blocks"):
-#         status = (cross or {}).get("task_status", "unknown") if isinstance(cross, dict) else "unknown"
-#         hosts = len(per_device or []) if isinstance(per_device, list) else 0
-#         say(
-#             channel=channel,
-#             thread_ts=thread_ts,
-#             text=(f"*Agent-7 Overview*\n"
-#                   f"Config `{config_dir}` Task `{task_id}` • Status: *{status}* • Per-device rows: {hosts}\n"
-#                   f"(Install slack_ui or set A7_SLACK_UI_PATH for rich blocks)")
-#         )
-#         return
-
-#     blocks = ui.build_overview_blocks(
-#         config_dir=config_dir,
-#         task_dir=task_id,
-#         cross=cross if isinstance(cross, dict) else {},
-#         per_device=per_device if isinstance(per_device, list) else [],
-#         include_attach_button=True,
-#     )
-#     # Slack requires a fallback text string even with blocks
-#     say(channel=channel, thread_ts=thread_ts, text="Agent-7 Analysis", blocks=blocks)
-
 def _post_a7_overview(say, channel: str, thread_ts: str, config_dir: str, task_id: str,
                       per_device_path: str | None, cross_device_path: str | None):
     print(f"[DEBUG] _post_a7_overview: per_device_path={per_device_path} cross_device_path={cross_device_path}", flush=True)
@@ -158,6 +370,14 @@ def _post_a7_overview(say, channel: str, thread_ts: str, config_dir: str, task_i
     per_device = _read_json(per_device_path) if per_device_path else None
     cross = _read_json(cross_device_path) if cross_device_path else None
 
+    ## ------------------------
+    ##  agent-8 fix attempt
+    is_scoped = per_device_path and 'scoped' in per_device_path
+
+    if is_scoped:
+        print("[DEBUG] Scoped mode detected — suppressing cross-device analysis")
+        cross = {}  # Clear stale cross-device summary if present
+    #------------------------##
     try:
         pd_count = len(per_device) if isinstance(per_device, list) else "n/a"
         cross_keys = list(cross.keys()) if isinstance(cross, dict) else []
@@ -187,6 +407,8 @@ def _post_a7_overview(say, channel: str, thread_ts: str, config_dir: str, task_i
             cross=cross if isinstance(cross, dict) else {},
             per_device=per_device if isinstance(per_device, list) else [],
             include_attach_button=True,
+            include_triage_button=True,      # <<< NEW: show Start triage + host picker
+            triage_picker_limit=8,           # <<< NEW: optional cap
         )
         # last-resort sanity
         if not isinstance(blocks, list) or not blocks:
@@ -213,7 +435,58 @@ def _post_a7_overview(say, channel: str, thread_ts: str, config_dir: str, task_i
             text=(f"*Agent-7 Overview*\n"
                   f"Config: `{config_dir}` • Task: `{task_id}` • Status: *{status}* • Per-device rows: {hosts}\n"
                   f"(UI build failed: {e})"))
-        
+
+
+
+# -------- Shared helper for Agent-8 triage suggestions --------
+def build_triage_suggestion_blocks(guidance: str, cmds: list, bot_name: str):
+    """Build Slack blocks (guidance + trusted/unvalidated command buttons)"""
+    blocks = []
+
+    if guidance:
+        blocks.append({
+            "type": "section",
+            "text": {"type": "mrkdwn", "text": f"*Guidance:*\n{guidance}"}
+        })
+
+    # Split into trusted/unvalidated
+    trusted_cmds = [c for c in cmds if c.get("trust_hint") == "high"]
+    unvalidated_cmds = [c for c in cmds if c.get("trust_hint") != "high"]
+
+    # --- inner helper ---
+    def _make_button_block(cmd_list, title, style="primary"):
+        if not cmd_list:
+            return None
+        btns = []
+        for c in cmd_list[:6]:
+            cmd_txt = c.get("command")
+            if not cmd_txt:
+                continue
+            btns.append({
+                "type": "button",
+                "text": {"type": "plain_text", "text": cmd_txt},
+                "value": json.dumps({"command": cmd_txt}),
+                "action_id": f"agent8_quick_run_{abs(hash(cmd_txt)) % 100000}"
+            })
+        return [
+            {"type": "section", "text": {"type": "mrkdwn", "text": f"*{title}*"}},
+            {"type": "actions", "elements": btns}
+        ]
+
+    trusted_block = _make_button_block(trusted_cmds, "Trusted commands (safe to run):")
+    unvalidated_block = _make_button_block(unvalidated_cmds, "Unvalidated commands (need review):", style="danger")
+
+    for blk in (trusted_block or []) + (unvalidated_block or []):
+        blocks.append(blk)
+
+    # Fallback hint
+    blocks.append({
+        "type": "context",
+        "elements": [{"type": "mrkdwn", "text": f"_To run custom commands:_ `@{bot_name} triage run <cmd1> | <cmd2>`"}]
+    })
+
+    return blocks
+
 
 # -------- Slack events --------
 @app.event("app_mention")
@@ -221,7 +494,7 @@ def handle_app_mention(body, say, logger):
     ev = body.get("event", {})
     text = (ev.get("text") or "").strip()
     channel = ev.get("channel")
-    thread_ts = ev.get("ts")
+    thread_ts = ev.get("thread_ts") or ev.get("ts")
     user = ev.get("user")
 
     parts = text.split(maxsplit=2)
@@ -242,6 +515,131 @@ def handle_app_mention(body, say, logger):
         cmd = "a7-run"
 
     print(f"[DEBUG] app_mention parsed cmd={cmd} raw_text={text}", flush=True)
+
+    # --- NEW: Agent-8 free-text triage ---
+    if cmd == "triage" and len(parts) == 3:
+        user_text = parts[2]
+
+        # Prefer the most-recent channel session; if the thread has an older one, override it.
+        sess_thread = _A8_SESSION_BY_THREAD.get(thread_ts) if thread_ts else None
+        sess_chan   = _A8_SESSION_LAST_BY_CHANNEL.get(channel) if channel else None
+
+        session_id = None
+        if sess_chan:  # newest for the channel wins
+            session_id = sess_chan
+            if thread_ts:
+                _A8_SESSION_BY_THREAD[thread_ts] = sess_chan  # refresh thread mapping to latest
+        elif sess_thread:
+            session_id = sess_thread
+        else:
+            say(channel=channel, thread_ts=thread_ts,
+                text="⚠️ No active triage session here. Click *Start triage* first.")
+            return
+
+        print(f"[DEBUG] triage using session={session_id} "
+            f"sess_thread={sess_thread} sess_chan={sess_chan} "
+            f"thread={thread_ts} channel={channel}", flush=True)
+
+        # # Prefer session bound to this thread; otherwise fall back to channel's last session
+        # session_id = None
+        # if thread_ts and thread_ts in _A8_SESSION_BY_THREAD:
+        #     session_id = _A8_SESSION_BY_THREAD[thread_ts]
+        # elif channel and channel in _A8_SESSION_LAST_BY_CHANNEL:
+        #     session_id = _A8_SESSION_LAST_BY_CHANNEL[channel]
+        #     if thread_ts:
+        #         _A8_SESSION_BY_THREAD[thread_ts] = session_id
+        # else:
+        #     say(channel=channel, thread_ts=thread_ts,
+        #         text="⚠️ No active triage session here. Click *Start triage* first.")
+        #     return
+
+        print(f"[DEBUG] triage using session={session_id} thread={thread_ts} channel={channel}", flush=True)
+
+        # ---- Mini parser: support "run ..." to dispatch immediately ----
+        low = user_text.strip().lower()
+        if low.startswith("run ") or low.startswith("run:"):
+            # Commands can be separated by | ; or newline. If none, treat remainder as a single command.
+            remainder = user_text.split(" ", 1)[1] if " " in user_text else ""
+            raw_cmds = [remainder] if ("|" not in remainder and ";" not in remainder and "\n" not in remainder) \
+                       else [c for c in re.split(r"[|;\n]", remainder) if c.strip()]
+            commands = [c.strip() for c in raw_cmds if c.strip()]
+            if not commands:
+                say(channel=channel, thread_ts=thread_ts,
+                    text="⚠️ No commands to run. Example: `@{BOT_NAME} triage run show ip bgp summary | show bgp neighbors`".format(BOT_NAME=BOT_NAME))
+                return
+
+            # Use the context that belongs to THIS session (original thread/channel/host)
+            ctx = _A8_CTX_BY_SESSION.get(session_id, {})
+            post_thread  = ctx.get("thread_ts") or thread_ts
+            post_channel = ctx.get("channel")  or channel
+            cfg = ctx.get("config_dir", "")
+            tsk = ctx.get("task_id", "")
+            host_hint = ctx.get("host") or _SELECTED_TRIAGE_HOST.get(post_thread or "", "selected host")
+
+            # NEW: capture the moment we dispatch, to detect fresh file writes
+            import time as _time
+            dispatch_ts = _time.time()
+
+            run_url = f"{AGENT_8_URL}/triage/run_shows"
+            payload = {"session_id": session_id, "host": host_hint, "commands": commands}
+            resp = _post_json(run_url, payload, timeout=90)
+
+            if not resp or resp.get("ok") is False:
+                say(channel=post_channel, thread_ts=post_thread,
+                    text=f"❌ Dispatch failed: `{resp.get('error','unknown')}`")
+                return
+
+            ini_path = resp.get("plan_ini_path", "(unknown)")
+            dispatched = resp.get("dispatched", False)
+
+            # Confirm dispatch + tell user we’ll bring results back and analyze
+            say(
+                channel=post_channel,
+                thread_ts=post_thread,
+                text=(
+                    f"📤 Dispatched {len(commands)} command(s) on `{host_hint}`.\n"
+                    f"• Plan INI: `{ini_path}`\n"
+                    f"• Capture: *{'queued with Agent-4' if dispatched else 'saved (not dispatched)'}*\n\n"
+                    "I’ll post the command output here when it lands, then analyze it."
+                )
+            )
+
+            # # FIX: launch watcher thread with proper args
+            # import threading
+            # threading.Thread(
+            #     target=_watch_and_analyze,
+            #     args=(say, post_channel, post_thread, session_id, host_hint, commands, ini_path),
+            #     daemon=True
+            # ).start()
+            return
+            
+        # ---- Default path: send free-text to Agent-8 /triage/ingest ----
+        ingest_url = f"{AGENT_8_URL}/triage/ingest"
+        payload = {"session_id": session_id, "user_text": user_text}
+        resp = _post_json(ingest_url, payload, timeout=60)
+
+        if not resp or resp.get("ok") is False:
+            err = (resp or {}).get("error", "unknown")
+            hint = ""
+            # If Agent-8 was restarted, in-memory sessions are gone; 404 is expected.
+            if "404" in str(err) or "Not Found" in str(err):
+                hint = " (session likely expired—click *Start triage* again in this thread)"
+            say(channel=channel, thread_ts=thread_ts,
+                text=f"❌ Triage ingest failed: `{err}`{hint}")
+            return
+
+        guidance = (resp.get("guidance_text") or "").strip()
+        cmds = resp.get("proposed_commands") or []
+
+        # Split into trusted vs unvalidated for clarity
+        trusted_cmds = [c for c in cmds if c.get("trust_hint") == "high"]
+        unvalidated_cmds = [c for c in cmds if c.get("trust_hint") != "high"]
+
+        # Prepare Slack blocks with buttons
+        blocks = build_triage_suggestion_blocks(guidance, cmds, BOT_NAME)
+        say(channel=channel, thread_ts=thread_ts, text="Agent-8 Triage Suggestions", blocks=blocks)
+
+        return
 
     if cmd == "help":
         say(channel=channel, thread_ts=thread_ts, text=_help_text())
@@ -324,38 +722,6 @@ def handle_app_mention(body, say, logger):
             text=f"✅ Capture summary: `{res.get('summary_path','')}`")
         return
 
-    # # Agent-7 ANALYZE
-    # if cmd == "a7-analyze" and len(parts) == 3:
-    #     args = parts[2].split()
-    #     if len(args) != 2:
-    #         say(channel=channel, thread_ts=thread_ts,
-    #             text=f"Usage: `@{BOT_NAME} a7-analyze <config_dir> <task_id>`")
-    #         return
-    #     config_dir, task_id = args
-    #     say(channel=channel, thread_ts=thread_ts,
-    #         text=f"🔎 Routing to Agent-7 /analyze: `{config_dir}` `{task_id}` …")
-    #     res = run_a7_analyze(config_dir, task_id)
-
-    #     # Post concise pointer (kept for continuity)
-    #     say(channel=channel, thread_ts=thread_ts,
-    #         text=(f"✅ Analyze summary: `{res.get('facts_summary_path','')}` • hosts={res.get('hosts_processed',0)}"))
-
-    #     # Prefer prebuilt blocks from agent7_client; fallback to local renderer if missing.
-    #     blocks = res.get("blocks")
-    #     if isinstance(blocks, list) and blocks:
-    #         say(channel=channel, thread_ts=thread_ts, text="Agent-7 Analysis", blocks=blocks)
-    #     else:
-    #         _post_a7_overview(
-    #             say=say,
-    #             channel=channel,
-    #             thread_ts=thread_ts,
-    #             config_dir=config_dir,
-    #             task_id=task_id,
-    #             per_device_path=res.get("per_device_json_path"),
-    #             cross_device_path=res.get("cross_device_json_path"),
-    #         )
-    #     return
-
     # Agent-7 ANALYZE
     if cmd == "a7-analyze" and len(parts) == 3:
         args = parts[2].split()
@@ -381,7 +747,7 @@ def handle_app_mention(body, say, logger):
             ):
                 return
 
-            # 2) Fallback to local renderer → per_device + cross (with attach button)
+            # 2) Fallback to local renderer → per_device + cross (with attach button + triage)
             _post_a7_overview(
                 say=say,
                 channel=channel,
@@ -424,14 +790,12 @@ def handle_app_mention(body, say, logger):
                 text=(f"🔎 Analyze ok → facts_summary=`{ana_res.get('facts_summary_path','')}` "
                       f"• hosts={ana_res.get('hosts_processed',0)}"))
 
-            # Prefer prebuilt blocks; fallback if missing
-            # Prefer LLM-made slack_overview.json (blocks/text) if present
+            # Prefer prebuilt blocks; fallback if missing (with triage controls)
             if _post_a7_llm_overview_if_available(
                 say, channel, thread_ts, ana_res.get("slack_overview_path")
             ):
                 pass
             else:
-                # Fallback to local renderer
                 _post_a7_overview(
                     say=say,
                     channel=channel,
@@ -441,19 +805,6 @@ def handle_app_mention(body, say, logger):
                     per_device_path=ana_res.get("per_device_json_path"),
                     cross_device_path=ana_res.get("cross_device_json_path"),
                 )
-            # blocks = ana_res.get("blocks")
-            # if isinstance(blocks, list) and blocks:
-            #     say(channel=channel, thread_ts=thread_ts, text="Agent-7 Analysis", blocks=blocks)
-            # else:
-            #     _post_a7_overview(
-            #         say=say,
-            #         channel=channel,
-            #         thread_ts=thread_ts,
-            #         config_dir=config_dir,
-            #         task_id=task_id,
-            #         per_device_path=ana_res.get("per_device_json_path"),
-            #         cross_device_path=ana_res.get("cross_device_json_path"),
-            #     )
 
             say(channel=channel, thread_ts=thread_ts, text=f"✅ Agent-7 run COMPLETE.")
         except Exception as e:
@@ -494,6 +845,7 @@ def handle_app_mention(body, say, logger):
         return
 
     say(channel=channel, thread_ts=thread_ts, text=f"Unknown command `{cmd}`.\n{_help_text()}")
+
 
 # -------- Button handler: “Attach artifacts” --------
 @app.action("agent7_attach_artifacts")
@@ -564,11 +916,352 @@ def handle_attach_artifacts(ack, body, client, say, logger):
     if not uploaded_any:
         say(channel=channel, thread_ts=thread_ts,
             text=f"⚠️ Artifacts not found to attach for `{config_dir}` `{task_id}`.")
-                
+
+# -------- NEW: Triage host picker (static_select) --------
+@app.action("agent8_host_select")
+def handle_triage_host_select(ack, body, say, logger):
+    """
+    Remember the last selected host for this thread.
+    """
+    ack()
+    try:
+        # Find thread_ts
+        thread_ts = body.get("container", {}).get("message_ts") or body.get("message", {}).get("ts")
+        action = (body.get("actions") or [{}])[0]
+        sel = action.get("selected_option") or {}
+        host = sel.get("value") or sel.get("text", {}).get("text")
+        if thread_ts and host and host != "__none__":
+            _SELECTED_TRIAGE_HOST[thread_ts] = host
+            print(f"[DEBUG] triage host selected: thread={thread_ts} host={host}", flush=True)
+    except Exception as e:
+        logger.error(f"agent8_host_select error: {e}")
+
+# -------- NEW: Start triage button --------
+@app.action("agent8_start_triage")
+def handle_start_triage(ack, body, say, logger):
+    """
+    Start Agent-8 triage for the chosen host (or default).
+    - Reads config_dir/task_dir from button value JSON.
+    - Uses the last selected host in this thread, or falls back to the first option shown.
+    - Calls Agent-8 /triage/start and stores session_id for this thread.
+    """
+    ack()
+
+    # Channel/thread
+    channel = body.get("container", {}).get("channel_id") or body.get("channel", {}).get("id")
+    thread_ts = body.get("container", {}).get("message_ts") or body.get("message", {}).get("ts")
+
+    # Parse button payload (value)
+    payload = {}
+    try:
+        val = (body.get("actions") or [{}])[0].get("value") or "{}"
+        payload = json.loads(val)
+    except Exception:
+        pass
+
+    config_dir = payload.get("config_dir", "")
+    task_id    = payload.get("task_dir", "")
+
+    # Determine host: prefer remembered selection in this thread
+    host: Optional[str] = _SELECTED_TRIAGE_HOST.get(thread_ts)
+
+    # Fallback: derive first option from the message blocks (if present)
+    if not host:
+        try:
+            blocks = (body.get("message") or {}).get("blocks") or []
+            for blk in blocks:
+                if blk.get("type") == "actions":
+                    for el in blk.get("elements", []):
+                        if el.get("type") == "static_select" and el.get("action_id") == "agent8_host_select":
+                            opts = el.get("options") or []
+                            if opts:
+                                host = opts[0].get("value") or opts[0].get("text", {}).get("text")
+                                break
+                if host:
+                    break
+        except Exception:
+            pass
+
+    if not host or host == "__none__":
+        say(channel=channel, thread_ts=thread_ts, text="⚠️ No host selected for triage.")
+        return
+
+    # Derive vendor/platform from devices.yaml (best-effort)
+    vendor, platform = _lookup_vendor_platform(config_dir, host)
+    if vendor:   # optional debug
+        print(f"[DEBUG] start_triage vendor={vendor} platform={platform} for host={host}", flush=True)
+
+    # Call Agent-8
+    start_payload = {
+        "config_dir": config_dir,
+        "task_dir": task_id,
+        "host": host,              # send single host (Agent-8 also accepts hosts[0])
+        "thread_ts": thread_ts,
+        "channel": channel,
+        "vendor": vendor,          # from _lookup_vendor_platform()
+        "platform": platform,      # from _lookup_vendor_platform()
+    }
+    url = f"{AGENT_8_URL}/triage/start"
+    res = _post_json(url, start_payload, timeout=60)
+    print(f"[DEBUG] agent8_start_triage response: {res}", flush=True)
+
+    sess = res.get("session_id")
+    if not isinstance(sess, str) or not sess:
+        # Do NOT proceed silently; tell the user and stop.
+        err = res.get("error") or res.get("raw") or "no session_id returned"
+        say(channel=channel, thread_ts=thread_ts,
+            text=f"❌ Triage start failed for `{host}`: `{err}`")
+        return
+
+    # Remember session for this Slack thread (primary) and channel (fallback)
+    if thread_ts:
+        _A8_SESSION_BY_THREAD[thread_ts] = sess
+    if channel:
+        _A8_SESSION_LAST_BY_CHANNEL[channel] = sess  # NEW: channel-level fallback
+    print(f"[DEBUG] stored triage session: thread={thread_ts} channel={channel} session={sess}", flush=True)
+
+    # Save context for this thread (used by run-path watcher)
+    if thread_ts:
+        _A8_CTX_BY_THREAD[thread_ts] = {
+            "config_dir": config_dir,
+            "task_id": task_id,
+            "host": host,
+        }
+    # ALSO save by session (so later messages can find the original thread/channel)
+    _A8_CTX_BY_SESSION[sess] = {
+        "config_dir": config_dir,
+        "task_id": task_id,
+        "host": host,
+        "thread_ts": thread_ts or "",
+        "channel": channel or "",
+    }
+
+    say(channel=channel, thread_ts=thread_ts,
+        text=f"🧭 Starting triage on `{host}` (config `{config_dir}`, task `{task_id}`)…\n"
+             f"_Tip:_ reply in this thread: `@{BOT_NAME} triage <what you’re seeing>`")
+    
+
+
 # Optional: silence generic "message" events
 @app.event("message")
 def ignore_plain_messages(body, logger):
     pass
+
+
+# -------- NEW: Escalate button --------
+@app.action("agent8_escalate")
+def handle_escalate(ack, body, say, logger):
+    """
+    Handle Escalate button → post a proper mailto: button + context into the thread.
+    This does NOT send email; Slack opens the user's default mail client with
+    subject/body prefilled.
+    """
+    ack()
+    from urllib.parse import quote
+
+    # Optional: who receives the escalation. Set ESCALATE_TO env (comma-separated allowed).
+    # Fallback keeps a sensible default so the mail client definitely opens.
+    ESCALATE_TO = os.getenv("ESCALATE_TO", "noc@example.com").strip() or "noc@example.com"
+
+    try:
+        # --- Locate channel / thread ---
+        channel   = body.get("container", {}).get("channel_id") or body.get("channel", {}).get("id") or ""
+        thread_ts = body.get("container", {}).get("message_ts") or body.get("message", {}).get("ts") or ""
+
+        # --- Parse button payload (may be empty in current posts) ---
+        payload = {}
+        try:
+            payload = json.loads((body.get("actions") or [{}])[0].get("value") or "{}")
+        except Exception:
+            payload = {}
+
+        # --- Fill missing fields from orchestrator memory for this thread ---
+        ctx        = _A8_CTX_BY_THREAD.get(thread_ts, {}) if thread_ts else {}
+        config_dir = payload.get("config_dir") or ctx.get("config_dir") or ""
+        task_id    = payload.get("task_dir")  or ctx.get("task_id")  or ""
+        host       = payload.get("host")      or ctx.get("host")      or _SELECTED_TRIAGE_HOST.get(thread_ts, "")
+        session_id = payload.get("session_id") or _A8_SESSION_BY_THREAD.get(thread_ts, "")
+
+        # --- Build subject + body (plain text, then URL-encode) ---
+        subject = f"Escalation - {task_id or 'task'} - {host or 'host'}"
+        body_lines = [
+            "Escalation Report",
+            "",
+            f"Config: {config_dir}",
+            f"Task: {task_id}",
+            f"Host: {host}",
+            f"Session: {session_id}",
+            "",
+            f"Slack thread: https://slack.com/app_redirect?channel={channel}&message_ts={thread_ts}",
+            "",
+            "Summary: Triage session requires L3 investigation. Full CLI outputs are available in the attached Slack thread.",
+        ]
+        body_txt = "\n".join(body_lines)
+
+        mailto_url = (
+            f"mailto:{quote(ESCALATE_TO)}"
+            f"?subject={quote(subject)}"
+            f"&body={quote(body_txt)}"
+        )
+
+        # --- Post a proper button with the mailto: URL + a small context footer ---
+        blocks = [
+            {
+                "type": "section",
+                "text": {"type": "mrkdwn", "text": "*✉️ Escalate this issue*"},
+            },
+            {
+                "type": "actions",
+                "elements": [
+                    {
+                        "type": "button",
+                        "text": {"type": "plain_text", "text": "Open email draft"},
+                        "style": "primary",
+                        "url": mailto_url,              # ← Slack opens default mail client
+                    },
+                ],
+            },
+            {
+                "type": "context",
+                "elements": [
+                    {"type": "mrkdwn", "text": f"Config: `{config_dir}` • Task: `{task_id}` • Host: `{host}`"},
+                ],
+            },
+        ]
+
+        # Also include text fallback (for clients that don’t render blocks)
+        text_fallback = f"Escalate this issue → {mailto_url}"
+
+        say(channel=channel, thread_ts=thread_ts, text=text_fallback, blocks=blocks)
+
+        # Debug log (helps if something still shows empty)
+        logger.info(
+            f"[agent8_escalate] cfg={config_dir} task={task_id} host={host} "
+            f"sess={session_id} mailto={mailto_url}"
+        )
+
+    except Exception as e:
+        logger.error(f"agent8_escalate error: {e}")
+        try:
+            say(channel=channel, thread_ts=thread_ts, text=f"⚠️ Escalation failed: {e}")
+        except Exception:
+            pass
+
+# -------- NEW: Close Issue button --------
+@app.action("agent8_close_issue")
+def handle_close_issue(ack, body, say, logger):
+    """
+    Handle 'Close Issue' button click from Slack.
+    Sends session data to Agent-8 /memory/save so that
+    the triage knowledge is written to triage_memory.jsonl.
+    """
+    ack()
+
+    try:
+        # --- Extract basic context (channel + thread) ---
+        channel = body.get("container", {}).get("channel_id") or body.get("channel", {}).get("id") or ""
+        thread_ts = body.get("container", {}).get("message_ts") or body.get("message", {}).get("ts") or ""
+
+        # --- Parse button payload (JSON string) ---
+        payload = {}
+        try:
+            payload = json.loads((body.get("actions") or [{}])[0].get("value") or "{}")
+        except Exception:
+            payload = {}
+
+        # --- Collect identifiers from payload or known context maps ---
+        session_id = payload.get("session_id") or _A8_SESSION_BY_THREAD.get(thread_ts, "")
+        config_dir = payload.get("config_dir") or ""
+        task_id    = payload.get("task_dir") or ""
+        host       = payload.get("host") or _A8_CTX_BY_THREAD.get(thread_ts, {}).get("host", "")
+
+        # Guard against missing session
+        if not session_id:
+            say(channel=channel, thread_ts=thread_ts,
+                text="⚠️ Cannot close issue — no active triage session found.")
+            return
+
+        # --- Import helper and call Agent-8 /memory/save ---
+        from agent8_client import save_memory
+        result = save_memory(session_id=session_id)
+
+        # --- Post result back to Slack thread ---
+        if result.get("ok") or result.get("saved") or "success" in str(result).lower():
+            say(
+                channel=channel,
+                thread_ts=thread_ts,
+                text=(
+                    f"✅ *Issue closed and saved to triage memory.*\n"
+                    f"_File:_ `/app/shared/_agent_knowledge/triage_memory.jsonl`\n"
+                    f"Host: `{host}`  •  Config: `{config_dir}`  •  Task: `{task_id}`"
+                )
+            )
+        else:
+            err = result.get("error", "unknown error")
+            say(
+                channel=channel,
+                thread_ts=thread_ts,
+                text=f"⚠️ Failed to save triage memory: `{err}`"
+            )
+
+        logger.info(f"[agent8_close_issue] session={session_id} host={host} result={result}")
+
+    except Exception as e:
+        logger.error(f"agent8_close_issue error: {e}")
+        try:
+            say(channel=channel, thread_ts=thread_ts, text=f"⚠️ Close Issue failed: {e}")
+        except Exception:
+            pass
+        
+# -------- NEW: Quick-run buttons for triage commands --------
+@app.action(re.compile("^agent8_quick_run"))
+def handle_quick_run(ack, body, say, logger):
+    """
+    When a user clicks a proposed command button, auto-runs it via triage run path.
+    """
+    ack()
+    try:
+        payload = json.loads((body.get("actions") or [{}])[0].get("value") or "{}")
+        cmd = payload.get("command")
+        if not cmd:
+            return
+
+        channel = body.get("container", {}).get("channel_id")
+        # --- DEBUG: to check session & host for command_buttons ---
+        # --- Improved thread_ts detection ---
+        # Slack sometimes sends button clicks with message_ts instead of thread_ts,
+        # so we try multiple fallbacks to locate the parent triage thread.
+        thread_ts = (
+            body.get("container", {}).get("thread_ts")
+            or body.get("container", {}).get("message_ts")
+            or body.get("message", {}).get("thread_ts")
+            or body.get("message", {}).get("ts")
+        )
+
+        print(f"[DEBUG:quick_run] thread_ts candidate from Slack: {thread_ts}", flush=True)
+        print(f"[DEBUG:quick_run] _A8_SESSION_BY_THREAD keys: {list(_A8_SESSION_BY_THREAD.keys())}", flush=True)
+
+        sess = _A8_SESSION_BY_THREAD.get(thread_ts)
+        ctx = _A8_CTX_BY_SESSION.get(sess, {})
+        host = ctx.get("host")
+        print(f"[DEBUG:quick_run] resolved sess={sess}, host={host}", flush=True)
+        # --- 
+        
+        if not (sess and host):
+            say(channel=channel, thread_ts=thread_ts,
+                text="⚠️ No active triage session or host. Start triage first.")
+            return
+
+        # Dispatch single-command run
+        run_url = f"{AGENT_8_URL}/triage/run_shows"
+        payload = {"session_id": sess, "host": host, "commands": [cmd]}
+        resp = _post_json(run_url, payload, timeout=90)
+        say(channel=channel, thread_ts=thread_ts,
+            text=f"▶️ Running `{cmd}` on `{host}` — analyzing shortly…")
+    except Exception as e:
+        logger.error(f"agent8_quick_run error: {e}")
+        say(channel=channel, thread_ts=thread_ts,
+            text=f"⚠️ Failed to trigger quick run: {e}")
 
 if __name__ == "__main__":
     print("[DEBUG] Orchestrator Slack bot starting...")

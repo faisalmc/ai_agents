@@ -6,3 +6,4 @@ paramiko
 scp
 httpx
 slack_bolt
+requests

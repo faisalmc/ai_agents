@@ -61,8 +61,53 @@ Guidance:
 --- USER ---
 ```json
 {
-  "per_device": [],
-  "facts_by_host": {},
-  "available_command_keys_by_host": {}
+  "per_device": [
+    {
+      "hostname": "B-ASBR-1",
+      "platform": "ios-xr",
+      "signals_seen": [
+        "bgp",
+        "bfd"
+      ],
+      "status": "unknown",
+      "status_reason": "No command output available to assess BGP and BFD states.",
+      "ok": [],
+      "suspect": [],
+      "findings": [],
+      "recommended_show_cmds": [
+        "show bgp summary",
+        "show bgp neighbor",
+        "show bfd neighbors"
+      ],
+      "optional_active_cmds": []
+    },
+    {
+      "hostname": "C-ASBR-1",
+      "platform": "ios-xr",
+      "signals_seen": [
+        "bgp",
+        "bfd"
+      ],
+      "status": "unknown",
+      "status_reason": "No command output available to assess BGP and BFD configurations.",
+      "ok": [],
+      "suspect": [],
+      "findings": [],
+      "recommended_show_cmds": [
+        "show bgp summary",
+        "show bgp neighbor-group TO_B_ASBR",
+        "show bfd neighbors"
+      ],
+      "optional_active_cmds": []
+    }
+  ],
+  "facts_by_host": {
+    "B-ASBR-1": "{\"hostname\": \"B-ASBR-1\", \"platform_hint\": \"unknown\", \"signals_seen\": [], \"generated_at\": 1758021587, \"facts_version\": 1, \"coverage\": {\"genie_ok\": 0, \"genie_err\": 0, \"llm_ok\": 0, \"total_cmds\": 0, \"total_enriched\": 0}, \"commands\": {}, \"notes\": {\"gap_fill_permitted\": true, \"gap_fill_used\": false, \"providers\": [\"mcp(if-wired)\", \"genie\", \"llm\"]}}",
+    "C-ASBR-1": "{\"hostname\": \"C-ASBR-1\", \"platform_hint\": \"unknown\", \"signals_seen\": [], \"generated_at\": 1758021587, \"facts_version\": 1, \"coverage\": {\"genie_ok\": 0, \"genie_err\": 0, \"llm_ok\": 0, \"total_cmds\": 0, \"total_enriched\": 0}, \"commands\": {}, \"notes\": {\"gap_fill_permitted\": true, \"gap_fill_used\": false, \"providers\": [\"mcp(if-wired)\", \"genie\", \"llm\"]}}"
+  },
+  "available_command_keys_by_host": {
+    "B-ASBR-1": [],
+    "C-ASBR-1": []
+  }
 }
 ```

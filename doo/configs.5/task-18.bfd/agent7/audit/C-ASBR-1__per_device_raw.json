@@ -2,40 +2,14 @@
   "hostname": "C-ASBR-1",
   "platform": "ios-xr",
   "signals_seen": ["bfd", "bgp"],
-  "status": "degraded",
-  "status_reason": "BGP neighbors show a mix of established and idle states.",
-  "ok": [
-    {
-      "summary": "BFD session is up and configured correctly.",
-      "evidence_ref": { "command_key": "show_bfd_session", "path": "commands.show_bfd_session.data.interface.GigabitEthernet0/0/0/1.dest_ip_address.100.64.231.1.state" }
-    }
+  "status": "unknown",
+  "status_reason": "No command output available to assess BGP and BFD states.",
+  "ok": [],
+  "suspect": [],
+  "findings": [],
+  "recommended_show_cmds": [
+    "show bgp summary",
+    "show bfd neighbors"
   ],
-  "suspect": [
-    {
-      "summary": "BGP neighbors show 4 idle and 2 established states.",
-      "evidence_ref": { "command_key": "show_ip_bgp_neighbor_brief", "path": "commands.show_ip_bgp_neighbor_brief.data.metrics.bgp_neighbors_by_state.idle" }
-    }
-  ],
-  "findings": [
-    {
-      "signal": "bgp",
-      "severity": "warn",
-      "summary": "BGP neighbors are in mixed states with 4 idle neighbors.",
-      "evidence_ref": {
-        "command_key": "show_ip_bgp_neighbor_brief",
-        "path": "commands.show_ip_bgp_neighbor_brief.data.metrics.bgp_neighbors_by_state"
-      }
-    },
-    {
-      "signal": "bfd",
-      "severity": "info",
-      "summary": "BFD session is operational with state UP.",
-      "evidence_ref": {
-        "command_key": "show_bfd_session",
-        "path": "commands.show_bfd_session.data.interface.GigabitEthernet0/0/0/1.dest_ip_address.100.64.231.1.state"
-      }
-    }
-  ],
-  "recommended_show_cmds": ["show bgp summary", "show bfd neighbors"],
   "optional_active_cmds": []
 }

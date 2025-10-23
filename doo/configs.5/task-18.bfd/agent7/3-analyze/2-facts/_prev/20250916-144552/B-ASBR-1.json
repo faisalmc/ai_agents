@@ -1,0 +1,27 @@
+{
+  "hostname": "B-ASBR-1",
+  "platform_hint": "unknown",
+  "signals_seen": [
+    "bfd",
+    "bgp"
+  ],
+  "generated_at": 1758026653,
+  "facts_version": 1,
+  "coverage": {
+    "genie_ok": 0,
+    "genie_err": 0,
+    "llm_ok": 0,
+    "total_cmds": 0,
+    "total_enriched": 0
+  },
+  "commands": {},
+  "notes": {
+    "gap_fill_permitted": true,
+    "gap_fill_used": false,
+    "providers": [
+      "mcp(if-wired)",
+      "genie",
+      "llm"
+    ]
+  }
+}

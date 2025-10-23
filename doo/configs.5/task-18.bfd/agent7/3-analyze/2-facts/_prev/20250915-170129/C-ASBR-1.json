@@ -1,0 +1,421 @@
+{
+  "hostname": "C-ASBR-1",
+  "platform_hint": "cisco-ios-xr",
+  "signals_seen": [
+    "bfd",
+    "bgp"
+  ],
+  "generated_at": 1757955581,
+  "facts_version": 1,
+  "coverage": {
+    "genie_ok": 1,
+    "genie_err": 0,
+    "llm_ok": 2,
+    "total_cmds": 3,
+    "total_enriched": 3
+  },
+  "commands": {
+    "show_bfd_session": {
+      "command": "show bfd session",
+      "topic": "bfd",
+      "platform_hint": "cisco-ios-xr",
+      "source": "genie",
+      "parsed_path": "/app/doo/configs.5/task-18.bfd/agent7/3-analyze/1-parsed/C-ASBR-1/cisco-ios-xr__show_bfd_session.json",
+      "evidence_text_path": "/app/doo/configs.5/task-18.bfd/agent7/3-analyze/0-md-index/C-ASBR-1/002__show_bfd_session.txt",
+      "parser_ok": true,
+      "data": {
+        "interface": {
+          "GigabitEthernet0/0/0/1": {
+            "dest_ip_address": {
+              "100.64.231.1": {
+                "echo_total_msec": 2500,
+                "echo_msec": 500,
+                "echo_multiplier": 5,
+                "async_total_msec": 10000,
+                "async_msec": 2000,
+                "async_multiplier": 5,
+                "state": "UP",
+                "hardware": "No",
+                "npu": "n/a"
+              }
+            }
+          }
+        }
+      },
+      "genie_data": {
+        "interface": {
+          "GigabitEthernet0/0/0/1": {
+            "dest_ip_address": {
+              "100.64.231.1": {
+                "echo_total_msec": 2500,
+                "echo_msec": 500,
+                "echo_multiplier": 5,
+                "async_total_msec": 10000,
+                "async_msec": 2000,
+                "async_multiplier": 5,
+                "state": "UP",
+                "hardware": "No",
+                "npu": "n/a"
+              }
+            }
+          }
+        }
+      }
+    },
+    "show_bfd_session_detail": {
+      "command": "show bfd session detail",
+      "topic": "bfd",
+      "platform_hint": "cisco-ios-xr",
+      "source": "llm",
+      "parsed_path": "",
+      "evidence_text_path": "/app/doo/configs.5/task-18.bfd/agent7/3-analyze/0-md-index/C-ASBR-1/003__show_bfd_session_detail.txt",
+      "parser_ok": false,
+      "data": {
+        "summary": "BFD session is currently up with specific parameters and statistics.",
+        "status": {
+          "name": "bfd_session",
+          "value": "up",
+          "confidence": "high",
+          "confidence_reason": "The state is explicitly stated as UP in the output."
+        },
+        "metrics": {
+          "desired_tx_interval_seconds": 2,
+          "required_rx_interval_seconds": 2,
+          "required_echo_rx_interval_ms": 1,
+          "multiplier": 5,
+          "async_detection_time_seconds": 10,
+          "echo_detection_time_ms": 2500,
+          "last_packet_transmitted_ms": 1562,
+          "last_packet_received_ms": 1671,
+          "intervals_between_async_tx": 17,
+          "intervals_between_async_rx": 17,
+          "intervals_between_echo_tx": 0,
+          "intervals_between_echo_rx": 0
+        },
+        "tables": {
+          "parameters": [
+            {
+              "Version": "1",
+              "desired_tx_interval": "2 s",
+              "required_rx_interval": "2 s",
+              "required_echo_rx_interval": "1 ms",
+              "multiplier": "5",
+              "diag": "None",
+              "my_discr": "2148532226",
+              "your_discr": "2148532226",
+              "state": "UP",
+              "D/F/P/C/A": "0/0/0/1/0"
+            }
+          ],
+          "timers": [
+            {
+              "local_negotiated_async_tx_interval": "2 s",
+              "remote_negotiated_async_tx_interval": "2 s",
+              "desired_echo_tx_interval": "500 ms",
+              "local_negotiated_echo_tx_interval": "500 ms"
+            }
+          ],
+          "local_stats": [
+            {
+              "async_tx_intervals": {
+                "number_of_intervals": 17,
+                "min": "2 ms",
+                "max": "1956 ms",
+                "avg": "1719 ms"
+              },
+              "async_rx_intervals": {
+                "number_of_intervals": 17,
+                "min": "3 ms",
+                "max": "1959 ms",
+                "avg": "1712 ms"
+              },
+              "echo_tx_intervals": {
+                "number_of_intervals": 0,
+                "min": "0 s",
+                "max": "0 s",
+                "avg": "0 s"
+              },
+              "echo_rx_intervals": {
+                "number_of_intervals": 0,
+                "min": "0 s",
+                "max": "0 s",
+                "avg": "0 s"
+              },
+              "latency_of_echo_packets": {
+                "number_of_packets": 0,
+                "min": "0 ms",
+                "max": "0 ms",
+                "avg": "0 ms"
+              }
+            }
+          ]
+        },
+        "evidence": [
+          "L5: State: UP for 0d:0h:0m:30s, number of times UP: 1",
+          "L6: Session type: PR/V4/SH",
+          "L7: My discr: 2148532226, your discr: 2148532226, state UP",
+          "L20: Local negotiated async tx interval: 2 s",
+          "L21: Remote negotiated async tx interval: 2 s"
+        ]
+      },
+      "llm_data": {
+        "summary": "BFD session is currently up with specific parameters and statistics.",
+        "status": {
+          "name": "bfd_session",
+          "value": "up",
+          "confidence": "high",
+          "confidence_reason": "The state is explicitly stated as UP in the output."
+        },
+        "metrics": {
+          "desired_tx_interval_seconds": 2,
+          "required_rx_interval_seconds": 2,
+          "required_echo_rx_interval_ms": 1,
+          "multiplier": 5,
+          "async_detection_time_seconds": 10,
+          "echo_detection_time_ms": 2500,
+          "last_packet_transmitted_ms": 1562,
+          "last_packet_received_ms": 1671,
+          "intervals_between_async_tx": 17,
+          "intervals_between_async_rx": 17,
+          "intervals_between_echo_tx": 0,
+          "intervals_between_echo_rx": 0
+        },
+        "tables": {
+          "parameters": [
+            {
+              "Version": "1",
+              "desired_tx_interval": "2 s",
+              "required_rx_interval": "2 s",
+              "required_echo_rx_interval": "1 ms",
+              "multiplier": "5",
+              "diag": "None",
+              "my_discr": "2148532226",
+              "your_discr": "2148532226",
+              "state": "UP",
+              "D/F/P/C/A": "0/0/0/1/0"
+            }
+          ],
+          "timers": [
+            {
+              "local_negotiated_async_tx_interval": "2 s",
+              "remote_negotiated_async_tx_interval": "2 s",
+              "desired_echo_tx_interval": "500 ms",
+              "local_negotiated_echo_tx_interval": "500 ms"
+            }
+          ],
+          "local_stats": [
+            {
+              "async_tx_intervals": {
+                "number_of_intervals": 17,
+                "min": "2 ms",
+                "max": "1956 ms",
+                "avg": "1719 ms"
+              },
+              "async_rx_intervals": {
+                "number_of_intervals": 17,
+                "min": "3 ms",
+                "max": "1959 ms",
+                "avg": "1712 ms"
+              },
+              "echo_tx_intervals": {
+                "number_of_intervals": 0,
+                "min": "0 s",
+                "max": "0 s",
+                "avg": "0 s"
+              },
+              "echo_rx_intervals": {
+                "number_of_intervals": 0,
+                "min": "0 s",
+                "max": "0 s",
+                "avg": "0 s"
+              },
+              "latency_of_echo_packets": {
+                "number_of_packets": 0,
+                "min": "0 ms",
+                "max": "0 ms",
+                "avg": "0 ms"
+              }
+            }
+          ]
+        },
+        "evidence": [
+          "L5: State: UP for 0d:0h:0m:30s, number of times UP: 1",
+          "L6: Session type: PR/V4/SH",
+          "L7: My discr: 2148532226, your discr: 2148532226, state UP",
+          "L20: Local negotiated async tx interval: 2 s",
+          "L21: Remote negotiated async tx interval: 2 s"
+        ]
+      }
+    },
+    "show_ip_bgp_neighbor_brief": {
+      "command": "show ip bgp neighbor brief",
+      "topic": "bgp",
+      "platform_hint": "cisco-ios-xr",
+      "source": "llm",
+      "parsed_path": "",
+      "evidence_text_path": "/app/doo/configs.5/task-18.bfd/agent7/3-analyze/0-md-index/C-ASBR-1/001__show_ip_bgp_neighbor_brief.txt",
+      "parser_ok": false,
+      "data": {
+        "summary": "The BGP neighbor status shows a mix of established and idle states.",
+        "status": {
+          "name": "bgp_neighbors",
+          "value": "mixed",
+          "confidence": "high",
+          "confidence_reason": "There are both established and idle neighbors."
+        },
+        "metrics": {
+          "bgp_neighbors_total": 6,
+          "bgp_neighbors_by_state": {
+            "idle": 4,
+            "established": 2
+          }
+        },
+        "tables": {
+          "bgp_neighbors": [
+            {
+              "Neighbor": "3.0.101.1",
+              "Spk": 0,
+              "AS": 300,
+              "Description": "",
+              "Up/Down": "2d19h",
+              "NBRState": "Idle"
+            },
+            {
+              "Neighbor": "3.0.101.2",
+              "Spk": 0,
+              "AS": 300,
+              "Description": "",
+              "Up/Down": "2d19h",
+              "NBRState": "Idle"
+            },
+            {
+              "Neighbor": "3.0.101.3",
+              "Spk": 0,
+              "AS": 300,
+              "Description": "",
+              "Up/Down": "2d19h",
+              "NBRState": "Idle"
+            },
+            {
+              "Neighbor": "3.0.101.4",
+              "Spk": 0,
+              "AS": 300,
+              "Description": "",
+              "Up/Down": "2d19h",
+              "NBRState": "Idle"
+            },
+            {
+              "Neighbor": "100.64.231.1",
+              "Spk": 0,
+              "AS": 200,
+              "Description": "",
+              "Up/Down": "00:00:32",
+              "NBRState": "Established"
+            },
+            {
+              "Neighbor": "2620:fc7:64:231::1",
+              "Spk": 0,
+              "AS": 200,
+              "Description": "",
+              "Up/Down": "00:00:45",
+              "NBRState": "Established"
+            }
+          ]
+        },
+        "evidence": [
+          "L3: 3.0.101.1         0   300                                         2d19h Idle",
+          "L4: 3.0.101.2         0   300                                         2d19h Idle",
+          "L5: 3.0.101.3         0   300                                         2d19h Idle",
+          "L6: 3.0.101.4         0   300                                         2d19h Idle",
+          "L7: 100.64.231.1      0   200                                      00:00:32 Established",
+          "L8: 2620:fc7:64:231::1\n                  0   200                                      00:00:45 Established"
+        ]
+      },
+      "llm_data": {
+        "summary": "The BGP neighbor status shows a mix of established and idle states.",
+        "status": {
+          "name": "bgp_neighbors",
+          "value": "mixed",
+          "confidence": "high",
+          "confidence_reason": "There are both established and idle neighbors."
+        },
+        "metrics": {
+          "bgp_neighbors_total": 6,
+          "bgp_neighbors_by_state": {
+            "idle": 4,
+            "established": 2
+          }
+        },
+        "tables": {
+          "bgp_neighbors": [
+            {
+              "Neighbor": "3.0.101.1",
+              "Spk": 0,
+              "AS": 300,
+              "Description": "",
+              "Up/Down": "2d19h",
+              "NBRState": "Idle"
+            },
+            {
+              "Neighbor": "3.0.101.2",
+              "Spk": 0,
+              "AS": 300,
+              "Description": "",
+              "Up/Down": "2d19h",
+              "NBRState": "Idle"
+            },
+            {
+              "Neighbor": "3.0.101.3",
+              "Spk": 0,
+              "AS": 300,
+              "Description": "",
+              "Up/Down": "2d19h",
+              "NBRState": "Idle"
+            },
+            {
+              "Neighbor": "3.0.101.4",
+              "Spk": 0,
+              "AS": 300,
+              "Description": "",
+              "Up/Down": "2d19h",
+              "NBRState": "Idle"
+            },
+            {
+              "Neighbor": "100.64.231.1",
+              "Spk": 0,
+              "AS": 200,
+              "Description": "",
+              "Up/Down": "00:00:32",
+              "NBRState": "Established"
+            },
+            {
+              "Neighbor": "2620:fc7:64:231::1",
+              "Spk": 0,
+              "AS": 200,
+              "Description": "",
+              "Up/Down": "00:00:45",
+              "NBRState": "Established"
+            }
+          ]
+        },
+        "evidence": [
+          "L3: 3.0.101.1         0   300                                         2d19h Idle",
+          "L4: 3.0.101.2         0   300                                         2d19h Idle",
+          "L5: 3.0.101.3         0   300                                         2d19h Idle",
+          "L6: 3.0.101.4         0   300                                         2d19h Idle",
+          "L7: 100.64.231.1      0   200                                      00:00:32 Established",
+          "L8: 2620:fc7:64:231::1\n                  0   200                                      00:00:45 Established"
+        ]
+      }
+    }
+  },
+  "notes": {
+    "gap_fill_permitted": true,
+    "gap_fill_used": true,
+    "providers": [
+      "mcp(if-wired)",
+      "genie",
+      "llm"
+    ]
+  }
+}

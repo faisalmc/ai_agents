@@ -7,7 +7,7 @@ import importlib.util
 from typing import Any, Dict, List, Optional
 
 # Use existing env var from .env
-A7_BASE_URL   = os.getenv("AGENT_7_URL", "http://agent-7:8007")
+A7_BASE_URL    = os.getenv("AGENT_7_URL", "http://agent-7:8007")
 A7_PLAN_URL    = f"{A7_BASE_URL}/plan"
 A7_CAPTURE_URL = f"{A7_BASE_URL}/capture"
 A7_ANALYZE_URL = f"{A7_BASE_URL}/analyze"
@@ -201,3 +201,34 @@ def run_analyze(
     # Return the API response plus Slack blocks for the bot to post
     resp["blocks"] = blocks
     return resp
+
+
+# -------- NEW: Host-scoped analyze helpers (Option C) --------
+
+def run_analyze_hosts(
+    config_dir: str,
+    task_id: str,
+    hosts: List[str],
+) -> dict:
+    """
+    Calls Agent-7 /analyze for a subset of hosts.
+    Server will prune md-index to these hosts and skip cross-device when len(hosts)==1.
+    Returns the raw API response (with standard paths), no client-side block building.
+    """
+    payload = {"config_dir": config_dir, "task_dir": task_id, "hosts": hosts or []}
+    return asyncio.run(_post(A7_ANALYZE_URL, payload)) or {}
+
+
+def run_analyze_host(
+    config_dir: str,
+    task_id: str,
+    host: str,
+) -> dict:
+    """
+    Convenience wrapper for single-host triage.
+    Identical shape to run_analyze(), but scopes to one host and lets server skip cross-device.
+    """
+    host = (host or "").strip()
+    if not host:
+        return {"error": "host is required"}
+    return run_analyze_hosts(config_dir, task_id, [host])
