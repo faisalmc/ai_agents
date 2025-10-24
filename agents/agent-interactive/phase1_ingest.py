@@ -203,12 +203,19 @@ def normalize_to_ies(event: Dict[str, Any], family: str) -> Optional[Dict[str, A
             f"Raw event: {json.dumps(event)}"
         )
 
+        # Log what the LLM is being asked
+        logger.debug(f"[LLM PROMPT] ===\n{prompt}\n=== END PROMPT ===")
+
         messages = [{"role": "user", "content": prompt}]
         response = call_llm(messages=messages, temperature=0)  # NOTE: messages=..., not prompt=
+
         # logging to check LLM response in JSON format or not
         logger.debug(f"LLM raw response: {response[:500]}")
+
         ies_json = json.loads(response)
+        logger.info(f"LLM normalization successful for family={family}")
         return ies_json
+
     except Exception as exc:
         logger.error(f"LLM normalization failed: {exc}")
         append_feedback("llm_normalization_error", {"error": str(exc)})
