@@ -1,0 +1,17 @@
+interface:
+  required: ["interface","status"]
+  optional: ["peer_ip","crc_error"]
+  keywords: ["interface","port","link","flap"]
+
+routing:
+  required: ["protocol","peer_ip","neighbor_state"]
+  keywords: ["bgp","ospf","isis","neighbor"]
+
+cpu:
+  required: ["utilization"]
+  keywords: ["cpu","processor","usage","load"]
+
+config:
+  required: ["user","change_type"]
+  keywords: ["commit","rollback","config"]
+
