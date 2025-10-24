@@ -199,23 +199,7 @@ services:
     restart: unless-stopped
     depends_on:
       - orchestrator_bot
-agent_interactive:
-  build:
-    context: ./agents/agent-interactive
-    dockerfile: Dockerfile
-  container_name: agent-interactive
-  env_file: .env
-  working_dir: /app/agents/agent-interactive
-  environment:
-    PYTHONPATH: /app:/app/shared
-    ORCH_CALLBACK_URL: http://orchestrator_bot:8099
-  volumes:
-    - ./:/app
-  command: python phase1_ingest.py
-  restart: unless-stopped
-  depends_on:
-    - orchestrator_bot
-    - kafka
+      - kafka
 
   # to run: kafka need Zookeeper or KRaft
   zookeeper:
