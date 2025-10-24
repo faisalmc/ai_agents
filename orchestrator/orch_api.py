@@ -1,5 +1,5 @@
 # orchestrator/orch_api.py
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 from typing import List, Optional
 import os, json
@@ -148,3 +148,43 @@ def agent8_callback(body: Agent8AnalysisPayload):
     #     return {"ok": True}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Slack post failed: {e}")
+
+
+# ---- interactive-agent callback to orchestrator when Kafka msg comes ---- #
+@app.post("/events/update")
+async def events_update(req: Request):
+    """
+    Generic callback endpoint for any agent (e.g., interactive-agent Phase 1)
+    that wants to post a Slack message via the orchestrator.
+    Expected JSON:
+    {
+        "type": "incident_normalized",
+        "data": {
+            "incident_id": "evt-xxxx",
+            "family": "interface",
+            "confidence": 0.87
+        }
+    }
+    """
+    body = await req.json()
+    event_type = body.get("type")
+    data = body.get("data", {})
+
+    # Build a simple Slack text message
+    text = (
+        f"*Incident Normalized*\n"
+        f"• ID: `{data.get('incident_id')}`\n"
+        f"• Family: `{data.get('family')}`\n"
+        f"• Confidence: {data.get('confidence')}"
+    )
+
+    # Post into the same Slack workspace the orchestrator already uses
+    slack_client.chat_postMessage(
+        channel=os.getenv("SLACK_DEFAULT_CHANNEL", "#ai-agents"),
+        text=text,
+        blocks=[
+            {"type": "section", "text": {"type": "mrkdwn", "text": text}},
+        ],
+    )
+    return {"ok": True}
+
