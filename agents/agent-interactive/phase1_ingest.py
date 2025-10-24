@@ -146,10 +146,15 @@ def classify_family(symptom_text: str) -> str:
         prompt = (
             "Classify the issue family for the following symptom text.\n"
             "Families and sample keywords:\n" + "\n".join(examples) +
-            f"\n\nSymptom: {symptom_text}\nRespond with only one family name."
+            f"\n\nSymptom: {symptom_text}\n"
+            "Respond with only one family name from the list above."
         )
-        response = call_llm(prompt=prompt, temperature=0)
+
+        messages = [{"role": "user", "content": prompt}]
+        response = call_llm(messages=messages, temperature=0)  # NOTE: messages=..., not prompt=
         family = (response or "").strip().split()[0].lower()
+
+        # Keep result constrained to known families
         if family not in issue_families.keys():
             logger.warning(f"Unrecognized family from LLM: {family}")
             family = "unknown"
@@ -157,7 +162,6 @@ def classify_family(symptom_text: str) -> str:
     except Exception as exc:
         logger.error(f"Family classification failed: {exc}")
         return "unknown"
-
 
 # ---------------------------------------------------------------------------
 # Step 4 – Ontology Field Mapping
@@ -198,7 +202,9 @@ def normalize_to_ies(event: Dict[str, Any], family: str) -> Optional[Dict[str, A
             f"Family spec: {json.dumps(family_spec)}\n\n"
             f"Raw event: {json.dumps(event)}"
         )
-        response = call_llm(prompt=prompt, temperature=0)
+
+        messages = [{"role": "user", "content": prompt}]
+        response = call_llm(messages=messages, temperature=0)  # NOTE: messages=..., not prompt=
         ies_json = json.loads(response)
         return ies_json
     except Exception as exc:

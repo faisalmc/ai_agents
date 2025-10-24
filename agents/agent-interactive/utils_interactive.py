@@ -176,16 +176,16 @@ def _map_device_type(device_type: Optional[str]) -> Tuple[Optional[str], Optiona
     Mirrors orchestrator/slack_bot.py logic for consistency.
     basically consistent device type mapping logic.
     """
-    dt = (device_type or "").strip().lower()
-    if dt in ("cisco_xr", "iosxr", "cisco-iosxr", "cisco xr"):
+    dt = (device_type or "").strip().lower().replace("_", "-")
+    if "iosxr" in dt:
         return "cisco", "iosxr"
-    if dt in ("cisco_xe", "iosxe", "cisco-iosxe", "cisco ios", "ios"):
+    if "iosxe" in dt or dt in ("cisco-ios", "ios"):
         return "cisco", "iosxe"
-    if dt in ("nxos", "cisco_nxos", "cisco-nxos"):
+    if "nxos" in dt:
         return "cisco", "nxos"
-    if dt in ("junos", "juniper_junos", "juniper-junos"):
+    if "juniper" in dt or "junos" in dt:
         return "juniper", "junos"
-    if dt in ("eos", "arista_eos", "arista-eos"):
+    if "arista" in dt or "eos" in dt:       # if dt in ("eos", "arista_eos", "arista-eos"):
         return "arista", "eos"
     return None, None
 
