@@ -198,7 +198,7 @@ services:
     command: python phase1_ingest.py
     restart: unless-stopped
     depends_on:
-      - orchestrator-bot
+      - orchestrator_bot
 
   # to run: kafka need Zookeeper or KRaft
   zookeeper:
