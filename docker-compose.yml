@@ -185,7 +185,7 @@ services:
 
   agent_interactive:
     build:
-      context: ./agents/interactive-agent
+      context: ./agents/agent-interactive
       dockerfile: Dockerfile
     container_name: agent-interactive
     env_file: .env
