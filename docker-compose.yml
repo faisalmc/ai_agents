@@ -189,7 +189,7 @@ services:
       dockerfile: Dockerfile
     container_name: agent-interactive
     env_file: .env
-    working_dir: /app/agents/interactive-agent
+    working_dir: /app/agents/agent-interactive
     environment:
       PYTHONPATH: /app:/app/shared
       ORCH_CALLBACK_URL: http://orchestrator-bot:8099
