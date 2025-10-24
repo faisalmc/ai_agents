@@ -196,15 +196,17 @@ def normalize_to_ies(event: Dict[str, Any], family: str) -> Optional[Dict[str, A
     try:
         family_spec = issue_families.get(family, {})
         prompt = (
-            "Given the raw event JSON and mapped field names, "
-            "produce a normalized Incident Event Schema JSON object. "
-            "Use required and optional fields from the family specification.\n\n"
+            "You are a system that converts raw network events into a normalized Incident Event Schema (IES). "
+            "Respond ONLY with a valid JSON object — do not include explanations, text, or markdown. "
+            "Use required and optional fields from the following family specification.\n\n"
             f"Family spec: {json.dumps(family_spec)}\n\n"
             f"Raw event: {json.dumps(event)}"
         )
 
         messages = [{"role": "user", "content": prompt}]
         response = call_llm(messages=messages, temperature=0)  # NOTE: messages=..., not prompt=
+        # logging to check LLM response in JSON format or not
+        logger.debug(f"LLM raw response: {response[:500]}")
         ies_json = json.loads(response)
         return ies_json
     except Exception as exc:
