@@ -8,7 +8,7 @@ openai==0.27.4
 faiss-cpu==1.8.0      # or chromadb==0.5.0  (choose one later)
 kafka-python==2.0.2
 # ----- kafka testing -----
-python-dotenv==1.0.0
+#python-dotenv==1.0.0
 # -- embedding locally installed --
 # Force pip to pick CPU-only wheels from PyTorch index
 --index-url https://download.pytorch.org/whl/cpu
