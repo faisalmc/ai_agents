@@ -198,7 +198,14 @@ def normalize_to_ies(event: Dict[str, Any], family: str) -> Optional[Dict[str, A
         prompt = (
             "You are a system that converts raw network events into a normalized Incident Event Schema (IES). "
             "Respond ONLY with a valid JSON object — do not include explanations, text, or markdown. "
-            "Use required and optional fields from the following family specification.\n\n"
+            "The JSON must include a 'family' object with the following structure:\n"
+            "{\n"
+            "  'family': {\n"
+            "     'type': '<family_name>',\n"
+            "     <required and optional fields from the spec>\n"
+            "  },\n"
+            "  'confidence': <0.0-1.0>\n"
+            "}\n\n"
             f"Family spec: {json.dumps(family_spec)}\n\n"
             f"Raw event: {json.dumps(event)}"
         )

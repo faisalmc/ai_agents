@@ -1,34 +1,68 @@
 """
+build_vecdb.py
+--------------
 Builds FAISS vector index (fields.vecdb) from canonical fields in synonyms.yaml.
 Run once initially or weekly to refresh ontology embeddings.
+Author: Faisal Chaudhry
 
 Usage:
-    python build_vecdb.py
+  python build_vecdb.py
 """
 
-import os, yaml, faiss, numpy as np
+import os, yaml, json, faiss, numpy as np
 from sentence_transformers import SentenceTransformer
+from datetime import datetime
 
-# Paths from env or defaults
-BASE_DIR = os.getenv("ONTOLOGY_DIR", "/app/shared/system/ontology")
-SYN_PATH = os.path.join(BASE_DIR, "synonyms.yaml")
-VEC_PATH = os.path.join(BASE_DIR, "fields.vecdb")
-MODEL_NAME = os.getenv("ONTOLOGY_EMB_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
+ONTOLOGY_DIR = "shared/system/ontology"
+SYNONYMS_YAML = os.path.join(ONTOLOGY_DIR, "synonyms.yaml")
+VECDB_PATH = os.path.join(ONTOLOGY_DIR, "fields.vecdb")
+META_PATH = os.path.join(ONTOLOGY_DIR, "fields.meta.json")
 
-print(f"[INFO] Building FAISS index from {SYN_PATH} using model {MODEL_NAME}")
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
-with open(SYN_PATH, "r", encoding="utf-8") as fh:
-    data = yaml.safe_load(fh) or {}
+def log(msg): print(f"[build_vecdb] {msg}")
 
-canon_fields = list(data.keys())
-print(f"[INFO] Found {len(canon_fields)} canonical fields: {canon_fields}")
+def build_index():
+    if not os.path.exists(SYNONYMS_YAML):
+        log(f"ERROR: File not found → {SYNONYMS_YAML}")
+        return
 
-model = SentenceTransformer(MODEL_NAME)
-embs = model.encode(canon_fields, normalize_embeddings=True)
-embs = np.asarray(embs, dtype="float32")
+    with open(SYNONYMS_YAML, "r", encoding="utf-8") as fh:
+        synonyms = yaml.safe_load(fh) or {}
 
-index = faiss.IndexFlatIP(embs.shape[1])  # cosine similarity via dot product
-index.add(embs)
+    if not synonyms:
+        log("ERROR: No entries in synonyms.yaml")
+        return
 
-faiss.write_index(index, VEC_PATH)
-print(f"[OK] Saved FAISS index to {VEC_PATH}")
+    canonical, phrases = [], []
+    for canon, alias_list in synonyms.items():
+        canonical.append(canon)
+        all_terms = [canon] + list(alias_list or [])
+        phrases.extend(all_terms)
+
+    log(f"Loaded {len(canonical)} canonical fields, {len(phrases)} total phrases")
+
+    # Create embeddings
+    try:
+        emb = model.encode(phrases, normalize_embeddings=True)
+    except Exception as e:
+        log(f"Embedding failed: {e}")
+        return
+
+    d = emb.shape[1]
+    index = faiss.IndexFlatIP(d)
+    index.add(np.array(emb).astype("float32"))
+
+    faiss.write_index(index, VECDB_PATH)
+    meta = {"fields": canonical, "phrases": phrases, "built_at": f"{datetime.utcnow():%Y-%m-%dT%H:%M:%SZ}"}
+    with open(META_PATH, "w", encoding="utf-8") as m:
+        json.dump(meta, m, indent=2)
+
+    log(f"✅ FAISS index written to {VECDB_PATH}")
+    log(f"✅ Metadata written to {META_PATH}")
+
+if __name__ == "__main__":
+    try:
+        build_index()
+    except Exception as e:
+        log(f"Unhandled error: {e}")
