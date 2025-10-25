@@ -289,22 +289,84 @@ def main() -> None:
         # Ontology mapping
         event = map_event_fields(event)
 
-        # LLM normalization
-        ies_json = normalize_to_ies(event, family)
-        if not ies_json:
+        # LLM normalization (returns {'family': {...}, 'confidence': ...})
+        ies_partial = normalize_to_ies(event, family)
+        if not ies_partial:
             logger.error("Normalization failed; aborting.")
             return
 
+        # Compose the full IES so we never drop critical context
+        ies_full = compose_final_ies(
+            incident_id=incident_id,
+            raw_event=event,      # already enriched in Step-2
+            family_type=family,
+            llm_out=ies_partial
+        )
+
         norm_path = os.path.join(ingest_dir, "1.2-normalized.json")
-        write_json(norm_path, ies_json)
+        write_json(norm_path, ies_full)
         logger.info(f"IES written: path={norm_path}")
 
-        # Validation & publish
-        validate_and_publish(incident_id, ies_json, family)
+        # Validation & publish use the full IES (validator already reads ies['family'])
+        validate_and_publish(incident_id, ies_full, family)
 
     except Exception as exc:
         logger.error(f"Unhandled exception in Phase-1: {exc}\n{traceback.format_exc()}")
 
+# ------------------------------------------ #
+# --- Final IES = Merging enrichment (Device/platform) + Raw_context + LLM_family_block --- #
+def compose_final_ies(
+    incident_id: str,
+    raw_event: Dict[str, Any],
+    family_type: str,
+    llm_out: Dict[str, Any]
+) -> Dict[str, Any]:
+    """
+    Build the final IES by combining:
+      - enrichment from raw_event['source'] (hostname/vendor/platform)
+      - raw context (ip, severity, timestamp, symptom/message)
+      - LLM output for the 'family' block + confidence
+    """
+    # Pull enrichment (added earlier in Step-2)
+    source = raw_event.get("source") or {}
+    hostname = source.get("hostname") or raw_event.get("device_name") or ""
+    vendor   = source.get("vendor") or ""
+    platform = source.get("platform") or ""
+    ip       = raw_event.get("ip") or ""
+
+    # Context from raw event
+    severity  = raw_event.get("severity") or ""
+    timestamp = raw_event.get("timestamp") or ""
+    symptom   = raw_event.get("symptom") or raw_event.get("message") or ""
+
+    # LLM output (already contains 'family' and optionally 'confidence')
+    family_block = (llm_out or {}).get("family") or {}
+    family_block["type"] = family_type  # enforce the classified family
+
+    # Confidence from LLM (fallback to 1.0)
+    try:
+        confidence = float((llm_out or {}).get("confidence", 1.0))
+    except Exception:
+        confidence = 1.0
+
+    ies = {
+        "incident_id": incident_id,
+        "source": {
+            "hostname": hostname,
+            "ip": ip,
+            "vendor": vendor,
+            "platform": platform,
+        },
+        "context": {
+            "severity": severity,
+            "timestamp": timestamp,
+            "event_class": family_type,
+        },
+        "symptom_text": symptom,
+        "family": family_block,
+        "confidence": confidence,
+    }
+    return ies
 
 if __name__ == "__main__":
     main()
