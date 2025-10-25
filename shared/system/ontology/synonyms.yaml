@@ -1,0 +1,13 @@
+interface:
+  - ifname
+  - port-id
+  - intf
+status:
+  - oper_state
+  - admin_status
+peer_ip:
+  - neighbor
+  - remote_address
+crc_error:
+  - crc
+  - frameerr

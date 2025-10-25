@@ -194,17 +194,116 @@ def _map_device_type(device_type: Optional[str]) -> Tuple[Optional[str], Optiona
 # Ontology Loader (FAISS / Chroma stub)
 # ---------------------------------------------------------------------------
 
-def ontology_map_fields(event_dict: Dict[str, Any]) -> Tuple[Dict[str, str], float]:
+def ontology_map_fields(event_dict: Dict[str, Any]) -> Tuple[Dict[str, Any], float]:
     """
-    Map raw event keys to canonical schema fields using ontology vector DB.
+    Map raw event keys to standardized field names using two methods:
+      1) Exact keyword lookup from synonyms.yaml
+      2) Semantic similarity lookup from fields.vecdb (FAISS)
+    Returns a tuple: (mapped_fields, confidence_score)
 
-    This function will later load shared/system/ontology/fields.vecdb
-    and perform similarity search (>0.8). For now, returns a static mock.
+    1- Reads synonyms.yaml and builds alias map --> {alias: canonical}
+    2- Matches exact words (case-insensitive) --> fast and deterministic
+    3- For unmatched keys, loads FAISS + SentenceTransformer --> semantic similarity
+    4- If similarity ≥ threshold → maps; else logs alert --> creates one line per low-confidence field
+    5- Confidence = total_matched / total_keys --> returned to caller
     """
-    # TODO: replace with FAISS or Chroma similarity search.
-    canonical_map = {"ifName": "interface", "port-id": "interface", "peer": "peer_ip"}
-    confidence = 0.9
-    return canonical_map, confidence
+
+    import yaml, faiss, numpy as np, json
+    from sentence_transformers import SentenceTransformer
+    from datetime import datetime
+
+    # --- Load paths and settings from environment ---
+    ontology_dir = os.getenv("ONTOLOGY_DIR", "/app/shared/system/ontology")
+    synonyms_path = os.path.join(ontology_dir, "synonyms.yaml")
+    vecdb_path = os.path.join(ontology_dir, "fields.vecdb")
+    feedback_dir = os.getenv("FEEDBACK_PATH", "/app/shared/system/feedback")
+    similarity_threshold = float(os.getenv("ONTOLOGY_FAISS_THRESHOLD", "0.8"))
+    model_name = os.getenv("ONTOLOGY_EMB_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
+
+    # --- STEP 1: Load synonyms dictionary ---
+    try:
+        with open(synonyms_path, "r", encoding="utf-8") as fh:
+            synonyms_data = yaml.safe_load(fh) or {}
+    except Exception as exc:
+        logger.warning(f"Could not load synonyms.yaml: {exc}")
+        synonyms_data = {}
+
+    # Build an alias → canonical dictionary for quick lookups
+    alias_map = {}
+    for canonical_field, aliases in synonyms_data.items():
+        alias_map[canonical_field.lower()] = canonical_field
+        for alias in (aliases or []):
+            alias_map[alias.lower()] = canonical_field
+
+    # --- STEP 2: First pass – exact synonym matches ---
+    mapped_fields = {}
+    unmatched_fields = []
+    total_keys = 0
+    matched_count = 0
+
+    for raw_key, value in (event_dict or {}).items():
+        total_keys += 1
+        key_lower = str(raw_key).lower()
+        canonical_field = alias_map.get(key_lower)
+        if canonical_field:
+            mapped_fields[canonical_field] = value
+            matched_count += 1
+        else:
+            unmatched_fields.append((raw_key, value))
+
+    # --- STEP 3: Second pass – semantic FAISS similarity for unmatched keys ---
+    try:
+        if unmatched_fields and os.path.exists(vecdb_path):
+            # Load FAISS index and embedding model
+            index = faiss.read_index(vecdb_path)
+            model = SentenceTransformer(model_name)
+            canonical_list = list(synonyms_data.keys())  # order matches embeddings in vecdb
+
+            # Create embeddings for the unmatched field names
+            unmatched_keys = [item[0] for item in unmatched_fields]
+            query_vectors = model.encode(unmatched_keys, normalize_embeddings=True)
+            query_vectors = np.asarray(query_vectors, dtype="float32")
+
+            # Search for top-1 closest canonical field for each raw key
+            similarities, indices = index.search(query_vectors, 1)
+
+            for i, (raw_key, value) in enumerate(unmatched_fields):
+                score = float(similarities[i][0])
+                best_index = int(indices[i][0])
+                best_field = canonical_list[best_index] if best_index < len(canonical_list) else None
+
+                if best_field and score >= similarity_threshold:
+                    mapped_fields[best_field] = value
+                    matched_count += 1
+                else:
+                    mapped_fields[raw_key] = value
+                    # Append a feedback entry for low-confidence match
+                    os.makedirs(feedback_dir, exist_ok=True)
+                    feedback_file = os.path.join(
+                        feedback_dir, f"events-{datetime.now():%Y%m%d}.jsonl"
+                    )
+                    feedback_record = {
+                        "type": "ontology_alert",
+                        "key": raw_key,
+                        "confidence": round(score, 3),
+                    }
+                    with open(feedback_file, "a", encoding="utf-8") as fb:
+                        fb.write(json.dumps(feedback_record) + "\n")
+        else:
+            # If FAISS or model missing, keep unmatched keys unchanged
+            for raw_key, value in unmatched_fields:
+                mapped_fields[raw_key] = value
+
+    except Exception as exc:
+        logger.warning(f"Ontology FAISS similarity search failed: {exc}")
+        # Fallback: keep original keys
+        for raw_key, value in unmatched_fields:
+            mapped_fields[raw_key] = value
+
+    # --- STEP 4: Calculate overall mapping confidence ---
+    confidence = matched_count / max(total_keys, 1)
+    logger.info(f"Ontology mapping completed: confidence={confidence:.2f}")
+    return mapped_fields, confidence
 
 
 # ---------------------------------------------------------------------------
