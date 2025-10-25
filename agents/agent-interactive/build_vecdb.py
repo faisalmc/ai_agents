@@ -13,7 +13,7 @@ import os, yaml, json, faiss, numpy as np
 from sentence_transformers import SentenceTransformer
 from datetime import datetime
 
-ONTOLOGY_DIR = "shared/system/ontology"
+ONTOLOGY_DIR = "/app/shared/system/ontology"
 SYNONYMS_YAML = os.path.join(ONTOLOGY_DIR, "synonyms.yaml")
 VECDB_PATH = os.path.join(ONTOLOGY_DIR, "fields.vecdb")
 META_PATH = os.path.join(ONTOLOGY_DIR, "fields.meta.json")
