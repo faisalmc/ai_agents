@@ -180,14 +180,14 @@ async def events_update(req: Request):
 
     # --- Build enriched Slack message ---
     text = (
-        f"*Incident Normalized*\n"
+        f"*New Incident received (Normalized)*\n"
         f"• ID: `{data.get('incident_id')}`\n"
-        f"• Family: `{data.get('family')}`\n"
+        f"• Issue Type: `{data.get('family')}`\n"
         f"• Confidence: {data.get('confidence')}\n"
-        f"• Hostname: `{data.get('hostname')}`\n"
+        f"• Device: `{data.get('hostname')}`\n"
         f"• Severity: `{data.get('severity')}`\n"
-        f"• Symptom: {data.get('symptom')}\n"
-        f"• Timestamp: {data.get('timestamp')}"
+        f"• **Symptom:** {data.get('symptom')}\n"
+        f"• **Timestamp:** {data.get('timestamp')}"
     )
 
     try:

@@ -111,23 +111,50 @@ def consume_event() -> Dict[str, Any]:
 
 def enrich_device(event: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Enrich event with vendor/platform/hostname information
+    Enrich event with hostname (friendly name), IP, vendor, and platform
     from shared/system/reference/devices.yaml.
+
+    - devices.yaml 'name'  → friendly hostname (A-PE-1)
+    - devices.yaml 'hostname' → management IP (192.168.100.101)
     """
-    ip = str(event.get("ip") or event.get("source_ip") or "")
-    name = event.get("device_name") or event.get("hostname") or ""
-    device_info = lookup_device_metadata(name)
+    ip = str(event.get("ip") or event.get("source_ip") or "").strip()
+    name = str(event.get("device_name") or event.get("hostname") or "").strip()
+
+    # Try lookup by name, then IP
+    device_info = lookup_device_metadata(name) or (lookup_device_metadata(ip) if ip else None)
+
     if device_info:
         event["source"] = {
-            "hostname": device_info.get("hostname"),
+            "hostname": device_info.get("hostname") or name or ip,  # friendly name
+            "ip": device_info.get("ip") or ip,
             "vendor": device_info.get("vendor"),
             "platform": device_info.get("platform"),
         }
-        logger.info(f"Device enriched: {name} → {device_info}")
+        logger.info(
+            f"Device enriched: name={name or ip}, "
+            f"hostname={event['source']['hostname']}, "
+            f"ip={event['source']['ip']}, "
+            f"vendor={event['source']['vendor']}, "
+            f"platform={event['source']['platform']}"
+        )
     else:
-        logger.warning(f"No device match found for {name or ip}")
-    return event
+        # Fallback to avoid empty source block
+        event["source"] = {
+            "hostname": name or ip,
+            "ip": ip,
+            "vendor": "unknown",
+            "platform": "unknown",
+        }
+        logger.warning(f"No device match found for {name or ip}; applied fallback: {event['source']}")
 
+    # --- Optional enrichment summary log for visibility ---
+    src = event.get("source", {})
+    logger.info(
+        f"[Enrichment Summary] Hostname={src.get('hostname')}, "
+        f"IP={src.get('ip')}, Vendor={src.get('vendor')}, Platform={src.get('platform')}"
+    )
+
+    return event
 
 # ---------------------------------------------------------------------------
 # Step 3 – Family Classification

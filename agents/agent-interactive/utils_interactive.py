@@ -141,29 +141,42 @@ def append_feedback(event_type: str, payload: Dict[str, Any]) -> None:
 # Device Metadata Lookup
 # ---------------------------------------------------------------------------
 
-def lookup_device_metadata(device_name: str) -> Optional[Dict[str, str]]:
+def lookup_device_metadata(device_name_or_ip: str) -> Optional[Dict[str, str]]:
     """
-    Enrich raw event with vendor/platform/hostname.
+    Look up a device by friendly name or management IP
+    using shared/system/reference/devices.yaml.
 
-    Lookup vendor, platform, and hostname for a given device.
-
-    This reads shared/system/reference/devices.yaml.
-    Schema example:
+    File schema:
       - name: A-RR-1
-        hostname: 192.168.100.111
-        username: cisco
-        password: cisco
+        hostname: 192.168.100.111   # management IP
         device_type: cisco_ios
+
+    Returns:
+      {
+        "hostname": <friendly name>,  # e.g. A-RR-1
+        "ip": <management IP>,        # e.g. 192.168.100.111
+        "vendor": <derived vendor>,
+        "platform": <derived platform>
+      }
     """
     devices_file = os.getenv("DEVICES_YAML", "shared/system/reference/devices.yaml")
     data = load_yaml_safe(devices_file)
     devices = data if isinstance(data, list) else data.get("devices") or []
 
+    target = str(device_name_or_ip).strip()
+    if not target:
+        return None
+
     for dev in devices:
-        if str(dev.get("name", "")).strip() == device_name:
-            vendor, platform = _map_device_type(dev.get("device_type"))
+        dev_name = str(dev.get("name", "")).strip()
+        dev_ip = str(dev.get("hostname", "")).strip()  # hostname field stores IP
+        vendor, platform = _map_device_type(dev.get("device_type"))
+
+        # Match by friendly name OR IP
+        if target in (dev_name, dev_ip):
             return {
-                "hostname": dev.get("hostname"),
+                "hostname": dev_name,   # Friendly name (for display)
+                "ip": dev_ip,           # Mgmt IP
                 "vendor": vendor,
                 "platform": platform,
             }
