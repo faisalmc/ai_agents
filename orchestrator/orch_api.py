@@ -11,7 +11,36 @@ from slack_sdk import WebClient
 # Import the existing Slack app instance so we can reuse its token/client
 from slack_bot import app as slack_app, build_triage_suggestion_blocks
 
+# import for thread_ts
+from datetime import datetime
+
 app = FastAPI(title="Orchestrator Callback API", version="0.1.0")
+
+# ---------------------------------------------------------------------------
+# Helper functions for storing and retrieving thread mappings
+# ---------------------------------------------------------------------------
+
+def load_threads() -> dict:
+    """Load incident → Slack thread mapping from JSON file."""
+    try:
+        with open(THREAD_FILE, "r") as fh:
+            return json.load(fh)
+    except FileNotFoundError:
+        return {}
+    except Exception as exc:
+        logger.warning(f"Could not read thread map: {exc}")
+        return {}
+
+def save_threads(data: dict) -> None:
+    """Persist incident → Slack thread mapping to disk."""
+    try:
+        os.makedirs(os.path.dirname(THREAD_FILE), exist_ok=True)
+        with open(THREAD_FILE, "w") as fh:
+            json.dump(data, fh, indent=2)
+    except Exception as exc:
+        logger.warning(f"Could not write thread map: {exc}")
+
+# ----------------------------- #
 
 # Reuse the WebClient the same way Slack Bolt does (same bot token)
 slack_client: WebClient = slack_app.client 
@@ -197,9 +226,49 @@ async def events_update(req: Request):
             text=text,
             blocks=[{"type": "section", "text": {"type": "mrkdwn", "text": text}}],
         )
-        logger.info(f"Slack message posted for incident {data.get('incident_id')}")
+        thread_ts = resp["ts"]
+        channel = resp["channel"]
+        incident_id = data.get("incident_id")
+
+        threads = load_threads()
+        threads[incident_id] = {
+            "channel": channel,
+            "thread_ts": thread_ts,
+            "created": datetime.utcnow().isoformat() + "Z",
+        }
+        save_threads(threads)
+
+        logger.info(f"Slack message posted for incident {incident_id} (thread_ts={thread_ts})")
+
     except Exception as exc:
         logger.warning(f"Slack post failed: {exc}")
 
     return {"ok": True}
+
+# ---------------------------------------------------------------------------
+# POST /events/thread_post – For later phases (Phase-2, 3, etc.)
+# ---------------------------------------------------------------------------
+
+@app.post("/events/thread_post")
+async def thread_post(req: Request):
+    """Post a follow-up message in the same Slack thread for an incident."""
+    body = await req.json()
+    incident_id = body.get("incident_id")
+    text = body.get("text")
+
+    threads = load_threads()
+    thread_info = threads.get(incident_id)
+    if not thread_info:
+        raise HTTPException(status_code=404, detail=f"No thread found for incident {incident_id}")
+
+    try:
+        slack_client.chat_postMessage(
+            channel=thread_info["channel"],
+            thread_ts=thread_info["thread_ts"],
+            text=text,
+        )
+        logger.info(f"Posted update to Slack thread for incident {incident_id}")
+        return {"ok": True}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Slack thread post failed: {exc}")
 
