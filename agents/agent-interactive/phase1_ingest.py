@@ -138,6 +138,9 @@ def classify_family(symptom_text: str) -> str:
     Use LLM to classify the issue family (interface, routing, cpu, config, etc.)
     using keywords from issue_families.yaml.
     """
+    
+    logger.info(f"[FamilyClassifier] LLM selected family='{family}' for symptom='{symptom_text[:80]}'")
+
     try:
         examples = []
         for fam, spec in issue_families.items():
@@ -150,8 +153,15 @@ def classify_family(symptom_text: str) -> str:
             "Respond with only one family name from the list above."
         )
 
+        # --- DEBUG LOGGING ---
+        logger.debug(f"[LLM FAMILY PROMPT] ===\n{prompt}\n=== END PROMPT ===")
+
         messages = [{"role": "user", "content": prompt}]
         response = call_llm(messages=messages, temperature=0)  # NOTE: messages=..., not prompt=
+
+        # --- DEBUG LOGGING OF RESPONSE ---
+        logger.debug(f"[LLM FAMILY RESPONSE] {response[:200]}")
+
         family = (response or "").strip().split()[0].lower()
 
         # Keep result constrained to known families
