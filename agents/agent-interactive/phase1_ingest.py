@@ -138,8 +138,8 @@ def classify_family(symptom_text: str) -> str:
     Use LLM to classify the issue family (interface, routing, cpu, config, etc.)
     using keywords from issue_families.yaml.
     """
-    
-    logger.info(f"[FamilyClassifier] LLM selected family='{family}' for symptom='{symptom_text[:80]}'")
+
+    family = "unknown"   # <-- define default early
 
     try:
         examples = []
@@ -162,16 +162,21 @@ def classify_family(symptom_text: str) -> str:
         # --- DEBUG LOGGING OF RESPONSE ---
         logger.debug(f"[LLM FAMILY RESPONSE] {response[:200]}")
 
-        family = (response or "").strip().split()[0].lower()
+        # Extract first word of response as the family label
+        if response:
+            family = (response or "").strip().split()[0].lower()
 
-        # Keep result constrained to known families
         if family not in issue_families.keys():
-            logger.warning(f"Unrecognized family from LLM: {family}")
+            logger.warning(f"[FamilyClassifier] Unrecognized family from LLM: {family}")
             family = "unknown"
-        return family
+
+        logger.info(f"[FamilyClassifier] LLM selected family='{family}' for symptom='{symptom_text[:80]}'")
+
     except Exception as exc:
-        logger.error(f"Family classification failed: {exc}")
-        return "unknown"
+        logger.error(f"[FamilyClassifier] Failed: {exc}")
+        family = "unknown"
+    
+    return family
 
 # ---------------------------------------------------------------------------
 # Step 4 – Ontology Field Mapping
