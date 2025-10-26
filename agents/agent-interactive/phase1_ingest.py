@@ -293,6 +293,8 @@ def validate_and_publish(incident_id: str, ies: Dict[str, Any], family: str) -> 
             logger.warning(f"Validation failed: missing={missing} conf={confidence}")
         else:
             publish_kafka(KAFKA_TOPIC_OUT, {"incident_id": incident_id})
+            # debugging -- before calling notify_orchestrator #
+            logger.debug(f"[PublishToOrch] IES Source: {json.dumps(ies.get('source', {}), indent=2)}")
             notify_orchestrator(
                 "incident_normalized",
                 {
@@ -301,6 +303,7 @@ def validate_and_publish(incident_id: str, ies: Dict[str, Any], family: str) -> 
                     "confidence": confidence,
                     "severity": ies.get("context", {}).get("severity"),
                     "hostname": ies.get("source", {}).get("hostname"),
+                    "ip": ies.get("source", {}).get("ip"),
                     "symptom": ies.get("symptom_text"),
                     "timestamp": ies.get("context", {}).get("timestamp")
                 }
@@ -385,7 +388,7 @@ def compose_final_ies(
     hostname = source.get("hostname") or raw_event.get("device_name") or ""
     vendor   = source.get("vendor") or ""
     platform = source.get("platform") or ""
-    ip       = raw_event.get("ip") or ""
+    ip       = source.get("ip") or raw_event.get("ip") or ""
 
     # Context from raw event
     severity  = raw_event.get("severity") or ""

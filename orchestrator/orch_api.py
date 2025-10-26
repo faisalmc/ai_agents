@@ -183,12 +183,12 @@ async def events_update(req: Request):
         f"*New Incident received (Normalized data):*\n"
         f"• ID: `{data.get('incident_id')}`\n"
         f"• Issue Type: `{data.get('family')}`\n"
-        f"• Confidence: {data.get('confidence')}\n"
+        f"• Confidence Level (0-1 = Low-High): `{data.get('confidence')}`\n"
         f"• Device: `{data.get('hostname')}`\n"
         f"• IP address: `{data.get('ip')}`\n"
         f"• Severity: `{data.get('severity')}`\n"
-        f"• Symptom: {data.get('symptom')}\n"
-        f"• Timestamp: {data.get('timestamp')}"
+        f"• Symptom: `{data.get('symptom')}`\n"
+        f"• Timestamp: `{data.get('timestamp')}`"
     )
 
     try:
