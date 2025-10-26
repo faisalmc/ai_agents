@@ -149,20 +149,28 @@ def agent8_callback(body: Agent8AnalysisPayload):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Slack post failed: {e}")
 
-
+# ------------------------------------------------------------------------ #
 # ---- interactive-agent callback to orchestrator when Kafka msg comes ---- #
+# NOTE: async =  this function may pause (await) while waiting for data or network operations
+#                — don’t block other requests in the meantime.
+
 @app.post("/events/update")
 async def events_update(req: Request):
     """
-    Generic callback endpoint for any agent (e.g., interactive-agent Phase 1)
+    Callback endpoint for any agent (e.g., interactive-agent Phase 1)
     that wants to post a Slack message via the orchestrator.
+
     Expected JSON:
     {
         "type": "incident_normalized",
         "data": {
             "incident_id": "evt-xxxx",
             "family": "interface",
-            "confidence": 0.87
+            "confidence": 0.87,
+            "hostname": "A-PE-1",
+            "severity": "major",
+            "symptom": "Link Gi0/0/0/1 down, CRC errors detected",
+            "timestamp": "2025-10-26T09:43Z"
         }
     }
     """
@@ -170,21 +178,27 @@ async def events_update(req: Request):
     event_type = body.get("type")
     data = body.get("data", {})
 
-    # Build a simple Slack text message
+    # --- Build enriched Slack message ---
     text = (
         f"*Incident Normalized*\n"
         f"• ID: `{data.get('incident_id')}`\n"
         f"• Family: `{data.get('family')}`\n"
-        f"• Confidence: {data.get('confidence')}"
+        f"• Confidence: {data.get('confidence')}\n"
+        f"• Hostname: `{data.get('hostname')}`\n"
+        f"• Severity: `{data.get('severity')}`\n"
+        f"• Symptom: {data.get('symptom')}\n"
+        f"• Timestamp: {data.get('timestamp')}"
     )
 
-    # Post into the same Slack workspace the orchestrator already uses
-    slack_client.chat_postMessage(
-        channel=os.getenv("SLACK_DEFAULT_CHANNEL", "#ai-agents"),
-        text=text,
-        blocks=[
-            {"type": "section", "text": {"type": "mrkdwn", "text": text}},
-        ],
-    )
+    try:
+        slack_client.chat_postMessage(
+            channel=os.getenv("SLACK_DEFAULT_CHANNEL", "#ai-agents"),
+            text=text,
+            blocks=[{"type": "section", "text": {"type": "mrkdwn", "text": text}}],
+        )
+        logger.info(f"Slack message posted for incident {data.get('incident_id')}")
+    except Exception as exc:
+        logger.warning(f"Slack post failed: {exc}")
+
     return {"ok": True}
 

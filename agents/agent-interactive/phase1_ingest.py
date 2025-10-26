@@ -261,7 +261,18 @@ def validate_and_publish(incident_id: str, ies: Dict[str, Any], family: str) -> 
             logger.warning(f"Validation failed: missing={missing} conf={confidence}")
         else:
             publish_kafka(KAFKA_TOPIC_OUT, {"incident_id": incident_id})
-            notify_orchestrator("incident_normalized", {"incident_id": incident_id, "family": family, "confidence": confidence})
+            notify_orchestrator(
+                "incident_normalized",
+                {
+                    "incident_id": incident_id,
+                    "family": family,
+                    "confidence": confidence,
+                    "severity": ies.get("context", {}).get("severity"),
+                    "hostname": ies.get("source", {}).get("hostname"),
+                    "symptom": ies.get("symptom_text"),
+                    "timestamp": ies.get("context", {}).get("timestamp")
+                }
+            )
             logger.info(f"Validation passed and event published: id={incident_id}")
     except Exception as exc:
         logger.error(f"Validation error: {exc}")

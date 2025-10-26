@@ -325,6 +325,7 @@ def notify_orchestrator(event_type: str, payload: Dict[str, Any]) -> None:
 
     The URL is read from ORCH_CALLBACK_URL in .env.
     """
+    logger.debug(f"Sending orchestrator callback: {json.dumps({'type': event_type, 'data': payload}, indent=2)}")
     orch_url = os.getenv("ORCH_CALLBACK_URL")
     if not orch_url:
         logger.warning("ORCH_CALLBACK_URL not set; skipping orchestrator callback.")
