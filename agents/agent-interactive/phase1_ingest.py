@@ -18,6 +18,7 @@ Workflow Steps:
 import os
 import json
 import datetime
+import time
 import traceback
 from typing import Dict, Any, Optional
 from utils_interactive import (
@@ -324,8 +325,11 @@ def main() -> None:
     try:
         event = consume_event()
         if not event:
-            logger.error("No event loaded; exiting.")
-            return
+            # logger.error("No event loaded; exiting.")
+            # return
+            logger.debug("No new events from Kafka; sleeping 10s...")
+            time.sleep(10)
+            continue
 
         incident_id = generate_incident_id()
         ingest_dir = os.path.join(INCIDENT_ROOT, incident_id, "1-ingest")
@@ -368,6 +372,7 @@ def main() -> None:
 
     except Exception as exc:
         logger.error(f"Unhandled exception in Phase-1: {exc}\n{traceback.format_exc()}")
+        time.sleep(5)
 
 # ------------------------------------------ #
 # --- Final IES = Merging enrichment (Device/platform) + Raw_context + LLM_family_block --- #
