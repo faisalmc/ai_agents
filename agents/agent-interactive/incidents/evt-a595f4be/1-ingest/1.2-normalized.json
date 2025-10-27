@@ -1,0 +1,22 @@
+{
+  "incident_id": "evt-a595f4be",
+  "source": {
+    "hostname": "A-RR-1",
+    "ip": "192.168.100.111",
+    "vendor": "cisco",
+    "platform": "iosxe"
+  },
+  "context": {
+    "severity": "major",
+    "timestamp": "2025-10-26T12:04:45Z",
+    "event_class": "interface"
+  },
+  "symptom_text": "Interface Gi0/0/0/1 down, CRC errors",
+  "family": {
+    "type": "interface",
+    "interface": "Gi0/0/0/1",
+    "status": "down",
+    "crc_error": true
+  },
+  "confidence": 0.9
+}

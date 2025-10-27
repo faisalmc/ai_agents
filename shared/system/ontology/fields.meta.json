@@ -1,0 +1,24 @@
+{
+  "fields": [
+    "interface",
+    "status",
+    "peer_ip",
+    "crc_error"
+  ],
+  "phrases": [
+    "interface",
+    "ifname",
+    "port-id",
+    "intf",
+    "status",
+    "oper_state",
+    "admin_status",
+    "peer_ip",
+    "neighbor",
+    "remote_address",
+    "crc_error",
+    "crc",
+    "frameerr"
+  ],
+  "built_at": "2025-10-25T11:50:14Z"
+}

@@ -1,0 +1,9 @@
+{
+  "interface": "Gi0/0/0/1",
+  "status": "down",
+  "crc_error": true,
+  "timestamp": "2025-10-25T09:42:05Z",
+  "device_name": "A-RR-1",
+  "ip": "192.168.100.111",
+  "severity": "major"
+}

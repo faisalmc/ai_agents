@@ -1,0 +1,8 @@
+{
+  "interface": "Gi0/0/0/1",
+  "status": "down",
+  "crc_error": true,
+  "timestamp": "2025-10-24T17:36:50Z",
+  "device_name": "A-RR-1",
+  "severity": "major"
+}

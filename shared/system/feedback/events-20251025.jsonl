@@ -1,0 +1,27 @@
+{"timestamp": "2025-10-25T09:42:12.966637", "type": "parser_alert", "incident_id": "evt-9f155e64", "missing": ["interface", "status"], "confidence": 1.0}
+{"timestamp": "2025-10-25T10:29:15.470311", "type": "ontology_alert", "confidence": 0.0, "fields": ["device_name", "ip", "symptom", "severity", "timestamp", "source", "family_type"]}
+{"timestamp": "2025-10-25T10:29:16.580567", "type": "parser_alert", "incident_id": "evt-cca1bf93", "missing": ["interface", "status"], "confidence": 1.0}
+{"type": "ontology_alert", "key": "device_name", "confidence": 0.383}
+{"type": "ontology_alert", "key": "ip", "confidence": 0.672}
+{"type": "ontology_alert", "key": "symptom", "confidence": 0.298}
+{"type": "ontology_alert", "key": "severity", "confidence": 0.366}
+{"type": "ontology_alert", "key": "timestamp", "confidence": 0.297}
+{"type": "ontology_alert", "key": "source", "confidence": 0.243}
+{"type": "ontology_alert", "key": "family_type", "confidence": 0.228}
+{"timestamp": "2025-10-25T11:51:19.421752", "type": "ontology_alert", "confidence": 0.0, "fields": ["device_name", "ip", "symptom", "severity", "timestamp", "source", "family_type"]}
+{"type": "ontology_alert", "key": "device_name", "confidence": 0.383}
+{"type": "ontology_alert", "key": "ip", "confidence": 0.672}
+{"type": "ontology_alert", "key": "symptom", "confidence": 0.298}
+{"type": "ontology_alert", "key": "severity", "confidence": 0.366}
+{"type": "ontology_alert", "key": "timestamp", "confidence": 0.297}
+{"type": "ontology_alert", "key": "source", "confidence": 0.243}
+{"type": "ontology_alert", "key": "family_type", "confidence": 0.228}
+{"timestamp": "2025-10-25T11:55:47.840151", "type": "ontology_alert", "confidence": 0.0, "fields": ["device_name", "ip", "symptom", "severity", "timestamp", "source", "family_type"]}
+{"type": "ontology_alert", "key": "device_name", "confidence": 0.383}
+{"type": "ontology_alert", "key": "ip", "confidence": 0.672}
+{"type": "ontology_alert", "key": "symptom", "confidence": 0.298}
+{"type": "ontology_alert", "key": "severity", "confidence": 0.366}
+{"type": "ontology_alert", "key": "timestamp", "confidence": 0.297}
+{"type": "ontology_alert", "key": "source", "confidence": 0.243}
+{"type": "ontology_alert", "key": "family_type", "confidence": 0.228}
+{"timestamp": "2025-10-25T12:37:32.143583", "type": "ontology_alert", "confidence": 0.0, "fields": ["device_name", "ip", "symptom", "severity", "timestamp", "source", "family_type"]}

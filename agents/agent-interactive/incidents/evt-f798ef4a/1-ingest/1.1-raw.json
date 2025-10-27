@@ -1,0 +1,7 @@
+{
+  "device_name": "A-RR-1",
+  "ip": "192.168.100.111",
+  "symptom": "Interface Gi0/0/0/1 down, CRC errors",
+  "severity": "major",
+  "timestamp": "2025-10-25T11:50:49Z"
+}

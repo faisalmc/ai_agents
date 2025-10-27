@@ -1,0 +1,5 @@
+{"timestamp": "2025-10-24T16:46:18.690480", "type": "llm_normalization_error", "error": "call_llm() got an unexpected keyword argument 'prompt'"}
+{"timestamp": "2025-10-24T17:29:52.956776", "type": "llm_normalization_error", "error": "Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-10-24T17:36:55.744425", "type": "parser_alert", "incident_id": "evt-40dfa34c", "missing": ["status", "interface"], "confidence": 1.0}
+{"timestamp": "2025-10-24T17:38:41.741042", "type": "parser_alert", "incident_id": "evt-0b6d4fee", "missing": ["interface", "status"], "confidence": 1.0}
+{"timestamp": "2025-10-24T17:48:31.171643", "type": "parser_alert", "incident_id": "evt-28b77aaa", "missing": ["interface", "status"], "confidence": 1.0}
