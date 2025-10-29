@@ -87,7 +87,7 @@ def run_phase2(incident_id: str) -> None:
 
     # --- Step 4.1: Locate and load Phase-1 output ---
     norm_path = os.path.join(
-        INCIDENTS_DIR, incident_id, "1-ingest", "1-2-normalized.json"
+        INCIDENTS_DIR, incident_id, "1-ingest", "1.2-normalized.json"
     )
     normalized = _load_normalized_json(norm_path)
     print(f"[DEBUG] Loaded normalized JSON from {norm_path}", flush=True)
