@@ -32,13 +32,11 @@ from typing import Dict, List
 # Step 1: Import supporting Phase-2 modules
 # --------------------------------------------------------------------
 try:
-    from agents.agent_interactive import (
-        incident_commands_trusted,
-        incident_triage_llm,
-        incident_triage_history,
-    )
+    from incident_commands_trusted import *
+    from incident_triage_llm import *
+    from incident_triage_history import *
 except Exception as e:
-    raise ImportError(f"Failed to import Phase-2 modules: {e}")
+    raise ImportError(f"Failed to import Phase-2 incident_* modules: {e}")
 
 # --------------------------------------------------------------------
 # Step 2: Directories and constants
