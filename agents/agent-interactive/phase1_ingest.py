@@ -358,7 +358,7 @@ def main() -> None:
             # return
             logger.debug("No new events from Kafka; sleeping 10s...")
             time.sleep(10)
-            continue
+            return
 
         incident_id = generate_incident_id()
         ingest_dir = os.path.join(INCIDENT_ROOT, incident_id, "1-ingest")
