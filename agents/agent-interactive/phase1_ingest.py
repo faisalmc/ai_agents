@@ -35,6 +35,7 @@ from utils_interactive import (
 )
 from shared.llm_api import call_llm
 from kafka import KafkaConsumer # for kafka consumer message
+import threading
 
 logger = setup_logger("phase1_ingest", os.getenv("LOG_LEVEL", "INFO"))
 
@@ -276,6 +277,21 @@ def normalize_to_ies(event: Dict[str, Any], family: str) -> Optional[Dict[str, A
 # Step 6 – Validation & Feedback
 # ---------------------------------------------------------------------------
 
+    # ------------------------------------------------------------------
+    # Phase-2 Async Trigger (Option B)
+    # ------------------------------------------------------------------
+def trigger_phase2(inc_id: str):
+    """
+    Launch Phase-2 in a background thread.
+    This runs phase2_interactive.py for the same incident.
+    """
+    try:
+        cmd = f"python /app/agents/agent-interactive/phase2_interactive.py {inc_id}"
+        os.system(cmd)
+    except Exception as e:
+        logger.error(f"[Phase2Trigger] Failed for {inc_id}: {e}")
+
+
 def validate_and_publish(incident_id: str, ies: Dict[str, Any], family: str) -> None:
     """
     Validate IES fields based on issue_families.yaml.
@@ -294,6 +310,19 @@ def validate_and_publish(incident_id: str, ies: Dict[str, Any], family: str) -> 
             logger.warning(f"Validation failed: missing={missing} conf={confidence}")
         else:
             publish_kafka(KAFKA_TOPIC_OUT, {"incident_id": incident_id})
+            # ------------------------------------------------------------------
+            # Start Phase-2 in background so Phase-1 isn’t blocked
+            # ------------------------------------------------------------------
+            threading.Thread(
+                target=trigger_phase2,
+                args=(incident_id,),
+                daemon=True
+            ).start()
+            logger.info(f"[Phase-2] Background trigger started for incident {incident_id}")
+
+            # ------------------------------------------------------------------
+            # Notify orchestrator (unchanged)
+            # ------------------------------------------------------------------
             # debugging -- before calling notify_orchestrator #
             logger.debug(f"[PublishToOrch] IES Source: {json.dumps(ies.get('source', {}), indent=2)}")
             notify_orchestrator(
