@@ -32,9 +32,9 @@ from typing import Dict, List
 # Step 1: Import supporting Phase-2 modules
 # --------------------------------------------------------------------
 try:
-    from incident_commands_trusted
-    from incident_triage_llm
-    from incident_triage_history
+    import incident_commands_trusted
+    import incident_triage_llm
+    import incident_triage_history
 except Exception as e:
     raise ImportError(f"Failed to import Phase-2 incident_* modules: {e}")
 
