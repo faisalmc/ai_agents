@@ -32,16 +32,16 @@ from typing import Dict, List
 # Step 1: Import supporting Phase-2 modules
 # --------------------------------------------------------------------
 try:
-    from incident_commands_trusted import *
-    from incident_triage_llm import *
-    from incident_triage_history import *
+    from incident_commands_trusted # import *
+    from incident_triage_llm # import *
+    from incident_triage_history # import *
 except Exception as e:
     raise ImportError(f"Failed to import Phase-2 incident_* modules: {e}")
 
 # --------------------------------------------------------------------
 # Step 2: Directories and constants
 # --------------------------------------------------------------------
-BASE_DIR = "agents/agent-interactive"
+BASE_DIR = "/app/agents/agent-interactive"
 INCIDENTS_DIR = os.path.join(BASE_DIR, "incidents")
 LOGS_DIR = os.path.join(BASE_DIR, "logs")
 os.makedirs(LOGS_DIR, exist_ok=True)
