@@ -26,6 +26,10 @@ def call_llm(messages, model=None, temperature=0.0, max_retries=3):
     """
     if model is None:
         model = os.getenv("OPENAI_MODEL", "gpt-4o-mini").strip()
+
+    print(f"[DEBUG:call_llm] Model={model}, Temp={temperature}, Retries={max_retries}", flush=True)
+    print(f"[DEBUG:call_llm] Messages count={len(messages)}", flush=True)
+
     for attempt in range(max_retries):
         try:
             resp = openai.ChatCompletion.create(
@@ -33,7 +37,13 @@ def call_llm(messages, model=None, temperature=0.0, max_retries=3):
                 messages=messages,
                 temperature=temperature
             )
+            print("[DEBUG:call_llm] Received response from OpenAI.", flush=True)
+            print(f"[DEBUG:call_llm] Raw type={type(resp)}", flush=True)
+            print(f"[DEBUG:call_llm] Response keys={getattr(resp, 'keys', lambda: [])()}", flush=True)
             return resp.choices[0].message.content
         except RateLimitError:
+            print(f"[WARN:call_llm] Rate limit. Sleeping {2**attempt}s...", flush=True)
             time.sleep(2 ** attempt)
+        except Exception as e:
+            print(f"[ERROR:call_llm] Exception: {e}", flush=True)
     raise RuntimeError("LLM rate-limit or network failures after retries")
