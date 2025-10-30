@@ -147,7 +147,7 @@ def call_llm_json(prompt: str) -> Dict:
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        raw = call_llm(messages, temperature=LLM_TEMPERATURE)
+        raw = call_llm(messages=messages, temperature=LLM_TEMPERATURE)
 
         ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         debug_path = pathlib.Path(DEBUG_DIR) / f"llm_debug_{ts}.json"
