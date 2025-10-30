@@ -291,13 +291,12 @@ def trigger_phase2(inc_id: str):
         cmd = ["python", "/app/agents/agent-interactive/phase2_interactive.py", inc_id]
         subprocess.Popen(
             cmd,
-            stdout=subprocess.DEVNULL,  # detach stdout
-            stderr=subprocess.DEVNULL,  # detach stderr
-            start_new_session=True      # run in its own process group
+            start_new_session=True
         )
         logger.info(f"[Phase-2 Trigger] Spawned subprocess for {inc_id}")
     except Exception as e:
         logger.error(f"[Phase-2 Trigger] Failed for {inc_id}: {e}")
+
 
 def validate_and_publish(incident_id: str, ies: Dict[str, Any], family: str) -> None:
     """
