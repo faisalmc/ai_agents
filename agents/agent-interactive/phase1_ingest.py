@@ -36,6 +36,8 @@ from utils_interactive import (
 from shared.llm_api import call_llm
 from kafka import KafkaConsumer # for kafka consumer message
 import threading
+import subprocess # for trigger_phase2
+
 
 logger = setup_logger("phase1_ingest", os.getenv("LOG_LEVEL", "INFO"))
 
@@ -282,15 +284,20 @@ def normalize_to_ies(event: Dict[str, Any], family: str) -> Optional[Dict[str, A
     # ------------------------------------------------------------------
 def trigger_phase2(inc_id: str):
     """
-    Launch Phase-2 in a background thread.
-    This runs phase2_interactive.py for the same incident.
+    Launch Phase-2 in a fully detached subprocess (non-blocking).
+    This avoids Docker/TTY blocking issues seen with os.system().
     """
     try:
-        cmd = f"python /app/agents/agent-interactive/phase2_interactive.py {inc_id}"
-        os.system(cmd)
+        cmd = ["python", "/app/agents/agent-interactive/phase2_interactive.py", inc_id]
+        subprocess.Popen(
+            cmd,
+            stdout=subprocess.DEVNULL,  # detach stdout
+            stderr=subprocess.DEVNULL,  # detach stderr
+            start_new_session=True      # run in its own process group
+        )
+        logger.info(f"[Phase-2 Trigger] Spawned subprocess for {inc_id}")
     except Exception as e:
-        logger.error(f"[Phase2Trigger] Failed for {inc_id}: {e}")
-
+        logger.error(f"[Phase-2 Trigger] Failed for {inc_id}: {e}")
 
 def validate_and_publish(incident_id: str, ies: Dict[str, Any], family: str) -> None:
     """
