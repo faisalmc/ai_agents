@@ -35,7 +35,8 @@ def call_llm(messages, model=None, temperature=0.0, max_retries=3):
             resp = openai.ChatCompletion.create(
                 model=model,
                 messages=messages,
-                temperature=temperature
+                temperature=temperature,
+                timeout=15  # seconds — prevents indefinite blocking
             )
             print("[DEBUG:call_llm] Received response from OpenAI.", flush=True)
             print(f"[DEBUG:call_llm] Raw type={type(resp)}", flush=True)
@@ -45,5 +46,6 @@ def call_llm(messages, model=None, temperature=0.0, max_retries=3):
             print(f"[WARN:call_llm] Rate limit. Sleeping {2**attempt}s...", flush=True)
             time.sleep(2 ** attempt)
         except Exception as e:
-            print(f"[ERROR:call_llm] Exception: {e}", flush=True)
+            print(f"[ERROR:call_llm] Exception type={type(e).__name__}, msg={e}", flush=True)
+            continue
     raise RuntimeError("LLM rate-limit or network failures after retries")
