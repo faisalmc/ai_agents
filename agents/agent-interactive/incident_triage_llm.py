@@ -30,10 +30,7 @@ except Exception:
     call_llm = None  # fallback if unavailable
 
 # Reuse classification helpers for tech buckets
-try:
-    from agents.agent_interactive import incident_commands_trusted
-except Exception:
-    import incident_commands_trusted  # local import fallback
+import incident_commands_trusted  
 
 # Dedicated debug folder for this agent
 DEBUG_DIR = "/app/shared/_incident_knowledge/llm_debug"
@@ -183,7 +180,18 @@ def incident_llm_propose(normalized: Dict) -> Dict:
     print(f"[DEBUG] Prompt (first 400 chars): {prompt[:400]}...\n", flush=True)
 
     # Step 2: Call LLM and parse JSON
+    ts = datetime.now(timezone.utc).isoformat()
+    print(f"[{ts}] [DEBUG] Calling LLM for proposal...", flush=True)
     result = call_llm_json(prompt)
+    ts = datetime.now(timezone.utc).isoformat()
+    print(f"[{ts}] [DEBUG] LLM propose response keys: {list(result.keys())}", flush=True)
+
+    # --- Extra debug for transparency ---
+    try:
+        print(f"[{datetime.now(timezone.utc).isoformat()}] [DEBUG] Full LLM response:\n{json.dumps(result, indent=2)[:1500]}...\n", flush=True)
+    except Exception as e:
+        print(f"[{datetime.now(timezone.utc).isoformat()}] [ERROR] Failed to print LLM response: {e}", flush=True)
+
     if not isinstance(result, dict):
         return {"recommended": [], "error": "Invalid LLM response format"}
 

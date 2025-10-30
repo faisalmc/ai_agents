@@ -85,6 +85,10 @@ def run_phase2(incident_id: str) -> None:
     """
     print(f"\n[INFO] === Running Phase-2 for incident {incident_id} ===", flush=True)
 
+    ts = datetime.now(timezone.utc).isoformat()
+    print(f"[{ts}] [DEBUG] Phase-2 working directory: {os.getcwd()}", flush=True)
+    print(f"[{ts}] [DEBUG] PYTHONPATH: {os.getenv('PYTHONPATH','<unset>')}", flush=True)
+
     # --- Step 4.1: Locate and load Phase-1 output ---
     norm_path = os.path.join(
         INCIDENTS_DIR, incident_id, "1-ingest", "1.2-normalized.json"
