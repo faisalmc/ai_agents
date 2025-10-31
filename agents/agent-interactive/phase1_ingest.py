@@ -294,14 +294,23 @@ def trigger_phase2(inc_id: str):
         cmd = ["python3", "/app/agents/agent-interactive/phase2_interactive.py", inc_id]
         log_file = f"/app/agents/agent-interactive/logs/phase2_{inc_id}.log"
 
+        # --- ensure log directory exists and capture environment for debug ---
+        os.makedirs(os.path.dirname(log_file), exist_ok=True)
+        logger.info(f"[DEBUG] Launching cmd: {cmd}")
+        logger.info(f"[DEBUG] Using cwd: /app/agents/agent-interactive")
+        logger.info(f"[DEBUG] PYTHONPATH: {env.get('PYTHONPATH')}")
+
+        # --- launch phase2 in correct working dir ---
         with open(log_file, "w") as lf:
             subprocess.Popen(
                 cmd,
+                cwd="/app/agents/agent-interactive",   # <— ensures correct path
                 env=env,
                 stdout=lf,
                 stderr=subprocess.STDOUT,
                 start_new_session=True,
             )
+
         logger.info(f"[Phase-2 Trigger] Spawned subprocess for {inc_id}, logs→{log_file}")
     except Exception as e:
         logger.error(f"[Phase-2 Trigger] Failed for {inc_id}: {e}")
