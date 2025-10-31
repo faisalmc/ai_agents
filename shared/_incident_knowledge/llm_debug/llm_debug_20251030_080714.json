@@ -1,0 +1,13 @@
+{
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a senior network troubleshooting assistant. You analyze structured incident information and propose relevant read-only diagnostic 'show' commands for Cisco devices (IOS XE / IOS XR / NX-OS). Always return STRICT JSON only \u2014 no explanations, markdown, or prose. If the command output shows an error (e.g., '% Invalid input', 'Unknown command'), include that context in analysis_text and still produce recommendations when possible."
+    },
+    {
+      "role": "user",
+      "content": "You are analyzing an automatically detected network incident.\nVendor: cisco\nPlatform: iosxe\nHostname: A-RR-1\nIP: 192.168.100.111\nSeverity: major\nEvent class: interface\nTimestamp (UTC): 2025-10-30T07:10:39Z\nDetector confidence: 0.9\nFamily block (context): {\"type\":\"interface\",\"interface\":\"Gi0/0/0/1\",\"status\":\"down\",\"crc_error\":true}\n\nDetected symptom:\n\"Interface Gi0/0/0/1 down, CRC errors\"\n\nYour task:\n- Propose 2\u20135 relevant *read-only* 'show' commands to begin diagnosis.\n- Prefer commands valid for the given vendor/platform.\n- Each recommendation MUST include:\n    - \"command\": the exact CLI string\n    - \"tech\": one of [bgp, ospf, isis, mpls, interfaces, routing, misc]\n    - \"trust_hint\": always \"low\"\n\n- Respond only with verifiable, factual recommendations derived from the data above.\n- If uncertain or insufficient context is available, reply with an empty 'recommended' list instead of guessing.\nReturn STRICT JSON only:\n{\n  \"recommended\": [\n    {\"command\": \"<cmd>\", \"tech\": \"<one-of-allowed>\", \"trust_hint\": \"low\"}\n  ]\n}"
+    }
+  ],
+  "raw": "{\n  \"recommended\": [\n    {\"command\": \"show interfaces Gi0/0/0/1\", \"tech\": \"interfaces\", \"trust_hint\": \"low\"},\n    {\"command\": \"show logging\", \"tech\": \"misc\", \"trust_hint\": \"low\"},\n    {\"command\": \"show controllers Gi0/0/0/1\", \"tech\": \"interfaces\", \"trust_hint\": \"low\"},\n    {\"command\": \"show interface status\", \"tech\": \"interfaces\", \"trust_hint\": \"low\"}\n  ]\n}"
+}
