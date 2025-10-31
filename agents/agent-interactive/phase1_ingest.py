@@ -288,15 +288,23 @@ def trigger_phase2(inc_id: str):
     This avoids Docker/TTY blocking issues seen with os.system().
     """
     try:
-        cmd = ["python", "/app/agents/agent-interactive/phase2_interactive.py", inc_id]
-        subprocess.Popen(
-            cmd,
-            start_new_session=True
-        )
-        logger.info(f"[Phase-2 Trigger] Spawned subprocess for {inc_id}")
+        env = os.environ.copy()
+        env["PYTHONPATH"] = "/app:/app/shared"
+
+        cmd = ["python3", "/app/agents/agent-interactive/phase2_interactive.py", inc_id]
+        log_file = f"/app/agents/agent-interactive/logs/phase2_{inc_id}.log"
+
+        with open(log_file, "w") as lf:
+            subprocess.Popen(
+                cmd,
+                env=env,
+                stdout=lf,
+                stderr=subprocess.STDOUT,
+                start_new_session=True,
+            )
+        logger.info(f"[Phase-2 Trigger] Spawned subprocess for {inc_id}, logs→{log_file}")
     except Exception as e:
         logger.error(f"[Phase-2 Trigger] Failed for {inc_id}: {e}")
-
 
 def validate_and_publish(incident_id: str, ies: Dict[str, Any], family: str) -> None:
     """
