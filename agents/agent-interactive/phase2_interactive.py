@@ -38,6 +38,8 @@ try:
 except Exception as e:
     raise ImportError(f"Failed to import Phase-2 incident_* modules: {e}")
 
+import subprocess
+
 # --------------------------------------------------------------------
 # Step 2: Directories and constants
 # --------------------------------------------------------------------
@@ -118,10 +120,68 @@ def run_phase2(incident_id: str) -> None:
 
     print(f"[INFO] Trusted cmds: {len(trusted_cmds)}, Untrusted cmds: {len(untrusted_cmds)}", flush=True)
 
-    # --- Step 4.4: Simulate Agent-4 capture (placeholder) ---
-    # For now, we assume outputs = empty placeholders until Agent-4 provides real captures.
-    outputs = [f"(Simulated output for: {c})" for c in trusted_cmds + untrusted_cmds]
+    # # --- Step 4.4: Simulate Agent-4 capture (placeholder) ---
+    # # For now, we assume outputs = empty placeholders until Agent-4 provides real captures.
+    # outputs = [f"(Simulated output for: {c})" for c in trusted_cmds + untrusted_cmds]
+    # all_cmds = trusted_cmds + untrusted_cmds
+
+
+    # --- Step 4.4: Capture all commands (trusted + untrusted) ---
+    plan_ini = os.path.join(INCIDENTS_DIR, incident_id, "2-analyze", "plan.ini")
+    capture_dir = os.path.join(INCIDENTS_DIR, incident_id, "2-analyze", "2-capture")
+    os.makedirs(capture_dir, exist_ok=True)
+
     all_cmds = trusted_cmds + untrusted_cmds
+    if not all_cmds:
+        print("[WARN] No commands to capture — skipping run_show_commands_interactive", flush=True)
+        outputs = []
+    else:
+        # --- Build plan.ini with per-host sections (same style as Agent-4/8) ---
+        host = normalized.get("source", {}).get("hostname", "unknown")
+        with open(plan_ini, "w", encoding="utf-8") as ini:
+            ini.write(f"[{host}]\n")
+            for cmd in all_cmds:
+                ini.write(f"{cmd}\n")
+        print(f"[DEBUG] Wrote plan.ini → {plan_ini}", flush=True)
+
+        # --- Run capture synchronously ---
+        capture_script = "/app/agents/agent-interactive/run_show_commands_interactive.py"
+        cmd = ["python3", capture_script, "--ini", plan_ini, "--out-dir", capture_dir]
+        try:
+            print(f"[INFO] Starting capture for {host} ({len(all_cmds)} cmds)", flush=True)
+            subprocess.run(cmd, check=True)
+            print(f"[INFO] Capture completed → {capture_dir}", flush=True)
+        except subprocess.CalledProcessError as e:
+            print(f"[ERROR] Capture script failed: {e}", flush=True)
+
+        # --- Parse Markdown logs to collect outputs ---
+        from shared.helpers import extract_cmd_output
+        log_path = os.path.join(capture_dir, f"{host}.md")
+        if not os.path.isfile(log_path):
+            print(f"[ERROR] Missing capture log: {log_path}", flush=True)
+            outputs = []
+        else:
+            body = open(log_path, encoding="utf-8").read()
+            outputs = []
+            for cmd in all_cmds:
+                out = extract_cmd_output(body, cmd)
+                outputs.append(out)
+
+        # --- Promote successful untrusted commands ---
+        ERROR_MARKERS = [
+            "% Invalid input", "Unknown command",
+            "Incomplete command", "Ambiguous command"
+        ]
+        promoted = []
+        vendor = normalized.get("source", {}).get("vendor", "unknown")
+        platform = normalized.get("source", {}).get("platform", "unknown")
+
+        for cmd, out in zip(untrusted_cmds, outputs[-len(untrusted_cmds):] or []):
+            if out and not any(m in out for m in ERROR_MARKERS):
+                incident_commands_trusted.promote(cmd, vendor, platform, None)
+                promoted.append(cmd)
+        print(f"[INFO] Promoted {len(promoted)} new trusted commands", flush=True)
+
 
     # --- Step 4.5: Run analyzer step ---
     history = incident_triage_history.collect_recent_steps(incident_id)
