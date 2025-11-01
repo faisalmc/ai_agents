@@ -89,6 +89,7 @@ def consume_event() -> Dict[str, Any]:
                 enable_auto_commit=True,
                 value_deserializer=lambda m: json.loads(m.decode("utf-8")),
                 consumer_timeout_ms=10000,   # stop if nothing received
+                group_id="agent-interactive-phase1",
             )
 
             logger.info(f"Listening to Kafka topic '{topic}' on broker '{broker}'...")

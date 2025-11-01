@@ -258,6 +258,7 @@ def consume_normalized_events():
             enable_auto_commit=True,
             value_deserializer=lambda m: json.loads(m.decode("utf-8")),
             consumer_timeout_ms=5000,  # check more frequently
+            group_id="agent-interactive-phase2",
         )
 
         while True:
