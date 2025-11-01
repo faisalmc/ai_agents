@@ -12,6 +12,7 @@ import os
 import time
 import openai
 from openai.error import RateLimitError
+import socket
 
 # load API key once
 openai.api_key = os.getenv("OPENAI_API_KEY", "").strip()
@@ -32,6 +33,7 @@ def call_llm(messages, model=None, temperature=0.0, max_retries=3):
 
     for attempt in range(max_retries):
         try:
+            print(f"\n[DEBUG:call_llm] ---- within for loop ---- before openai.ChatCompletion.create ---\n")
             resp = openai.ChatCompletion.create(
                 model=model,
                 messages=messages,
@@ -48,4 +50,7 @@ def call_llm(messages, model=None, temperature=0.0, max_retries=3):
         except Exception as e:
             print(f"[ERROR:call_llm] Exception type={type(e).__name__}, msg={e}", flush=True)
             continue
-    raise RuntimeError("LLM rate-limit or network failures after retries")
+        except (socket.timeout, openai.error.Timeout, openai.error.APIConnectionError) as e:
+            print(f"[ERROR:call_llm] Timeout/APIConnectionError: {e}", flush=True)
+            continue
+    raise RuntimeError(f"LLM failed after {max_retries} retries — check API key or network access.")
