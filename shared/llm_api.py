@@ -31,9 +31,10 @@ def call_llm(messages, model=None, temperature=0.0, max_retries=3):
     print(f"[DEBUG:call_llm] Model={model}, Temp={temperature}, Retries={max_retries}", flush=True)
     print(f"[DEBUG:call_llm] Messages count={len(messages)}", flush=True)
 
-    for attempt in range(max_retries):
+    for attempt in range(max_retries + 1):
         try:
             print(f"\n[DEBUG:call_llm] ---- within for loop ---- before openai.ChatCompletion.create ---\n")
+            print(f"[DEBUG:call_llm] Attempt {attempt}/{max_retries} → calling OpenAI...", flush=True)
             resp = openai.ChatCompletion.create(
                 model=model,
                 messages=messages,
@@ -47,10 +48,12 @@ def call_llm(messages, model=None, temperature=0.0, max_retries=3):
         except RateLimitError:
             print(f"[WARN:call_llm] Rate limit. Sleeping {2**attempt}s...", flush=True)
             time.sleep(2 ** attempt)
+            last_error = e
         except Exception as e:
             print(f"[ERROR:call_llm] Exception type={type(e).__name__}, msg={e}", flush=True)
+            last_error = e
             continue
         except (socket.timeout, openai.error.Timeout, openai.error.APIConnectionError) as e:
             print(f"[ERROR:call_llm] Timeout/APIConnectionError: {e}", flush=True)
             continue
-    raise RuntimeError(f"LLM failed after {max_retries} retries — check API key or network access.")
+    raise RuntimeError(f"LLM call failed after {max_retries} attempts. Last error: {last_error}")
