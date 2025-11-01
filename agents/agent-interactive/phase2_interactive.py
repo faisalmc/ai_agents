@@ -39,6 +39,9 @@ except Exception as e:
     raise ImportError(f"Failed to import Phase-2 incident_* modules: {e}")
 
 import subprocess
+from kafka import KafkaConsumer
+import traceback
+import time
 
 # --------------------------------------------------------------------
 # Step 2: Directories and constants
@@ -234,16 +237,55 @@ def run_phase2(incident_id: str) -> None:
 
     print(f"[INFO] Phase-2 complete for {incident_id}\n", flush=True)
 
-
 # --------------------------------------------------------------------
-# Step 5: CLI entrypoint
+# Step 5: Kafka consumer entrypoint (auto Phase-2 trigger)
+# --------------------------------------------------------------------
+
+def consume_normalized_events():
+    """
+    Listen to Kafka topic 'incident.normalized' and trigger Phase-2 automatically.
+    """
+    topic = os.getenv("KAFKA_TOPIC_OUT", "incident.normalized")
+    broker = os.getenv("KAFKA_BROKER", "localhost:9092")
+    print(f"[INFO] Listening for normalized incidents on topic '{topic}' @ {broker}", flush=True)
+
+    while True:
+        try:
+            consumer = KafkaConsumer(
+                topic,
+                bootstrap_servers=[broker],
+                auto_offset_reset="latest",
+                enable_auto_commit=True,
+                value_deserializer=lambda m: json.loads(m.decode("utf-8")),
+                consumer_timeout_ms=10000,
+            )
+
+            for msg in consumer:
+                payload = msg.value
+                incident_id = payload.get("incident_id")
+                if not incident_id:
+                    print(f"[WARN] Invalid payload: {payload}", flush=True)
+                    continue
+                print(f"[INFO] Received normalized incident: {incident_id}", flush=True)
+                run_phase2(incident_id)
+
+            consumer.close()
+            time.sleep(5)
+
+        except Exception as exc:
+            print(f"[ERROR] Kafka consumer loop error: {exc}\n{traceback.format_exc()}", flush=True)
+            time.sleep(10)
+    
+# --------------------------------------------------------------------
+# Step 6: CLI entrypoint & main
 # --------------------------------------------------------------------
 if __name__ == "__main__":
     import sys
 
-    if len(sys.argv) < 2:
-        print("Usage: python phase2_interactive.py <incident_id>")
-        sys.exit(1)
-
-    incident_id = sys.argv[1]
-    run_phase2(incident_id)
+    # Mode 1: Direct CLI call → python phase2_interactive.py <incident_id>
+    if len(sys.argv) == 2:
+        incident_id = sys.argv[1]
+        run_phase2(incident_id)
+    else:
+        # Mode 2: Kafka listener (auto Phase-2 trigger)
+        consume_normalized_events()

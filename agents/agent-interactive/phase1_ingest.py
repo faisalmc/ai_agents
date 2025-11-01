@@ -302,14 +302,18 @@ def trigger_phase2(inc_id: str):
 
         # --- launch phase2 in correct working dir ---
         with open(log_file, "w") as lf:
-            subprocess.Popen(
+            proc = subprocess.Popen(
                 cmd,
-                cwd="/app/agents/agent-interactive",   # <— ensures correct path
+                cwd="/app/agents/agent-interactive",   # <— this is correct path
                 env=env,
                 stdout=lf,
-                stderr=subprocess.STDOUT,
+                stdout=subprocess.PIPE,                 # stderr=subprocess.STDOUT,
                 start_new_session=True,
             )
+            for line in proc.stdout:
+                decoded = line.decode().rstrip()
+                lf.write(decoded + "\n")
+                print(decoded, flush=True)   # <-- also visible in docker logs
 
         logger.info(f"[Phase-2 Trigger] Spawned subprocess for {inc_id}, logs→{log_file}")
     except Exception as e:
@@ -332,36 +336,30 @@ def validate_and_publish(incident_id: str, ies: Dict[str, Any], family: str) -> 
             append_feedback("parser_alert", {"incident_id": incident_id, "missing": missing, "confidence": confidence})
             logger.warning(f"Validation failed: missing={missing} conf={confidence}")
         else:
-            publish_kafka(KAFKA_TOPIC_OUT, {"incident_id": incident_id})
             # ------------------------------------------------------------------
-            # Start Phase-2 in background so Phase-1 isn’t blocked
+            # Start Phase-2 by publishing to Kafka Phase-2 consumer
             # ------------------------------------------------------------------
-            threading.Thread(
-                target=trigger_phase2,
-                args=(incident_id,),
-                daemon=True
-            ).start()
-            logger.info(f"[Phase-2] Background trigger started for incident {incident_id}")
+            payload = {
+                "incident_id": incident_id,
+                "family": family,
+                "confidence": confidence,
+                "severity": ies.get("context", {}).get("severity"),
+                "hostname": ies.get("source", {}).get("hostname"),
+                "ip": ies.get("source", {}).get("ip"),
+                "symptom": ies.get("symptom_text"),
+                "timestamp": ies.get("context", {}).get("timestamp"),
+            }
+            publish_kafka(KAFKA_TOPIC_OUT, payload)
+            logger.info(f"[Kafka] Published normalized incident → topic={KAFKA_TOPIC_OUT}")
+            logger.debug(json.dumps(payload, indent=2))
 
             # ------------------------------------------------------------------
-            # Notify orchestrator (unchanged)
+            # Notify orchestrator (for UI/alerting)
             # ------------------------------------------------------------------
             # debugging -- before calling notify_orchestrator #
-            logger.debug(f"[PublishToOrch] IES Source: {json.dumps(ies.get('source', {}), indent=2)}")
-            notify_orchestrator(
-                "incident_normalized",
-                {
-                    "incident_id": incident_id,
-                    "family": family,
-                    "confidence": confidence,
-                    "severity": ies.get("context", {}).get("severity"),
-                    "hostname": ies.get("source", {}).get("hostname"),
-                    "ip": ies.get("source", {}).get("ip"),
-                    "symptom": ies.get("symptom_text"),
-                    "timestamp": ies.get("context", {}).get("timestamp")
-                }
-            )
-            logger.info(f"Validation passed and event published: id={incident_id}")
+            logger.debug(f"[Publish To Orchestrator] IES Source: {json.dumps(ies.get('source', {}), indent=2)}")
+            notify_orchestrator("incident_normalized", payload)
+            logger.info(f"Validation passed and orchestrator notified: id={incident_id}")
     except Exception as exc:
         logger.error(f"Validation error: {exc}")
 
