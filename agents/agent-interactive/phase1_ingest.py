@@ -279,46 +279,6 @@ def normalize_to_ies(event: Dict[str, Any], family: str) -> Optional[Dict[str, A
 # Step 6 – Validation & Feedback
 # ---------------------------------------------------------------------------
 
-    # ------------------------------------------------------------------
-    # Phase-2 Async Trigger (Option B)
-    # ------------------------------------------------------------------
-def trigger_phase2(inc_id: str):
-    """
-    Launch Phase-2 in a fully detached subprocess (non-blocking).
-    This avoids Docker/TTY blocking issues seen with os.system().
-    """
-    try:
-        env = os.environ.copy()
-        env["PYTHONPATH"] = "/app:/app/shared"
-
-        cmd = ["python3", "/app/agents/agent-interactive/phase2_interactive.py", inc_id]
-        log_file = f"/app/agents/agent-interactive/logs/phase2_{inc_id}.log"
-
-        # --- ensure log directory exists and capture environment for debug ---
-        os.makedirs(os.path.dirname(log_file), exist_ok=True)
-        logger.info(f"[DEBUG] Launching cmd: {cmd}")
-        logger.info(f"[DEBUG] Using cwd: /app/agents/agent-interactive")
-        logger.info(f"[DEBUG] PYTHONPATH: {env.get('PYTHONPATH')}")
-
-        # --- launch phase2 in correct working dir ---
-        with open(log_file, "w") as lf:
-            proc = subprocess.Popen(
-                cmd,
-                cwd="/app/agents/agent-interactive",   # <— this is correct path
-                env=env,
-                stdout=lf,
-                stdout=subprocess.PIPE,                 # stderr=subprocess.STDOUT,
-                start_new_session=True,
-            )
-            for line in proc.stdout:
-                decoded = line.decode().rstrip()
-                lf.write(decoded + "\n")
-                print(decoded, flush=True)   # <-- also visible in docker logs
-
-        logger.info(f"[Phase-2 Trigger] Spawned subprocess for {inc_id}, logs→{log_file}")
-    except Exception as e:
-        logger.error(f"[Phase-2 Trigger] Failed for {inc_id}: {e}")
-
 def validate_and_publish(incident_id: str, ies: Dict[str, Any], family: str) -> None:
     """
     Validate IES fields based on issue_families.yaml.
