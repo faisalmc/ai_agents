@@ -195,11 +195,31 @@ services:
       ORCH_CALLBACK_URL: http://orchestrator-bot:8099
     volumes:
       - ./:/app
-    command: python phase1_ingest.py
-    restart: unless-stopped
+    # below cmd: phase1 kafka listener only 
+    # command: python phase1_ingest.py
+    # below cmd: phase1 & phase 2 kafka listeners
+    command: >
+      sh -c "python phase1_ingest.py & python phase2_interactive.py"    restart: unless-stopped
     depends_on:
       - orchestrator_bot
       - kafka
+
+# # option to run agent_interactive_phase2 as separate container 
+#   agent_interactive_phase2:
+#     build:
+#       context: ./agents/agent-interactive
+#       dockerfile: Dockerfile
+#     container_name: agent-interactive-phase2
+#     env_file: .env
+#     working_dir: /app/agents/agent-interactive
+#     environment:
+#       PYTHONPATH: /app:/app/shared
+#     volumes:
+#       - ./:/app
+#     command: python phase2_interactive.py
+#     restart: unless-stopped
+#     depends_on:
+#       - kafka
 
   # to run: kafka need Zookeeper or KRaft
   zookeeper:
