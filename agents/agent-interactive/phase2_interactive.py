@@ -244,23 +244,26 @@ def run_phase2(incident_id: str) -> None:
 def consume_normalized_events():
     """
     Listen to Kafka topic 'incident.normalized' and trigger Phase-2 automatically.
+    Runs continuously with periodic debug messages if no new events arrive.
     """
     topic = os.getenv("KAFKA_TOPIC_OUT", "incident.normalized")
     broker = os.getenv("KAFKA_BROKER", "localhost:9092")
     print(f"[INFO] Listening for normalized incidents on topic '{topic}' @ {broker}", flush=True)
 
-    while True:
-        try:
-            consumer = KafkaConsumer(
-                topic,
-                bootstrap_servers=[broker],
-                auto_offset_reset="latest",
-                enable_auto_commit=True,
-                value_deserializer=lambda m: json.loads(m.decode("utf-8")),
-                consumer_timeout_ms=10000,
-            )
+    try:
+        consumer = KafkaConsumer(
+            topic,
+            bootstrap_servers=[broker],
+            auto_offset_reset="latest",
+            enable_auto_commit=True,
+            value_deserializer=lambda m: json.loads(m.decode("utf-8")),
+            consumer_timeout_ms=5000,  # check more frequently
+        )
 
+        while True:
+            found = False
             for msg in consumer:
+                found = True
                 payload = msg.value
                 incident_id = payload.get("incident_id")
                 if not incident_id:
@@ -269,12 +272,13 @@ def consume_normalized_events():
                 print(f"[INFO] Received normalized incident: {incident_id}", flush=True)
                 run_phase2(incident_id)
 
-            consumer.close()
-            time.sleep(5)
+            if not found:
+                print("[DEBUG] No new normalized incidents; sleeping 10s...", flush=True)
+                time.sleep(10)
 
-        except Exception as exc:
-            print(f"[ERROR] Kafka consumer loop error: {exc}\n{traceback.format_exc()}", flush=True)
-            time.sleep(10)
+    except Exception as exc:
+        print(f"[ERROR] Kafka consumer loop error: {exc}\n{traceback.format_exc()}", flush=True)
+        time.sleep(10)
     
 # --------------------------------------------------------------------
 # Step 6: CLI entrypoint & main

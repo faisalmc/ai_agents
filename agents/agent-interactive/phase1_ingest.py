@@ -330,59 +330,58 @@ def validate_and_publish(incident_id: str, ies: Dict[str, Any], family: str) -> 
 
 def main() -> None:
     """
-    Orchestrate the full Phase-1 ingestion and normalization flow.
+    Orchestrate the full Phase-1 ingestion and normalization flow continuously.
     """
-    try:
-        event = consume_event()
-        if not event:
-            # logger.error("No event loaded; exiting.")
-            # return
-            logger.debug("No new events from Kafka; sleeping 10s...")
-            time.sleep(10)
-            return
+    while True:
+        try:
+            event = consume_event()
+            if not event:
+                logger.debug("No new events from Kafka; sleeping 10s...")
+                time.sleep(10)
+                continue
 
-        incident_id = generate_incident_id()
-        ingest_dir = os.path.join(INCIDENT_ROOT, incident_id, "1-ingest")
-        ensure_dirs(ingest_dir)
+            incident_id = generate_incident_id()
+            ingest_dir = os.path.join(INCIDENT_ROOT, incident_id, "1-ingest")
+            ensure_dirs(ingest_dir)
 
-        raw_path = os.path.join(ingest_dir, "1.1-raw.json")
-        write_json(raw_path, event)
+            raw_path = os.path.join(ingest_dir, "1.1-raw.json")
+            write_json(raw_path, event)
 
-        # Device enrichment
-        event = enrich_device(event)
+            # Device enrichment
+            event = enrich_device(event)
 
-        # Extract symptom text
-        symptom_text = event.get("symptom") or event.get("message") or json.dumps(event)
-        family = classify_family(symptom_text)
-        event["family_type"] = family
+            # Extract symptom text
+            symptom_text = event.get("symptom") or event.get("message") or json.dumps(event)
+            family = classify_family(symptom_text)
+            event["family_type"] = family
 
-        # Ontology mapping
-        event = map_event_fields(event)
+            # Ontology mapping
+            event = map_event_fields(event)
 
-        # LLM normalization (returns {'family': {...}, 'confidence': ...})
-        ies_partial = normalize_to_ies(event, family)
-        if not ies_partial:
-            logger.error("Normalization failed; aborting.")
-            return
+            # LLM normalization (returns {'family': {...}, 'confidence': ...})
+            ies_partial = normalize_to_ies(event, family)
+            if not ies_partial:
+                logger.error("Normalization failed; skipping event.")
+                continue
 
-        # Compose the full IES so we never drop critical context
-        ies_full = compose_final_ies(
-            incident_id=incident_id,
-            raw_event=event,      # already enriched in Step-2
-            family_type=family,
-            llm_out=ies_partial
-        )
+            # Compose the full IES so we never drop critical context
+            ies_full = compose_final_ies(
+                incident_id=incident_id,
+                raw_event=event,      # already enriched in Step-2
+                family_type=family,
+                llm_out=ies_partial
+            )
 
-        norm_path = os.path.join(ingest_dir, "1.2-normalized.json")
-        write_json(norm_path, ies_full)
-        logger.info(f"IES written: path={norm_path}")
+            norm_path = os.path.join(ingest_dir, "1.2-normalized.json")
+            write_json(norm_path, ies_full)
+            logger.info(f"IES written: path={norm_path}")
 
-        # Validation & publish use the full IES (validator already reads ies['family'])
-        validate_and_publish(incident_id, ies_full, family)
+            # Validation & publish use the full IES
+            validate_and_publish(incident_id, ies_full, family)
 
-    except Exception as exc:
-        logger.error(f"Unhandled exception in Phase-1: {exc}\n{traceback.format_exc()}")
-        time.sleep(5)
+        except Exception as exc:
+            logger.error(f"Unhandled exception in Phase-1: {exc}\n{traceback.format_exc()}")
+            time.sleep(5)
 
 # ------------------------------------------ #
 # --- Final IES = Merging enrichment (Device/platform) + Raw_context + LLM_family_block --- #
